@@ -34,7 +34,8 @@ jobs:
 
       - name: Configurar y compilar
         run: |
-          $QT_ROOT_DIR/bin/qt-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          chmod +x "$QT_ROOT_DIR"/bin/*
+          "$QT_ROOT_DIR"/bin/qt-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel
 
       - name: Preparar carpeta web
