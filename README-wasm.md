@@ -37,8 +37,13 @@ la URL.
    ```
    y abre `http://localhost:8000/FarmaciaSim.html`.
 5. Para usarlo desde el iPad: sube `FarmaciaSim.html` (renombrado a
-   `index.html`), `FarmaciaSim.js`, `FarmaciaSim.wasm` y `qtloader.js` a
-   cualquier hosting estático (GitHub Pages, Netlify, tu propio dominio…).
+   `index.html`), `FarmaciaSim.js`, `FarmaciaSim.wasm`, `qtloader.js` y
+   `favicon.svg` (está en la raíz del repo) a cualquier hosting estático
+   (GitHub Pages, Netlify, tu propio dominio…). Añade también en el
+   `<head>` de `index.html`:
+   ```html
+   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+   ```
 
 ## Qué esperar
 
@@ -46,6 +51,9 @@ la URL.
   rápido). Rendimiento sobrado para esta app.
 - Persistencia: automática en `localStorage`, por navegador y dispositivo.
   Si se borran los datos de navegación, vuelve a los valores del Excel.
-- La interfaz es la de escritorio; funciona con el dedo, pero los campos
-  son pequeños para tablet. Si el uso en iPad se vuelve habitual, merece
-  una pasada de adaptación táctil (campos más grandes, barra colapsable).
+- La interfaz se adapta a móvil/iPad: por debajo de 760px de ancho la
+  barra lateral se convierte en un menú deslizante (☰) y los campos son
+  táctiles (40px de alto, teclado numérico).
+- Los emojis del menú (📋🏦📈…) usan la fuente que trae Qt para WebAssembly,
+  que no incluye glifos de emoji a color; si se ven como cuadros vacíos,
+  es una limitación conocida de Qt WASM, no un error de la app.

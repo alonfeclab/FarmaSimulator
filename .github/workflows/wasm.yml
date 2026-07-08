@@ -45,6 +45,8 @@ jobs:
           cp build/FarmaciaSim.js build/FarmaciaSim.wasm web/
           cp build/qtloader.js web/ 2>/dev/null || true
           cp build/qtlogo.svg web/ 2>/dev/null || true
+          cp favicon.svg web/
+          sed -i 's#</head>#<link rel="icon" type="image/svg+xml" href="favicon.svg"></head>#' web/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

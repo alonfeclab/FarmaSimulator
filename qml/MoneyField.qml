@@ -29,6 +29,13 @@ TextField {
         border.width: 1
     }
 
+    Connections {
+        target: Nav
+        function onIrA(indice, foco) {
+            if (foco === root.k) Qt.callLater(root.forceActiveFocus)
+        }
+    }
+
     Component.onCompleted: text = display()
     onValueChanged: if (!activeFocus) text = display()
     onActiveFocusChanged: {

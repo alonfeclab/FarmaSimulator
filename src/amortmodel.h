@@ -14,6 +14,7 @@ class AmortModel : public QAbstractTableModel
     QML_UNCREATABLE("Lo crea Engine")
     Q_PROPERTY(QString titulo READ titulo CONSTANT)
     Q_PROPERTY(QVariantMap info READ info NOTIFY infoChanged)
+    Q_PROPERTY(double principal READ principal NOTIFY infoChanged)
 
 public:
     explicit AmortModel(const QString& titulo, QObject* parent = nullptr);
@@ -22,6 +23,7 @@ public:
 
     QString titulo() const { return m_titulo; }
     QVariantMap info() const;
+    double principal() const { return m_r.principal; }
 
     int rowCount(const QModelIndex& = {}) const override;
     int columnCount(const QModelIndex& = {}) const override;

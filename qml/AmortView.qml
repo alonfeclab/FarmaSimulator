@@ -10,6 +10,14 @@ Item {
 
     required property AmortModel loan
 
+    // Estado "vacío": se muestran cuando aún no hay importe de préstamo.
+    // Si emptyFocusKey queda vacío, esta pestaña nunca entra en modo vacío.
+    property string emptyTexto: ""
+    property string emptyBotonTexto: "Ir a Financiación"
+    property int emptyTabIndex: 1
+    property string emptyFocusKey: ""
+    readonly property bool vacio: page.emptyFocusKey !== "" && page.loan.principal <= 0
+
     readonly property var anchosCol: [48, 76, 112, 104, 104, 104, 112]
     readonly property int columnasResumen: width > 700 ? 4 : (width > 420 ? 2 : 1)
 
@@ -30,8 +38,40 @@ Item {
 
         Text { text: page.loan.titulo; font.pixelSize: 22; font.bold: true; color: "#14523f" }
 
+        // ---------------- estado vacío: aún no hay importe de préstamo
+        ColumnLayout {
+            visible: page.vacio
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.alignment: Qt.AlignCenter
+            spacing: 16
+
+            Item { Layout.fillHeight: true }
+            Text {
+                text: "📭"
+                font.pixelSize: 48
+                Layout.alignment: Qt.AlignHCenter
+            }
+            Text {
+                text: page.emptyTexto
+                font.pixelSize: 15
+                color: "#6b7a76"
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: 420
+            }
+            Button {
+                text: page.emptyBotonTexto
+                Layout.alignment: Qt.AlignHCenter
+                onClicked: Nav.irA(page.emptyTabIndex, page.emptyFocusKey)
+            }
+            Item { Layout.fillHeight: true }
+        }
+
         // ---------------- resumen del préstamo
         Rectangle {
+            visible: !page.vacio
             Layout.fillWidth: true
             radius: 12
             color: "white"
@@ -59,6 +99,7 @@ Item {
 
         // ---------------- tabla
         Rectangle {
+            visible: !page.vacio
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 12

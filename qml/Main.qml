@@ -22,15 +22,15 @@ ApplicationWindow {
     readonly property bool compact: width < breakpointCompacto
 
     readonly property var hojas: [
-        { nombre: "Datos Base",          icono: "📋" },
-        { nombre: "Financiación",        icono: "🏦" },
-        { nombre: "Proyección 10 Años",  icono: "📈" },
-        { nombre: "Impuestos",           icono: "🧾" },
-        { nombre: "Análisis Inversión",  icono: "🔍" },
-        { nombre: "Amort. Banco",        icono: "💶" },
-        { nombre: "Amort. Cooperativa",  icono: "🤝" },
-        { nombre: "Amort. Propiedades",  icono: "🏠" },
-        { nombre: "Personal",            icono: "👥" }
+        { nombre: "Datos Base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
+        { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
+        { nombre: "Proyección 10 Años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
+        { nombre: "Impuestos",           icono: "qrc:/qt/qml/FarmaciaSim/icons/impuestos.svg" },
+        { nombre: "Análisis Inversión",  icono: "qrc:/qt/qml/FarmaciaSim/icons/analisis.svg" },
+        { nombre: "Amort. Banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
+        { nombre: "Amort. Cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
+        { nombre: "Amort. Propiedades",  icono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg" },
+        { nombre: "Personal",            icono: "qrc:/qt/qml/FarmaciaSim/icons/personal.svg" }
     ]
 
     header: ToolBar {
@@ -57,16 +57,34 @@ ApplicationWindow {
                 background: Item {}
                 onClicked: drawer.open()
             }
-            Text {
-                text: win.hojas[stack.currentIndex].nombre
-                color: "white"
-                font.pixelSize: 16
-                font.bold: true
-                elide: Text.ElideRight
+            RowLayout {
                 Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
+                spacing: 8
+
+                Item { Layout.fillWidth: true }
+                Image {
+                    source: win.hojas[stack.currentIndex].icono
+                    sourceSize: Qt.size(20, 20)
+                    Layout.preferredWidth: 20
+                    Layout.preferredHeight: 20
+                }
+                Text {
+                    text: win.hojas[stack.currentIndex].nombre
+                    color: "white"
+                    font.pixelSize: 16
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+                Item { Layout.fillWidth: true }
             }
             Item { Layout.preferredWidth: 48 }
+        }
+    }
+
+    Connections {
+        target: Nav
+        function onIrA(indice, foco) {
+            stack.currentIndex = indice
         }
     }
 
@@ -115,7 +133,12 @@ ApplicationWindow {
             ImpuestosView {}
             AnalisisView {}
             AmortView { loan: Engine.banco }
-            AmortView { loan: Engine.cooperativa }
+            AmortView {
+                loan: Engine.cooperativa
+                emptyTexto: "No hay préstamo de cooperativa. Añádelo en Financiación."
+                emptyTabIndex: 1
+                emptyFocusKey: "pedidoInicial"
+            }
             AmortView { loan: Engine.propiedades }
             PersonalView {}
         }

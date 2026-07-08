@@ -50,7 +50,12 @@ Rectangle {
                     anchors.fill: parent
                     anchors.leftMargin: 12
                     spacing: 10
-                    Text { text: navItem.modelData.icono; font.pixelSize: 16 }
+                    Image {
+                        source: navItem.modelData.icono
+                        sourceSize: Qt.size(18, 18)
+                        Layout.preferredWidth: 18
+                        Layout.preferredHeight: 18
+                    }
                     Text {
                         text: navItem.modelData.nombre
                         color: "white"
