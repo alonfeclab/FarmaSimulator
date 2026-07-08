@@ -41,6 +41,7 @@ Flickable {
         Text {
             text: label; font.pixelSize: 13; font.bold: destacada
             color: destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
         Text {
             text: Fmt.eur(value); font.pixelSize: 14; font.bold: true
@@ -87,22 +88,22 @@ Flickable {
                     Layout.alignment: Qt.AlignTop
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "% amortización local (fijo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                        Text { text: "% amortización local (fijo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                         PctField { k: "impAmortLocalPct" }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "% amortización farmacia (mínimo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                        Text { text: "% amortización farmacia (mínimo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                         PctField { k: "impAmortMinPct" }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "% amortización farmacia (máximo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                        Text { text: "% amortización farmacia (máximo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                         PctField { k: "impAmortMaxPct" }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Mínimo personal exento (IRPF)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                        Text { text: "Mínimo personal exento (IRPF)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                         MoneyField { k: "minimoPersonal" }
                     }
                     CalcRow { label: "Deducción mínimo personal (× 19%)"; value: Engine.impuestos.deduccionMinimo }
@@ -120,7 +121,9 @@ Flickable {
                 implicitHeight: tabla.implicitHeight
                 contentWidth: page.wLabel + 10 * page.wCell
                 clip: true
-                ScrollBar.horizontal: ScrollBar {}
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 Column {
                     id: tabla

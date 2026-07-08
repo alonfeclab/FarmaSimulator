@@ -8,8 +8,8 @@ import FarmaciaSim
 Flickable {
     id: page
 
-    readonly property int wCell: 130
-    readonly property int wLabelEscenarios: 230
+    readonly property int wCell: 115
+    readonly property int wLabelEscenarios: 200
     readonly property bool angosto: width < 640
 
     contentWidth: width
@@ -42,6 +42,7 @@ Flickable {
         Text {
             text: label; font.pixelSize: 13; font.bold: destacada
             color: destacada ? "#14523f" : "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios
+            elide: Text.ElideRight
         }
         Repeater {
             model: vals
@@ -73,11 +74,15 @@ Flickable {
         Card {
             SectionTitle { text: "VALOR PATRIMONIO AÑO 10" }
 
-            ScrollView {
+            Flickable {
                 Layout.fillWidth: true
-                implicitHeight: patrimonioCol.implicitHeight
+                implicitHeight: patrimonioCol.height
+                contentWidth: patrimonioCol.width
+                contentHeight: patrimonioCol.height
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 ColumnLayout {
                     id: patrimonioCol
@@ -139,11 +144,15 @@ Flickable {
         // ---------------- Liquidez mensual
         Card {
             SectionTitle { text: "LIQUIDEZ MENSUAL" }
-            ScrollView {
+            Flickable {
                 Layout.fillWidth: true
-                implicitHeight: liquidezCol.implicitHeight
+                implicitHeight: liquidezCol.height
+                contentWidth: liquidezCol.width
+                contentHeight: liquidezCol.height
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 ColumnLayout {
                     id: liquidezCol
@@ -183,22 +192,22 @@ Flickable {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "Fondo de comercio inicial"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "Fondo de comercio inicial"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     MoneyField { k: "fdcInicialSim" }
                 }
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "% máx. FdC/año"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "% máx. FdC/año"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     PctField { k: "pctMaxFdC" }
                 }
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "% amort. local/año (máx. legal)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "% amort. local/año (máx. legal)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     PctField { k: "pctAmortLocal" }
                 }
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "Amort. local comercial/año"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "Amort. local comercial/año"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     Text { text: Fmt.eur(Engine.analisis.amortLocalAnual); font.pixelSize: 14; font.bold: true; color: "#1e2b28" }
                 }
             }
@@ -210,7 +219,9 @@ Flickable {
                 implicitHeight: tablaFdc.implicitHeight
                 contentWidth: 190 + 10 * 105
                 clip: true
-                ScrollBar.horizontal: ScrollBar {}
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 Column {
                     id: tablaFdc

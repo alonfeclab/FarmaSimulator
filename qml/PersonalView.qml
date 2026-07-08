@@ -63,11 +63,15 @@ Flickable {
         Card {
             SectionTitle { text: "1. DATOS DE PERSONAL — salarios y condiciones" }
 
-            ScrollView {
+            Flickable {
                 Layout.fillWidth: true
-                implicitHeight: datosPersonalCol.implicitHeight
+                implicitHeight: datosPersonalCol.height
+                contentWidth: datosPersonalCol.width
+                contentHeight: datosPersonalCol.height
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 ColumnLayout {
                     id: datosPersonalCol
@@ -157,11 +161,15 @@ Flickable {
         Card {
             SectionTitle { text: "2. PLANTILLA RECOMENDADA" }
 
-            ScrollView {
+            Flickable {
                 Layout.fillWidth: true
-                implicitHeight: plantillaCol.implicitHeight
+                implicitHeight: plantillaCol.height
+                contentWidth: plantillaCol.width
+                contentHeight: plantillaCol.height
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 ColumnLayout {
                     id: plantillaCol

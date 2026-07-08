@@ -25,6 +25,7 @@ Flickable {
             font.bold: destacada
             color: destacada ? "#14523f" : "#3c4a46"
             Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
         Text {
             text: Fmt.eur(value)
@@ -39,7 +40,7 @@ Flickable {
         property string label
         property string k
         Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         MoneyField { k: parent.k }
     }
 
@@ -76,7 +77,7 @@ Flickable {
                 CalcRow { label: "M. COMERCIAL BRUTO"; value: Engine.datosBase.mComBruto }
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "M. COMERCIAL BRUTO %"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "M. COMERCIAL BRUTO %"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     PctField { k: "margenPct" }
                 }
                 EditRow { label: "REALES DECRETOS"; k: "realesDecretos" }

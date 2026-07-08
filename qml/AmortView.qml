@@ -10,7 +10,7 @@ Item {
 
     required property AmortModel loan
 
-    readonly property var anchosCol: [56, 84, 128, 118, 118, 118, 128]
+    readonly property var anchosCol: [48, 76, 112, 104, 104, 104, 112]
     readonly property int columnasResumen: width > 700 ? 4 : (width > 420 ? 2 : 1)
 
     // Dato del resumen del préstamo
@@ -100,10 +100,11 @@ Item {
                     model: page.loan
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
+                    pressDelay: 150
                     columnWidthProvider: function(col) { return page.anchosCol[col] }
                     rowHeightProvider: function() { return 28 }
                     ScrollBar.vertical: ScrollBar {}
-                    ScrollBar.horizontal: ScrollBar {}
+                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                     delegate: Rectangle {
                         id: celda

@@ -34,7 +34,9 @@ Item {
                 contentWidth: page.wLabel + 10 * page.wCell
                 contentHeight: tabla.implicitHeight
                 clip: true
-                ScrollBar.horizontal: ScrollBar {}
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
                 ScrollBar.vertical: ScrollBar {}
 
                 Column {

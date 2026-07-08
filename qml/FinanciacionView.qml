@@ -38,6 +38,7 @@ Flickable {
         Text {
             text: label; font.pixelSize: 13; font.bold: destacada
             color: destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            wrapMode: Text.WordWrap
         }
         Text {
             text: Fmt.eur(value); font.pixelSize: 14; font.bold: true
@@ -49,7 +50,7 @@ Flickable {
         property string label
         property string k
         Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         MoneyField { k: parent.k }
     }
 
@@ -57,7 +58,7 @@ Flickable {
         property string label
         property string k
         Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         PctField { k: parent.k }
     }
 
@@ -65,7 +66,7 @@ Flickable {
         property string label
         property string k
         Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         NumField { k: parent.k; suffix: " años" }
     }
 
@@ -82,11 +83,15 @@ Flickable {
         // ---------------- Crecimientos previstos
         Card {
             SectionTitle { text: "CRECIMIENTOS PREVISTOS" }
-            ScrollView {
+            Flickable {
                 Layout.fillWidth: true
                 implicitHeight: crecGrid.implicitHeight
+                contentWidth: crecGrid.implicitWidth
+                contentHeight: crecGrid.implicitHeight
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
 
                 GridLayout {
                     id: crecGrid
@@ -119,7 +124,7 @@ Flickable {
             SectionTitle { text: "INVERSIÓN OPERACIÓN" }
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Coeficiente (sobre venta total)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                Text { text: "Coeficiente (sobre venta total)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 NumField { k: "coeficiente"; decimals: 1 }
             }
             CalcRow { label: "Fondo de Comercio"; value: Engine.financiacion.fondoComercio }
