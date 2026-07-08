@@ -1,0 +1,58 @@
+cmake_minimum_required(VERSION 3.21)
+project(FarmaciaSim VERSION 1.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2)
+
+qt_standard_project_setup(REQUIRES 6.5)
+
+qt_add_executable(FarmaciaSim
+    src/main.cpp
+    src/simcore.h
+    src/simcore.cpp
+    src/engine.h
+    src/engine.cpp
+    src/amortmodel.h
+    src/amortmodel.cpp
+    src/pdfreport.h
+    src/pdfreport.cpp
+)
+
+# Debe declararse ANTES de qt_add_qml_module
+set_source_files_properties(qml/Fmt.qml PROPERTIES
+    QT_QML_SINGLETON_TYPE TRUE
+)
+
+qt_add_qml_module(FarmaciaSim
+    URI FarmaciaSim
+    VERSION 1.0
+    # Nota: el proyecto debe estar en una ruta SIN acentos ni espacios
+    # (qmlimportscanner falla con ellas en Windows). El escaneo de imports
+    # es imprescindible para el build estático de WebAssembly.
+    QML_FILES
+        qml/Main.qml
+        qml/DatosBaseView.qml
+        qml/FinanciacionView.qml
+        qml/ProyeccionView.qml
+        qml/ImpuestosView.qml
+        qml/AnalisisView.qml
+        qml/AmortView.qml
+        qml/PersonalView.qml
+        qml/MoneyField.qml
+        qml/PctField.qml
+        qml/NumField.qml
+        qml/SectionTitle.qml
+        qml/Fmt.qml
+)
+
+# El código de registro QML generado incluye los headers por su nombre base
+target_include_directories(FarmaciaSim PRIVATE src)
+
+target_link_libraries(FarmaciaSim PRIVATE Qt6::Quick Qt6::QuickControls2)
+
+set_target_properties(FarmaciaSim PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)

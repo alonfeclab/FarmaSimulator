@@ -1,0 +1,61 @@
+# Compila FarmaciaSim a WebAssembly y lo publica en GitHub Pages.
+# Requisitos en el repositorio: Settings > Pages > Source = "GitHub Actions".
+name: WebAssembly
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Emscripten 4.0.7: versión exacta que exige Qt 6.11
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.7
+
+      # Qt para WebAssembly (+ Qt de escritorio para las herramientas host)
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          host: 'all_os'
+          target: 'wasm'
+          arch: 'wasm_singlethread'
+          modules: 'qtdeclarative'
+          extra: '--autodesktop'
+
+      - name: Configurar y compilar
+        run: |
+          $QT_ROOT_DIR/bin/qt-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+
+      - name: Preparar carpeta web
+        run: |
+          mkdir -p web
+          cp build/FarmaciaSim.html web/index.html
+          cp build/FarmaciaSim.js build/FarmaciaSim.wasm web/
+          cp build/qtloader.js web/ 2>/dev/null || true
+          cp build/qtlogo.svg web/ 2>/dev/null || true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

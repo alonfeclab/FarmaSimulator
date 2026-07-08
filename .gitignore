@@ -1,0 +1,34 @@
+# Build output (CMake / Qt / WebAssembly)
+build/
+build-*/
+out/
+web/
+
+# Qt Creator (config y cachés específicos de la máquina)
+.qtcreator/
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+*.autosave
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Emscripten / WebAssembly
+*.wasm
+*.js.map
+emsdk/
+
+# Claude Code (config local, no compartir)
+.claude/settings.local.json
+
+# Editores / SO
+.vscode/
+.vs/
+*.swp
+Thumbs.db
+.DS_Store
