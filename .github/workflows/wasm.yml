@@ -30,7 +30,6 @@ jobs:
           host: 'all_os'
           target: 'wasm'
           arch: 'wasm_singlethread'
-          modules: 'qtdeclarative'
           extra: '--autodesktop'
 
       - name: Configurar y compilar
