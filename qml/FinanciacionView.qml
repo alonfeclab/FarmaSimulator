@@ -8,6 +8,8 @@ import FarmaciaSim
 Flickable {
     id: page
 
+    readonly property bool angosto: width < 640
+
     contentWidth: width
     contentHeight: col.implicitHeight + 48
     clip: true
@@ -80,28 +82,35 @@ Flickable {
         // ---------------- Crecimientos previstos
         Card {
             SectionTitle { text: "CRECIMIENTOS PREVISTOS" }
-            GridLayout {
-                columns: 4
-                columnSpacing: 12
-                rowSpacing: 6
+            ScrollView {
                 Layout.fillWidth: true
+                implicitHeight: crecGrid.implicitHeight
+                clip: true
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-                Item { Layout.fillWidth: true }
-                Text { text: "Año 1"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
-                Text { text: "Año 2"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
-                Text { text: "Año 3+"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
+                GridLayout {
+                    id: crecGrid
+                    columns: 4
+                    columnSpacing: 12
+                    rowSpacing: 6
 
-                Text { text: "IPC"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                PctField { k: "ipc0" } PctField { k: "ipc1" } PctField { k: "ipc2" }
+                    Item { Layout.preferredWidth: 150 }
+                    Text { text: "Año 1"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
+                    Text { text: "Año 2"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
+                    Text { text: "Año 3+"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
 
-                Text { text: "Venta seguro"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                PctField { k: "crecSeguro0" } PctField { k: "crecSeguro1" } PctField { k: "crecSeguro2" }
+                    Text { text: "IPC"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    PctField { k: "ipc0" } PctField { k: "ipc1" } PctField { k: "ipc2" }
 
-                Text { text: "Venta libre"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                PctField { k: "crecLibre0" } PctField { k: "crecLibre1" } PctField { k: "crecLibre2" }
+                    Text { text: "Venta seguro"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    PctField { k: "crecSeguro0" } PctField { k: "crecSeguro1" } PctField { k: "crecSeguro2" }
 
-                Text { text: "M. Comercial"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                PctField { k: "margen0" } PctField { k: "margen1" } PctField { k: "margen2" }
+                    Text { text: "Venta libre"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    PctField { k: "crecLibre0" } PctField { k: "crecLibre1" } PctField { k: "crecLibre2" }
+
+                    Text { text: "M. Comercial"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    PctField { k: "margen0" } PctField { k: "margen1" } PctField { k: "margen2" }
+                }
             }
         }
 
@@ -129,7 +138,7 @@ Flickable {
         Card {
             SectionTitle { text: "TIPO Y PLAZO" }
             GridLayout {
-                columns: 2
+                columns: page.angosto ? 1 : 2
                 columnSpacing: 40
                 rowSpacing: 8
                 Layout.fillWidth: true

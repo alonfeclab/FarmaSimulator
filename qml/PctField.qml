@@ -14,10 +14,12 @@ TextField {
     function display() { return Fmt.num(value * 100, decimals) + " %" }
 
     implicitWidth: 80
+    implicitHeight: 40
     horizontalAlignment: TextInput.AlignRight
-    font.pixelSize: 13
+    font.pixelSize: 14
     color: "#1e2b28"
     selectByMouse: true
+    inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     background: Rectangle {
         radius: 5

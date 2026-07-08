@@ -63,71 +63,84 @@ Flickable {
         Card {
             SectionTitle { text: "1. DATOS DE PERSONAL — salarios y condiciones" }
 
-            RowLayout {
+            ScrollView {
                 Layout.fillWidth: true
-                spacing: 8
-                Text { text: "Tipo"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.fillWidth: true }
-                CabeceraCol { text: "Sal. bruto anual (FT)" }
-                CabeceraCol { text: "Jornada" }
-                CabeceraCol { text: "% SS empresa" }
-                CabeceraCol { text: "Coste SS/año" }
-                CabeceraCol { text: "Sal. real pagado/año" }
-                CabeceraCol { text: "Coste total/año" }
-                CabeceraCol { text: "% Subida s/ base" }
-            }
+                implicitHeight: datosPersonalCol.implicitHeight
+                clip: true
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-            // Farmacéutico
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                MoneyField { k: "salFarmaceutico"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                PctField { k: "jornFarmaceutico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                PctField { k: "pctSS"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                Celda { text: Fmt.eur(Engine.personal.datos[0].costeSS) }
-                Celda { text: Fmt.eur(Engine.personal.datos[0].salReal) }
-                Celda { text: Fmt.eur(Engine.personal.datos[0].costeTotal) }
-                PctField { k: "subidaPct"; Layout.preferredWidth: 108; implicitWidth: 108 }
-            }
-            // Auxiliar
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                MoneyField { k: "salAuxiliar"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                PctField { k: "jornAuxiliar"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
-                Celda { text: Fmt.eur(Engine.personal.datos[1].costeSS) }
-                Celda { text: Fmt.eur(Engine.personal.datos[1].salReal) }
-                Celda { text: Fmt.eur(Engine.personal.datos[1].costeTotal) }
-                Item { Layout.preferredWidth: 108 }
-            }
-            // Técnico
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                MoneyField { k: "salTecnico"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                PctField { k: "jornTecnico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
-                Celda { text: Fmt.eur(Engine.personal.datos[2].costeSS) }
-                Celda { text: Fmt.eur(Engine.personal.datos[2].salReal) }
-                Celda { text: Fmt.eur(Engine.personal.datos[2].costeTotal) }
-                Item { Layout.preferredWidth: 108 }
-            }
-            // Total
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: "TOTAL (base cálculo)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.fillWidth: true }
-                Item { Layout.preferredWidth: 108 }
-                Item { Layout.preferredWidth: 108 }
-                Item { Layout.preferredWidth: 108 }
-                Celda { text: Fmt.eur(Engine.personal.totCosteSS); negrita: true }
-                Celda { text: Fmt.eur(Engine.personal.totSalReal); negrita: true }
-                Celda { text: Fmt.eur(Engine.personal.totCoste); negrita: true }
-                Item { Layout.preferredWidth: 108 }
+                ColumnLayout {
+                    id: datosPersonalCol
+                    width: Math.max(implicitWidth, page.width - 88)
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Tipo"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        CabeceraCol { text: "Sal. bruto anual (FT)" }
+                        CabeceraCol { text: "Jornada" }
+                        CabeceraCol { text: "% SS empresa" }
+                        CabeceraCol { text: "Coste SS/año" }
+                        CabeceraCol { text: "Sal. real pagado/año" }
+                        CabeceraCol { text: "Coste total/año" }
+                        CabeceraCol { text: "% Subida s/ base" }
+                    }
+
+                    // Farmacéutico
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        MoneyField { k: "salFarmaceutico"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "jornFarmaceutico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "pctSS"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.eur(Engine.personal.datos[0].costeSS) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[0].salReal) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[0].costeTotal) }
+                        PctField { k: "subidaPct"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                    }
+                    // Auxiliar
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        MoneyField { k: "salAuxiliar"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "jornAuxiliar"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[1].costeSS) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[1].salReal) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[1].costeTotal) }
+                        Item { Layout.preferredWidth: 108 }
+                    }
+                    // Técnico
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        MoneyField { k: "salTecnico"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "jornTecnico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[2].costeSS) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[2].salReal) }
+                        Celda { text: Fmt.eur(Engine.personal.datos[2].costeTotal) }
+                        Item { Layout.preferredWidth: 108 }
+                    }
+                    // Total
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "TOTAL (base cálculo)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        Item { Layout.preferredWidth: 108 }
+                        Item { Layout.preferredWidth: 108 }
+                        Item { Layout.preferredWidth: 108 }
+                        Celda { text: Fmt.eur(Engine.personal.totCosteSS); negrita: true }
+                        Celda { text: Fmt.eur(Engine.personal.totSalReal); negrita: true }
+                        Celda { text: Fmt.eur(Engine.personal.totCoste); negrita: true }
+                        Item { Layout.preferredWidth: 108 }
+                    }
+                }
             }
 
             Text {
@@ -144,50 +157,63 @@ Flickable {
         Card {
             SectionTitle { text: "2. PLANTILLA RECOMENDADA" }
 
-            RowLayout {
+            ScrollView {
                 Layout.fillWidth: true
-                spacing: 8
-                Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
-                CabeceraCol { text: "Jornada"; Layout.preferredWidth: 80 }
-                CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
-                CabeceraCol { text: "Sal. bruto FT/año" }
-                CabeceraCol { text: "Sal. bruto real/año" }
-                CabeceraCol { text: "Coste SS/año" }
-                CabeceraCol { text: "Coste total tipo" }
-                Text { text: "Rol / turno"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.fillWidth: true }
-            }
+                implicitHeight: plantillaCol.implicitHeight
+                clip: true
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOff
 
-            Repeater {
-                model: 4
-                RowLayout {
-                    id: filaPl
-                    required property int index
-                    readonly property var r: Engine.personal.plantilla[index]
-                    Layout.fillWidth: true
+                ColumnLayout {
+                    id: plantillaCol
+                    width: Math.max(implicitWidth, page.width - 88)
                     spacing: 8
-                    Text { text: filaPl.r.tipo; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
-                    PctField { k: "plJornada" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
-                    NumField { k: "plPersonas" + filaPl.index; Layout.preferredWidth: 80; implicitWidth: 80 }
-                    Celda { text: Fmt.eur(filaPl.r.brutoFT) }
-                    Celda { text: Fmt.eur(filaPl.r.brutoReal) }
-                    Celda { text: Fmt.eur(filaPl.r.costeSS) }
-                    Celda { text: Fmt.eur(filaPl.r.costeTotal) }
-                    Text { text: filaPl.r.rol; font.pixelSize: 11; color: "#6b7a76"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                }
-            }
 
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text { text: "TOTAL PLANTILLA (coste empresa/año)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
-                Item { Layout.preferredWidth: 80 }
-                Celda { text: Fmt.num(Engine.personal.totPersonas) + " pers."; negrita: true; Layout.preferredWidth: 80 }
-                Item { Layout.preferredWidth: 108 }
-                Celda { text: Fmt.eur(Engine.personal.totBrutoReal); negrita: true }
-                Celda { text: Fmt.eur(Engine.personal.totSS); negrita: true }
-                Celda { text: Fmt.eur(Engine.personal.totPlantilla); negrita: true }
-                Item { Layout.fillWidth: true }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
+                        CabeceraCol { text: "Jornada"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Sal. bruto FT/año" }
+                        CabeceraCol { text: "Sal. bruto real/año" }
+                        CabeceraCol { text: "Coste SS/año" }
+                        CabeceraCol { text: "Coste total tipo" }
+                        Text { text: "Rol / turno"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 150 }
+                    }
+
+                    Repeater {
+                        model: 4
+                        RowLayout {
+                            id: filaPl
+                            required property int index
+                            readonly property var r: Engine.personal.plantilla[index]
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Text { text: filaPl.r.tipo; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                            PctField { k: "plJornada" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
+                            NumField { k: "plPersonas" + filaPl.index; Layout.preferredWidth: 80; implicitWidth: 80 }
+                            Celda { text: Fmt.eur(filaPl.r.brutoFT) }
+                            Celda { text: Fmt.eur(filaPl.r.brutoReal) }
+                            Celda { text: Fmt.eur(filaPl.r.costeSS) }
+                            Celda { text: Fmt.eur(filaPl.r.costeTotal) }
+                            Text { text: filaPl.r.rol; font.pixelSize: 11; color: "#6b7a76"; Layout.preferredWidth: 150; wrapMode: Text.WordWrap }
+                        }
+                    }
+
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "TOTAL PLANTILLA (coste empresa/año)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Item { Layout.preferredWidth: 80 }
+                        Celda { text: Fmt.num(Engine.personal.totPersonas) + " pers."; negrita: true; Layout.preferredWidth: 80 }
+                        Item { Layout.preferredWidth: 108 }
+                        Celda { text: Fmt.eur(Engine.personal.totBrutoReal); negrita: true }
+                        Celda { text: Fmt.eur(Engine.personal.totSS); negrita: true }
+                        Celda { text: Fmt.eur(Engine.personal.totPlantilla); negrita: true }
+                        Item { Layout.preferredWidth: 150 }
+                    }
+                }
             }
 
             Text {

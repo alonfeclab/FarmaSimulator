@@ -11,6 +11,7 @@ Item {
     required property AmortModel loan
 
     readonly property var anchosCol: [56, 84, 128, 118, 118, 118, 128]
+    readonly property int columnasResumen: width > 700 ? 4 : (width > 420 ? 2 : 1)
 
     // Dato del resumen del préstamo
     component Dato: ColumnLayout {
@@ -18,7 +19,7 @@ Item {
         property string valor
         spacing: 2
         Layout.fillWidth: true
-        Text { text: etiqueta; font.pixelSize: 12; color: "#6b7a76" }
+        Text { text: etiqueta; font.pixelSize: 12; color: "#6b7a76"; wrapMode: Text.WordWrap; Layout.fillWidth: true }
         Text { text: valor; font.pixelSize: 15; font.bold: true; color: "#14523f" }
     }
 
@@ -41,7 +42,7 @@ Item {
                 id: resumen
                 anchors.fill: parent
                 anchors.margins: 16
-                columns: 4
+                columns: page.columnasResumen
                 columnSpacing: 24
                 rowSpacing: 10
 
@@ -102,6 +103,7 @@ Item {
                     columnWidthProvider: function(col) { return page.anchosCol[col] }
                     rowHeightProvider: function() { return 28 }
                     ScrollBar.vertical: ScrollBar {}
+                    ScrollBar.horizontal: ScrollBar {}
 
                     delegate: Rectangle {
                         id: celda

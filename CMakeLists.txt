@@ -33,6 +33,7 @@ qt_add_qml_module(FarmaciaSim
     # es imprescindible para el build estático de WebAssembly.
     QML_FILES
         qml/Main.qml
+        qml/NavPanel.qml
         qml/DatosBaseView.qml
         qml/FinanciacionView.qml
         qml/ProyeccionView.qml

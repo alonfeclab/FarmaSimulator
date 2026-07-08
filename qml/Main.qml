@@ -9,11 +9,17 @@ ApplicationWindow {
 
     width: 1360
     height: 860
-    minimumWidth: 1024
-    minimumHeight: 640
+    minimumWidth: 340
+    minimumHeight: 480
     visible: true
     title: "Simulación Farmacia"
     color: "#eef2f0"
+
+    // Por debajo de este ancho la barra lateral se convierte en un
+    // menú deslizante (Drawer) para dejar sitio al contenido en
+    // móviles y en iPad en vertical.
+    readonly property int breakpointCompacto: 760
+    readonly property bool compact: width < breakpointCompacto
 
     readonly property var hojas: [
         { nombre: "Datos Base",          icono: "📋" },
@@ -27,154 +33,73 @@ ApplicationWindow {
         { nombre: "Personal",            icono: "👥" }
     ]
 
+    header: ToolBar {
+        visible: win.compact
+        height: visible ? 52 : 0
+        background: Rectangle { color: "#123f31" }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 4
+            anchors.rightMargin: 12
+            spacing: 4
+
+            ToolButton {
+                Layout.preferredWidth: 48
+                Layout.preferredHeight: 48
+                contentItem: Text {
+                    text: "☰"
+                    color: "white"
+                    font.pixelSize: 22
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                background: Item {}
+                onClicked: drawer.open()
+            }
+            Text {
+                text: win.hojas[stack.currentIndex].nombre
+                color: "white"
+                font.pixelSize: 16
+                font.bold: true
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+            }
+            Item { Layout.preferredWidth: 48 }
+        }
+    }
+
+    Drawer {
+        id: drawer
+        width: Math.min(280, win.width * 0.82)
+        height: win.height
+        interactive: win.compact
+        dragMargin: win.compact ? Qt.styleHints.startDragDistance : 0
+
+        NavPanel {
+            anchors.fill: parent
+            hojas: win.hojas
+            currentIndex: stack.currentIndex
+            compact: true
+            onNavigate: (index) => {
+                stack.currentIndex = index
+                drawer.close()
+            }
+        }
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0
 
-        // ------------------------------------------------ barra lateral
-        Rectangle {
-            Layout.fillHeight: true
+        NavPanel {
+            visible: !win.compact
             Layout.preferredWidth: 230
-            color: "#123f31"
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 12
-                spacing: 4
-
-                Text {
-                    text: "SIMULACIÓN\nFARMACIA"
-                    color: "white"
-                    font.pixelSize: 19
-                    font.bold: true
-                    lineHeight: 1.1
-                    Layout.margins: 8
-                }
-                Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#2b6a52" }
-                Item { Layout.preferredHeight: 6 }
-
-                Repeater {
-                    model: win.hojas
-                    delegate: Rectangle {
-                        id: navItem
-                        required property int index
-                        required property var modelData
-
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 42
-                        radius: 8
-                        color: stack.currentIndex === index ? "#1a7a5e"
-                             : mouse.containsMouse ? "#1a5a45" : "transparent"
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 12
-                            spacing: 10
-                            Text { text: navItem.modelData.icono; font.pixelSize: 16 }
-                            Text {
-                                text: navItem.modelData.nombre
-                                color: "white"
-                                font.pixelSize: 14
-                                font.bold: stack.currentIndex === navItem.index
-                                Layout.fillWidth: true
-                            }
-                        }
-                        MouseArea {
-                            id: mouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: stack.currentIndex = navItem.index
-                        }
-                    }
-                }
-
-                Item { Layout.fillHeight: true }
-
-                Button {
-                    id: btnPdf
-                    Layout.fillWidth: true
-                    text: "Exportar informe PDF"
-                    font.pixelSize: 12
-                    font.bold: true
-                    onClicked: {
-                        const destino = Engine.exportarPdf()
-                        avisoPdf.mostrar(destino.length > 0
-                            ? "Informe guardado en:\n" + destino
-                            : "No se pudo crear el PDF")
-                    }
-                    background: Rectangle {
-                        radius: 8
-                        color: btnPdf.down ? "#0f5a43" : "#1a7a5e"
-                        border.color: "#2b8a6a"
-                    }
-                    contentItem: Text {
-                        text: btnPdf.text
-                        color: "#ffe9a8"
-                        font: btnPdf.font
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-                Text {
-                    id: avisoPdf
-                    visible: false
-                    Layout.fillWidth: true
-                    wrapMode: Text.WrapAnywhere
-                    color: "#cfe8de"
-                    font.pixelSize: 10
-                    horizontalAlignment: Text.AlignHCenter
-
-                    function mostrar(mensaje) {
-                        text = mensaje
-                        visible = true
-                        temporizadorAviso.restart()
-                    }
-                    Timer {
-                        id: temporizadorAviso
-                        interval: 6000
-                        onTriggered: avisoPdf.visible = false
-                    }
-                }
-
-                Button {
-                    id: btnRestaurar
-                    Layout.fillWidth: true
-                    text: "Restaurar valores"
-                    font.pixelSize: 12
-                    onClicked: Engine.restaurarValoresIniciales()
-                    background: Rectangle {
-                        radius: 8
-                        color: btnRestaurar.down ? "#0e3226" : "#1a5a45"
-                        border.color: "#2b6a52"
-                    }
-                    contentItem: Text {
-                        text: btnRestaurar.text
-                        color: "#cfe8de"
-                        font: btnRestaurar.font
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-                Text {
-                    text: "Los campos amarillos son editables"
-                    color: "#7fae9c"
-                    font.pixelSize: 11
-                    Layout.alignment: Qt.AlignHCenter
-                }
-                Text {
-                    text: "Cambios guardados automáticamente"
-                    color: "#7fae9c"
-                    font.pixelSize: 10
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.bottomMargin: 4
-
-                    ToolTip.visible: zonaTip.containsMouse
-                    ToolTip.delay: 300
-                    ToolTip.text: "Se guardan en:\n" + Engine.rutaDatos
-                    MouseArea { id: zonaTip; anchors.fill: parent; hoverEnabled: true }
-                }
-            }
+            Layout.fillHeight: true
+            hojas: win.hojas
+            currentIndex: stack.currentIndex
+            onNavigate: (index) => stack.currentIndex = index
         }
 
         // ------------------------------------------------ contenido

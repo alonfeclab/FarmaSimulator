@@ -15,10 +15,12 @@ TextField {
     function display() { return Fmt.num(value, decimals) + suffix }
 
     implicitWidth: 130
+    implicitHeight: 40
     horizontalAlignment: TextInput.AlignRight
-    font.pixelSize: 13
+    font.pixelSize: 14
     color: "#1e2b28"
     selectByMouse: true
+    inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     background: Rectangle {
         radius: 5

@@ -11,6 +11,7 @@ Flickable {
     readonly property int wLabel: 230
     readonly property int wCell: 100
     readonly property int hRow: 28
+    readonly property bool angosto: width < 640
 
     contentWidth: width
     contentHeight: col.implicitHeight + 48
@@ -65,7 +66,7 @@ Flickable {
             SectionTitle { text: "PASO 1: PARÁMETROS Y BASE AMORTIZABLE" }
 
             GridLayout {
-                columns: 2
+                columns: page.angosto ? 1 : 2
                 columnSpacing: 40
                 rowSpacing: 8
                 Layout.fillWidth: true
