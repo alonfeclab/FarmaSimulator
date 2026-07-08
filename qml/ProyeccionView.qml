@@ -114,9 +114,11 @@ Item {
         }
 
         Text {
+            Layout.fillWidth: true
             text: "Los crecimientos anuales se editan en la hoja Financiación; el año 3 se aplica hasta el año 10."
             font.pixelSize: 12
             color: "#6b7a76"
+            wrapMode: Text.WordWrap
         }
     }
 }
