@@ -126,9 +126,9 @@ struct DatosBaseResult {
 
 struct FinanciacionResult {
     double fondoComercio=0, honorarios=0, iva=0, totalInversion=0;
-    double impuestoIBI=0;   // D20 (v2): 8% del local
+    double impuestoITP=0;   // D20 (v2): 8% del local
     double ajd=0;           // D21 (v2): 1,5% de FdC + existencias
-    double impuestos=0;     // D23 (v2): IBI + AJD
+    double impuestos=0;     // D23 (v2): ITP + AJD
     double finBancariaFarmacia=0, finBancariaLocal=0, totalFinanciacion=0;
 };
 

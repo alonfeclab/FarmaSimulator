@@ -1,0 +1,2 @@
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim_autogen/include/../UVLADIE3JM/moc_amortmodel.cpp.json
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim_autogen/include/../UVLADIE3JM/moc_engine.cpp.json

@@ -13,6 +13,7 @@ Item {
     // Estado "vacío": se muestran cuando aún no hay importe de préstamo.
     // Si emptyFocusKey queda vacío, esta pestaña nunca entra en modo vacío.
     property string emptyTexto: ""
+    property string emptyIcono: ""
     property string emptyBotonTexto: "Ir a Financiación"
     property int emptyTabIndex: 1
     property string emptyFocusKey: ""
@@ -47,10 +48,19 @@ Item {
             spacing: 16
 
             Item { Layout.fillHeight: true }
-            Text {
-                text: "📭"
-                font.pixelSize: 48
+            Rectangle {
                 Layout.alignment: Qt.AlignHCenter
+                width: 88
+                height: 88
+                radius: width / 2
+                color: "#14523f"
+                Image {
+                    anchors.centerIn: parent
+                    source: page.emptyIcono
+                    sourceSize: Qt.size(40, 40)
+                    width: 40
+                    height: 40
+                }
             }
             Text {
                 text: page.emptyTexto
@@ -145,7 +155,7 @@ Item {
                     columnWidthProvider: function(col) { return page.anchosCol[col] }
                     rowHeightProvider: function() { return 28 }
                     ScrollBar.vertical: ScrollBar {}
-                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AlwaysOn }
+                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
                     delegate: Rectangle {
                         id: celda

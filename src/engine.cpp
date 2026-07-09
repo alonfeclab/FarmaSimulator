@@ -325,7 +325,7 @@ void Engine::buildMaps()
         { "fondoComercio",        F.fondoComercio },
         { "honorarios",           F.honorarios },
         { "iva",                  F.iva },
-        { "impuestoIBI",          F.impuestoIBI },
+        { "impuestoITP",          F.impuestoITP },
         { "ajd",                  F.ajd },
         { "impuestos",            F.impuestos },
         { "totalInversion",       F.totalInversion },

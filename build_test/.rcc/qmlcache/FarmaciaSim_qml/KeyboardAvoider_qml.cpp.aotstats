@@ -1,0 +1,55 @@
+{
+    "formatRevision": 1,
+    "modules": [
+        {
+            "moduleFiles": [
+                {
+                    "entries": [
+                        {
+                            "codegenResult": 2,
+                            "column": 5,
+                            "durationMicroseconds": 1000,
+                            "functionName": "ajustar",
+                            "line": 14,
+                            "message": "Cannot load property keyboardRectangle from QtObject::inputMethod with type QObject."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 17,
+                            "durationMicroseconds": 0,
+                            "functionName": "target",
+                            "line": 44,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 9,
+                            "durationMicroseconds": 0,
+                            "functionName": "onKeyboardRectangleChanged",
+                            "line": 45,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 17,
+                            "durationMicroseconds": 0,
+                            "functionName": "target",
+                            "line": 49,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 9,
+                            "durationMicroseconds": 0,
+                            "functionName": "onActiveFocusItemChanged",
+                            "line": 51,
+                            "message": ""
+                        }
+                    ],
+                    "filePath": "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/KeyboardAvoider.qml"
+                }
+            ],
+            "moduleId": "FarmaciaSim(FarmaciaSim)"
+        }
+    ]
+}

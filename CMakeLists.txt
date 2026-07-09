@@ -25,6 +25,16 @@ set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 
+# Sin esto, el alias de recurso de cada ícono queda como "qml/icons/xxx.svg"
+# (ruta relativa a la raíz del proyecto), pero el QML los referencia como
+# "qrc:/qt/qml/FarmaciaSim/icons/xxx.svg" (sin el "qml/" intermedio), por lo
+# que QQuickImage no los encuentra en tiempo de ejecución.
+foreach(_icono datos_base financiacion proyeccion impuestos analisis banco cooperativa propiedades personal)
+    set_source_files_properties(qml/icons/${_icono}.svg PROPERTIES
+        QT_RESOURCE_ALIAS icons/${_icono}.svg
+    )
+endforeach()
+
 qt_add_qml_module(FarmaciaSim
     URI FarmaciaSim
     VERSION 1.0
@@ -45,6 +55,7 @@ qt_add_qml_module(FarmaciaSim
         qml/PctField.qml
         qml/NumField.qml
         qml/SectionTitle.qml
+        qml/KeyboardAvoider.qml
         qml/Fmt.qml
         qml/Nav.qml
     RESOURCES
@@ -68,3 +79,20 @@ set_target_properties(FarmaciaSim PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
+
+# En Windows, los plugins de Qt (imageformats/qsvg.dll, platforms, módulos QML, etc.)
+# no se copian junto al ejecutable a menos que se ejecute windeployqt. Sin esto,
+# los íconos SVG y otros recursos fallan en tiempo de ejecución con
+# "QQuickImage: Cannot open".
+if(WIN32)
+    find_program(WINDEPLOYQT_EXECUTABLE
+        NAMES windeployqt6 windeployqt
+        HINTS "${Qt6_DIR}/../../../bin"
+    )
+    if(WINDEPLOYQT_EXECUTABLE)
+        add_custom_command(TARGET FarmaciaSim POST_BUILD
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}" --qmldir "${CMAKE_SOURCE_DIR}/qml" "$<TARGET_FILE:FarmaciaSim>"
+            COMMENT "Desplegando dependencias de Qt (windeployqt)"
+        )
+    endif()
+endif()

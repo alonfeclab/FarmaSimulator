@@ -461,10 +461,10 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.filaDatos({ QStringLiteral("Existencias"),                       d.eur(in.existencias) });
     t2.filaDatos({ QStringLiteral("Honorarios (5% FdC + Local)"),       d.eur(F.honorarios) });
     t2.filaDatos({ QStringLiteral("IVA (21% honorarios)"),              d.eur(F.iva) });
-    t2.filaDatos({ QStringLiteral("Impuesto IBI (8% local)"),           d.eur(F.impuestoIBI) });
+    t2.filaDatos({ QStringLiteral("Impuesto ITP (8% local)"),           d.eur(F.impuestoITP) });
     t2.filaDatos({ QStringLiteral("AJD (1,5% FdC + existencias)"),      d.eur(F.ajd) });
+    t2.filaDatos({ QStringLiteral("Impuestos (ITP + AJD)"),             d.eur(F.impuestos) });
     t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
-    t2.filaDatos({ QStringLiteral("Impuestos (IBI + AJD)"),             d.eur(F.impuestos) });
     t2.filaDatos({ QStringLiteral("TOTAL INVERSIÓN"),                   d.eur(F.totalInversion) }, true);
 
     d.tituloSeccion(QStringLiteral("Tipos y plazos"));

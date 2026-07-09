@@ -125,21 +125,31 @@ ApplicationWindow {
             id: stack
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: 0
+            currentIndex: 8
 
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}
             ImpuestosView {}
             AnalisisView {}
-            AmortView { loan: Engine.banco }
+            AmortView {
+                loan: Engine.banco
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg"
+            }
             AmortView {
                 loan: Engine.cooperativa
                 emptyTexto: "No hay préstamo de cooperativa. Añádelo en Financiación."
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg"
                 emptyTabIndex: 1
                 emptyFocusKey: "pedidoInicial"
             }
-            AmortView { loan: Engine.propiedades }
+            AmortView {
+                loan: Engine.propiedades
+                emptyTexto: "No hay financiación de propiedades. Añádela en Financiación."
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg"
+                emptyTabIndex: 1
+                emptyFocusKey: "finPropiedades"
+            }
             PersonalView {}
         }
     }

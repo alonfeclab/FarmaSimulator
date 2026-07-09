@@ -172,13 +172,11 @@ Results compute(const Inputs& in)
         F.fondoComercio = (in.ventaReceta + in.ventaLibre) * in.coeficiente; // D14
         F.honorarios    = (F.fondoComercio + in.localComercial) * 0.05;     // D18
         F.iva           = F.honorarios * 0.21;                              // D19
-        F.impuestoIBI   = 0.08 * in.localComercial;                         // D20
+        F.impuestoITP   = 0.08 * in.localComercial;                         // D20
         F.ajd           = 0.015 * (F.fondoComercio + in.existencias);       // D21
-        F.impuestos     = F.impuestoIBI + F.ajd;                            // D23
-        // D24 = SUM(D14:E23): incluye IBI y AJD como líneas propias Y también
-        // la línea "Impuestos" (D23=IBI+AJD). Réplica exacta del Excel v2.
+        F.impuestos     = F.impuestoITP + F.ajd;                           // D23
         F.totalInversion = F.fondoComercio + in.localComercial + in.existencias
-                         + F.honorarios + F.iva + F.impuestoIBI + F.ajd
+                         + F.honorarios + F.iva
                          + in.gastosVarios + F.impuestos;                   // D24
         F.finBancariaLocal = in.localComercial * in.pctFinLocal;            // D46 (Excel: D15*0,7 literal)
         F.finBancariaFarmacia = F.totalInversion - in.liquidezAportada - in.pedidoInicial

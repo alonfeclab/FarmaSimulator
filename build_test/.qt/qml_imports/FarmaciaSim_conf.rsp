@@ -1,0 +1,15 @@
+-rootPath
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim
+-cmake-output
+-output-file
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/.qt/qml_imports/FarmaciaSim_conf.cmake
+-importPath
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test
+-importPath
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim
+-importPath
+C:/Qt6/6.11.1/mingw_64/qml
+-qrcFiles
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/.qt/rcc/qmake_FarmaciaSim.qrc
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/.qt/rcc/FarmaciaSim_raw_qml_0.qrc
+C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/.qt/rcc/FarmaciaSim_raw_res_0.qrc

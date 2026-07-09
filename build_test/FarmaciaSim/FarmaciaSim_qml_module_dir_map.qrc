@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="/qt/qml/FarmaciaSim">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim</file>
+
+  </qresource>
+</RCC>
