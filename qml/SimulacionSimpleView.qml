@@ -34,6 +34,7 @@ Flickable {
         property real liquidezAportada:  Engine.inputs.liquidezAportada
         property real finPropiedades:    Engine.inputs.finPropiedades
         property real pedidoInicial:     Engine.inputs.pedidoInicial
+        property real alquilerLocal:     Engine.inputs.alquilerLocal
     }
 
     // Proyección "de bolsillo": se recalcula con los valores locales sin
@@ -45,6 +46,7 @@ Flickable {
         liquidezAportada: local.liquidezAportada,
         finPropiedades:   local.finPropiedades,
         pedidoInicial:    local.pedidoInicial,
+        alquilerLocal:    local.alquilerLocal,
     })
     readonly property var filasEsenciales: page.preview.proyeccion.filter(f => f.bold)
 
@@ -160,6 +162,7 @@ Flickable {
             EditRow { label: "Aportación liquidez"; value: local.liquidezAportada; onCommitted: (v) => local.liquidezAportada = v }
             EditRow { label: "Aportación propiedad hipotecada"; value: local.finPropiedades; onCommitted: (v) => local.finPropiedades = v }
             EditRow { label: "Aportación cooperativa"; value: local.pedidoInicial; onCommitted: (v) => local.pedidoInicial = v }
+            EditRow { label: "Alquiler"; value: local.alquilerLocal; onCommitted: (v) => local.alquilerLocal = v }
         }
 
         Text { text: "Proyección — primeros 5 años"; font.pixelSize: 18; font.bold: true; color: "#14523f" }
@@ -172,77 +175,86 @@ Flickable {
             border.color: "#dde5e1"
             clip: true
 
-            Column {
-                id: tabla
-                anchors.left: parent.left
-                anchors.top: parent.top
+            Flickable {
+                id: flick
+                anchors.fill: parent
                 anchors.margins: 14
+                contentWidth: page.wLabel + page.numAnios * page.wCell
+                contentHeight: tabla.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                // -------- cabecera
-                Row {
-                    Rectangle {
-                        width: page.wLabel; height: page.hRow; color: "#14523f"
-                        radius: 4
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.left: parent.left; anchors.leftMargin: 8
-                            text: "Concepto"; color: "white"; font.bold: true; font.pixelSize: 13
-                        }
-                    }
-                    Repeater {
-                        model: page.numAnios
-                        Rectangle {
-                            required property int index
-                            width: page.wCell; height: page.hRow; color: "#14523f"
-                            Text {
-                                anchors.centerIn: parent
-                                text: "Año " + (parent.index + 1)
-                                color: "white"; font.bold: true; font.pixelSize: 13
-                            }
-                        }
-                    }
-                }
+                Column {
+                    id: tabla
 
-                // -------- filas (solo las destacadas, solo los primeros años)
-                Repeater {
-                    model: page.filasEsenciales
+                    // -------- cabecera
                     Row {
-                        id: fila
-                        required property int index
-                        required property var modelData
-
                         Rectangle {
-                            width: page.wLabel; height: page.hRow
-                            color: fila.modelData.bold ? "#e3efe9"
-                                 : (fila.index % 2 ? "#f7faf8" : "white")
+                            width: page.wLabel; height: page.hRow; color: "#14523f"
+                            radius: 4
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left; anchors.leftMargin: 8
-                                width: page.wLabel - 12
-                                elide: Text.ElideRight
-                                text: fila.modelData.label
-                                font.pixelSize: 13
-                                font.bold: fila.modelData.bold
-                                color: fila.modelData.bold ? "#14523f" : "#3c4a46"
+                                text: "Concepto"; color: "white"; font.bold: true; font.pixelSize: 13
                             }
                         }
                         Repeater {
                             model: page.numAnios
                             Rectangle {
-                                id: celda
                                 required property int index
-                                readonly property real valor: fila.modelData.values[index]
-                                width: page.wCell; height: page.hRow
+                                width: page.wCell; height: page.hRow; color: "#14523f"
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: "Año " + (parent.index + 1)
+                                    color: "white"; font.bold: true; font.pixelSize: 13
+                                }
+                            }
+                        }
+                    }
+
+                    // -------- filas (solo las destacadas, solo los primeros años)
+                    Repeater {
+                        model: page.filasEsenciales
+                        Row {
+                            id: fila
+                            required property int index
+                            required property var modelData
+
+                            Rectangle {
+                                width: page.wLabel; height: page.hRow
                                 color: fila.modelData.bold ? "#e3efe9"
                                      : (fila.index % 2 ? "#f7faf8" : "white")
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    anchors.right: parent.right; anchors.rightMargin: 8
-                                    text: Fmt.byFmt(celda.valor, fila.modelData.fmt)
+                                    anchors.left: parent.left; anchors.leftMargin: 8
+                                    width: page.wLabel - 12
+                                    elide: Text.ElideRight
+                                    text: fila.modelData.label
                                     font.pixelSize: 13
                                     font.bold: fila.modelData.bold
-                                    color: celda.valor < 0 ? "#a33b2e"
-                                         : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                                    color: fila.modelData.bold ? "#14523f" : "#3c4a46"
+                                }
+                            }
+                            Repeater {
+                                model: page.numAnios
+                                Rectangle {
+                                    id: celda
+                                    required property int index
+                                    readonly property real valor: fila.modelData.values[index]
+                                    width: page.wCell; height: page.hRow
+                                    color: fila.modelData.bold ? "#e3efe9"
+                                         : (fila.index % 2 ? "#f7faf8" : "white")
+                                    Text {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.right: parent.right; anchors.rightMargin: 8
+                                        text: Fmt.byFmt(celda.valor, fila.modelData.fmt)
+                                        font.pixelSize: 13
+                                        font.bold: fila.modelData.bold
+                                        color: celda.valor < 0 ? "#a33b2e"
+                                             : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                                    }
                                 }
                             }
                         }

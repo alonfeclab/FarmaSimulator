@@ -468,6 +468,8 @@ QVariantMap Engine::simularSimple(const QVariantMap& cambios) const
         copia.finPropiedades = cambios[QStringLiteral("finPropiedades")].toDouble();
     if (cambios.contains(QStringLiteral("pedidoInicial")))
         copia.pedidoInicial = cambios[QStringLiteral("pedidoInicial")].toDouble();
+    if (cambios.contains(QStringLiteral("alquilerLocal")))
+        copia.alquilerLocal = cambios[QStringLiteral("alquilerLocal")].toDouble();
 
     const sim::Results r = sim::compute(copia);
     const auto& Y = r.proyeccion;
