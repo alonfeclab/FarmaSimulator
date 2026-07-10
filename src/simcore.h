@@ -23,11 +23,11 @@ struct Inputs {
     double seguros          = 4000;     // D27
     double otrosGastos      = 15000;    // D28
 
-    // ---- Financiación: crecimientos (Año 1..3; año 3 se usa para 3..10)
-    std::array<double,3> ipc        {0.025, 0.025, 0.025}; // fila 7
-    std::array<double,3> crecSeguro {0.025, 0.025, 0.025}; // fila 8
-    std::array<double,3> crecLibre  {0.025, 0.025, 0.025}; // fila 9
-    std::array<double,3> margen     {0.33, 0.34, 0.35};    // fila 10
+    // ---- Financiación: escenario de crecimiento
+    // 0 = Realista (IPC histórico de los últimos 10 años, no editable)
+    // 1 = Optimista (IPC constante introducido por el usuario)
+    double escenarioCrecimiento = 0;
+    double ipcOptimista         = 0.025;
 
     // ---- Financiación: inversión
     double coeficiente     = 2;         // D13
@@ -164,6 +164,8 @@ struct ProyeccionResult {           // 10 valores = años 1..10
         beneficio{}, pagoImpuestos{}, liquidez{}, devCapitalBanco{},
         devCooperativa{}, salarioNetoAnual{}, salarioNetoMensual{},
         pctGastoPersonal{};
+    // Series aplicadas por el escenario de crecimiento (solo informativas).
+    std::array<double,10> ipcAplicado{}, margenComercial{};
 };
 
 struct AnalisisResult {

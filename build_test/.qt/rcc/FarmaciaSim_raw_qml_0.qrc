@@ -2,6 +2,7 @@
   <qresource prefix="/qt/qml/FarmaciaSim/">
     <file alias="qml/Main.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/Main.qml</file>
     <file alias="qml/NavPanel.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/NavPanel.qml</file>
+    <file alias="qml/SimulacionSimpleView.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/SimulacionSimpleView.qml</file>
     <file alias="qml/DatosBaseView.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/DatosBaseView.qml</file>
     <file alias="qml/FinanciacionView.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml</file>
     <file alias="qml/ProyeccionView.qml">C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml</file>

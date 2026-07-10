@@ -29,7 +29,7 @@ set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES
 # (ruta relativa a la raíz del proyecto), pero el QML los referencia como
 # "qrc:/qt/qml/FarmaciaSim/icons/xxx.svg" (sin el "qml/" intermedio), por lo
 # que QQuickImage no los encuentra en tiempo de ejecución.
-foreach(_icono datos_base financiacion proyeccion impuestos analisis banco cooperativa propiedades personal)
+foreach(_icono datos_base financiacion proyeccion impuestos analisis banco cooperativa propiedades personal simple)
     set_source_files_properties(qml/icons/${_icono}.svg PROPERTIES
         QT_RESOURCE_ALIAS icons/${_icono}.svg
     )
@@ -44,6 +44,7 @@ qt_add_qml_module(FarmaciaSim
     QML_FILES
         qml/Main.qml
         qml/NavPanel.qml
+        qml/SimulacionSimpleView.qml
         qml/DatosBaseView.qml
         qml/FinanciacionView.qml
         qml/ProyeccionView.qml
@@ -68,6 +69,7 @@ qt_add_qml_module(FarmaciaSim
         qml/icons/cooperativa.svg
         qml/icons/propiedades.svg
         qml/icons/personal.svg
+        qml/icons/simple.svg
 )
 
 # El código de registro QML generado incluye los headers por su nombre base

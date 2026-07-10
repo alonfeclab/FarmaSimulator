@@ -13,6 +13,7 @@ Item {
     // Estado "vacío": se muestran cuando aún no hay importe de préstamo.
     // Si emptyFocusKey queda vacío, esta pestaña nunca entra en modo vacío.
     property string emptyTexto: ""
+    property string emptyIcono: ""
     property string emptyBotonTexto: "Ir a Financiación"
     property int emptyTabIndex: 1
     property string emptyFocusKey: ""
@@ -20,6 +21,8 @@ Item {
 
     readonly property var anchosCol: [48, 76, 112, 104, 104, 104, 112]
     readonly property int columnasResumen: width > 700 ? 4 : (width > 420 ? 2 : 1)
+
+    function resetScroll() { tabla.contentX = 0; tabla.contentY = 0 }
 
     // Dato del resumen del préstamo
     component Dato: ColumnLayout {
@@ -47,10 +50,19 @@ Item {
             spacing: 16
 
             Item { Layout.fillHeight: true }
-            Text {
-                text: "📭"
-                font.pixelSize: 48
+            Rectangle {
                 Layout.alignment: Qt.AlignHCenter
+                width: 88
+                height: 88
+                radius: width / 2
+                color: "#14523f"
+                Image {
+                    anchors.centerIn: parent
+                    source: page.emptyIcono
+                    sourceSize: Qt.size(40, 40)
+                    width: 40
+                    height: 40
+                }
             }
             Text {
                 text: page.emptyTexto

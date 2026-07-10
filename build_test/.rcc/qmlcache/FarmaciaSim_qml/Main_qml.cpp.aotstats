@@ -16,7 +16,7 @@
                         {
                             "codegenResult": 2,
                             "column": 34,
-                            "durationMicroseconds": 1000,
+                            "durationMicroseconds": 2000,
                             "functionName": "hojas",
                             "line": 24,
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
@@ -26,7 +26,7 @@
                             "column": 18,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 37,
+                            "line": 38,
                             "message": ""
                         },
                         {
@@ -34,7 +34,7 @@
                             "column": 17,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 38,
+                            "line": 39,
                             "message": ""
                         },
                         {
@@ -42,7 +42,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 42,
+                            "line": 43,
                             "message": ""
                         },
                         {
@@ -50,7 +50,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "onClicked",
-                            "line": 58,
+                            "line": 59,
                             "message": ""
                         },
                         {
@@ -58,7 +58,7 @@
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalAlignment",
-                            "line": 54,
+                            "line": 55,
                             "message": ""
                         },
                         {
@@ -66,7 +66,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "verticalAlignment",
-                            "line": 55,
+                            "line": 56,
                             "message": ""
                         },
                         {
@@ -74,7 +74,7 @@
                             "column": 29,
                             "durationMicroseconds": 0,
                             "functionName": "source",
-                            "line": 66,
+                            "line": 67,
                             "message": "Cannot generate efficient code for LoadElement with non-list base type Main::hojas with type QVariant (adjusted to QJSValue, stored as QJSValue)"
                         },
                         {
@@ -82,7 +82,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "sourceSize",
-                            "line": 67,
+                            "line": 68,
                             "message": ""
                         },
                         {
@@ -90,7 +90,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 72,
+                            "line": 73,
                             "message": "Cannot generate efficient code for LoadElement with non-list base type Main::hojas with type QVariant (adjusted to QJSValue, stored as QJSValue)"
                         },
                         {
@@ -98,15 +98,15 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "elide",
-                            "line": 76,
+                            "line": 77,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 17,
-                            "durationMicroseconds": 8000,
+                            "durationMicroseconds": 25000,
                             "functionName": "target",
-                            "line": 85,
+                            "line": 86,
                             "message": ""
                         },
                         {
@@ -114,7 +114,7 @@
                             "column": 9,
                             "durationMicroseconds": 0,
                             "functionName": "onIrA",
-                            "line": 86,
+                            "line": 87,
                             "message": "Functions without type annotations won't be compiled"
                         },
                         {
@@ -122,7 +122,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 93,
+                            "line": 94,
                             "message": ""
                         },
                         {
@@ -130,7 +130,7 @@
                             "column": 17,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 94,
+                            "line": 95,
                             "message": ""
                         },
                         {
@@ -138,7 +138,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "interactive",
-                            "line": 95,
+                            "line": 96,
                             "message": ""
                         },
                         {
@@ -146,7 +146,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "dragMargin",
-                            "line": 96,
+                            "line": 97,
                             "message": "Cannot load property startDragDistance from QtObject::styleHints with type QObject."
                         },
                         {
@@ -154,7 +154,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "hojas",
-                            "line": 100,
+                            "line": 101,
                             "message": ""
                         },
                         {
@@ -162,7 +162,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "currentIndex",
-                            "line": 101,
+                            "line": 102,
                             "message": ""
                         },
                         {
@@ -170,7 +170,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "onNavigate",
-                            "line": 103,
+                            "line": 104,
                             "message": ""
                         },
                         {
@@ -178,7 +178,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "onNavigate",
-                            "line": 103,
+                            "line": 104,
                             "message": ""
                         },
                         {
@@ -186,7 +186,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 99,
+                            "line": 100,
                             "message": ""
                         },
                         {
@@ -194,7 +194,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 111,
+                            "line": 112,
                             "message": ""
                         },
                         {
@@ -202,7 +202,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 115,
+                            "line": 116,
                             "message": ""
                         },
                         {
@@ -210,7 +210,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "hojas",
-                            "line": 118,
+                            "line": 119,
                             "message": ""
                         },
                         {
@@ -218,14 +218,6 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "currentIndex",
-                            "line": 119,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 25,
-                            "durationMicroseconds": 0,
-                            "functionName": "onNavigate",
                             "line": 120,
                             "message": ""
                         },
@@ -234,15 +226,31 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "onNavigate",
-                            "line": 120,
+                            "line": 121,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
-                            "column": 31,
+                            "column": 25,
+                            "durationMicroseconds": 0,
+                            "functionName": "onNavigate",
+                            "line": 121,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 36,
+                            "durationMicroseconds": 0,
+                            "functionName": "onCurrentIndexChanged",
+                            "line": 132,
+                            "message": "Cannot load property resetScroll from call to method itemAt, returning QQuickItem."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "loan",
-                            "line": 135,
+                            "line": 146,
                             "message": ""
                         },
                         {
@@ -250,15 +258,15 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "loan",
-                            "line": 137,
+                            "line": 150,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
-                            "column": 31,
+                            "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "loan",
-                            "line": 142,
+                            "line": 157,
                             "message": ""
                         }
                     ],

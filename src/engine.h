@@ -30,9 +30,14 @@ class Engine : public QObject
 public:
     explicit Engine(QObject* parent = nullptr);
 
-    // Cambia una entrada por su clave (p. ej. "ventaReceta", "ipc0") y recalcula.
+    // Cambia una entrada por su clave (p. ej. "ventaReceta", "ipcOptimista") y recalcula.
     Q_INVOKABLE void set(const QString& key, double value);
     Q_INVOKABLE void restaurarValoresIniciales();
+
+    // Recalcula la proyección con algunas entradas sustituidas (p. ej. desde la
+    // hoja "Simulación simple"), sin tocar el estado compartido del motor: no
+    // afecta a las demás hojas ni se guarda en disco.
+    Q_INVOKABLE QVariantMap simularSimple(const QVariantMap& cambios) const;
 
     // Genera el informe PDF. Escritorio: lo guarda en Documentos, lo abre y
     // devuelve la ruta. WASM: lo descarga el navegador. Vacío si falla.

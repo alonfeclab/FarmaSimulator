@@ -51,11 +51,20 @@ Flickable {
     }
 
     component EditRow: RowLayout {
+        id: editRow
         property string label
         property string k
+        property bool invalid: false
+        property real minimo: 0
         Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        MoneyField { k: parent.k }
+        Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        Text {
+            text: "Mínimo recomendado: " + Fmt.eur(editRow.minimo)
+            visible: editRow.invalid
+            font.pixelSize: 11
+            color: "#3c4a46"
+        }
+        MoneyField { k: editRow.k; invalid: editRow.invalid }
     }
 
     component PctRow: RowLayout {
@@ -74,6 +83,35 @@ Flickable {
         NumField { k: parent.k; suffix: " años" }
     }
 
+    // Agrupa visualmente todos los valores relacionados con una misma fuente de financiación
+    // (tipo de interés, plazo, % financiado e importe).
+    component SourceGroup: Rectangle {
+        id: srcGroup
+        property string title
+        default property alias content: box.data
+        Layout.fillWidth: true
+        radius: 8
+        color: "#eef5f1"
+        border.color: "#d5e6dc"
+        implicitHeight: colWrap.implicitHeight + 16
+
+        ColumnLayout {
+            id: colWrap
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 8
+            spacing: 6
+
+            Text { text: srcGroup.title; font.bold: true; font.pixelSize: 12; color: "#14523f" }
+            ColumnLayout {
+                id: box
+                Layout.fillWidth: true
+                spacing: 6
+            }
+        }
+    }
+
     ColumnLayout {
         id: col
         anchors.top: parent.top
@@ -83,45 +121,6 @@ Flickable {
         spacing: 14
 
         Text { text: "Estudio de financiación"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
-
-        // ---------------- Crecimientos previstos
-        Card {
-            SectionTitle { text: "CRECIMIENTOS PREVISTOS" }
-            Flickable {
-                Layout.fillWidth: true
-                implicitHeight: crecGrid.implicitHeight
-                contentWidth: crecGrid.implicitWidth
-                contentHeight: crecGrid.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                pressDelay: 150
-                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
-
-                GridLayout {
-                    id: crecGrid
-                    columns: 4
-                    columnSpacing: 12
-                    rowSpacing: 6
-
-                    Item { Layout.preferredWidth: 150 }
-                    Text { text: "Año 1"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
-                    Text { text: "Año 2"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
-                    Text { text: "Año 3+"; font.bold: true; font.pixelSize: 13; color: "#14523f"; Layout.preferredWidth: 80; horizontalAlignment: Text.AlignRight }
-
-                    Text { text: "IPC"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "ipc0" } PctField { k: "ipc1" } PctField { k: "ipc2" }
-
-                    Text { text: "Venta seguro"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "crecSeguro0" } PctField { k: "crecSeguro1" } PctField { k: "crecSeguro2" }
-
-                    Text { text: "Venta libre"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "crecLibre0" } PctField { k: "crecLibre1" } PctField { k: "crecLibre2" }
-
-                    Text { text: "M. Comercial"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "margen0" } PctField { k: "margen1" } PctField { k: "margen2" }
-                }
-            }
-        }
 
         // ---------------- Inversión operación
         Card {
@@ -143,49 +142,52 @@ Flickable {
             CalcRow { label: "TOTAL INVERSIÓN"; value: Engine.financiacion.totalInversion; destacada: true }
         }
 
-        // ---------------- Tipo y plazo
-        Card {
-            SectionTitle { text: "TIPO Y PLAZO" }
-            GridLayout {
-                columns: page.angosto ? 1 : 2
-                columnSpacing: 40
-                rowSpacing: 8
-                Layout.fillWidth: true
-
-                ColumnLayout {
-                    spacing: 8
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignTop
-                    PctRow  { label: "Tipo de interés banco"; k: "tipoBanco" }
-                    PctRow  { label: "Tipo de interés cooperativa"; k: "tipoCoop" }
-                    PctRow  { label: "Tipo de interés familiar"; k: "tipoFamiliar" }
-                    PctRow  { label: "Tipo de interés propiedades"; k: "tipoPropiedades" }
-                    PctRow  { label: "% Financiación farmacia"; k: "pctFinFarmacia" }
-                }
-                ColumnLayout {
-                    spacing: 8
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignTop
-                    PlazoRow { label: "Plazo préstamo banco"; k: "plazoBanco" }
-                    PlazoRow { label: "Plazo préstamo cooperativa"; k: "plazoCoop" }
-                    PlazoRow { label: "Plazo préstamo familiar"; k: "plazoFamiliar" }
-                    PlazoRow { label: "Plazo préstamo propiedades"; k: "plazoPropiedades" }
-                    PctRow  { label: "% Financiación local"; k: "pctFinLocal" }
-                    PctRow  { label: "% Financiación propiedades"; k: "pctFinPropiedades" }
-                }
-            }
-        }
-
-        // ---------------- Financiación
+        // ---------------- Financiación (tipo, plazo e importes agrupados por fuente)
         Card {
             SectionTitle { text: "FINANCIACIÓN" }
-            EditRow { label: "Liquidez aportada"; k: "liquidezAportada" }
-            EditRow { label: "Aportación familiar"; k: "aportacionFamiliar" }
-            CalcRow { label: "Financiación bancaria farmacia"; value: Engine.financiacion.finBancariaFarmacia }
-            CalcRow { label: "Financiación bancaria local"; value: Engine.financiacion.finBancariaLocal }
-            EditRow { label: "Financiación propiedades"; k: "finPropiedades" }
-            EditRow { label: "Exceso/defecto de aportación"; k: "excesoAportacion" }
-            EditRow { label: "Pedido inicial (cooperativa)"; k: "pedidoInicial" }
+
+            EditRow {
+                label: "Liquidez aportada"
+                k: "liquidezAportada"
+                readonly property real minimoLiquidez:
+                    (Engine.financiacion.totalInversion - Engine.inputs["localComercial"]) * (1 - Engine.inputs["pctFinFarmacia"])
+                    + Engine.inputs["localComercial"] * (1 - Engine.inputs["pctFinLocal"])
+                invalid: Engine.inputs["liquidezAportada"] < minimoLiquidez
+                minimo: minimoLiquidez
+            }
+
+            SourceGroup {
+                title: "BANCO"
+                PctRow   { label: "Tipo de interés"; k: "tipoBanco" }
+                PlazoRow { label: "Plazo del préstamo"; k: "plazoBanco" }
+                PctRow   { label: "% Financiación farmacia"; k: "pctFinFarmacia" }
+                CalcRow  { label: "Financiación bancaria farmacia"; value: Engine.financiacion.finBancariaFarmacia }
+                PctRow   { label: "% Financiación local"; k: "pctFinLocal" }
+                CalcRow  { label: "Financiación bancaria local"; value: Engine.financiacion.finBancariaLocal }
+            }
+
+            SourceGroup {
+                title: "COOPERATIVA"
+                PctRow   { label: "Tipo de interés"; k: "tipoCoop" }
+                PlazoRow { label: "Plazo del préstamo"; k: "plazoCoop" }
+                EditRow  { label: "Pedido inicial"; k: "pedidoInicial" }
+            }
+
+            SourceGroup {
+                title: "FAMILIAR"
+                PctRow   { label: "Tipo de interés"; k: "tipoFamiliar" }
+                PlazoRow { label: "Plazo del préstamo"; k: "plazoFamiliar" }
+                EditRow  { label: "Aportación familiar"; k: "aportacionFamiliar" }
+            }
+
+            SourceGroup {
+                title: "PROPIEDADES"
+                PctRow   { label: "Tipo de interés"; k: "tipoPropiedades" }
+                PlazoRow { label: "Plazo del préstamo"; k: "plazoPropiedades" }
+                PctRow   { label: "% Financiación"; k: "pctFinPropiedades" }
+                EditRow  { label: "Valor propiedades"; k: "finPropiedades" }
+            }
+
             CalcRow { label: "TOTAL FINANCIACIÓN"; value: Engine.financiacion.totalFinanciacion; destacada: true }
         }
 

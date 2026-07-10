@@ -8,7 +8,7 @@
                         {
                             "codegenResult": 2,
                             "column": 35,
-                            "durationMicroseconds": 0,
+                            "durationMicroseconds": 1000,
                             "functionName": "value",
                             "line": 12,
                             "message": "Cannot generate efficient code for LoadElement with non-list base type Engine::inputs with type QVariantMap (adjusted to QJSValue, stored as QJSValue)"
@@ -16,7 +16,7 @@
                         {
                             "codegenResult": 2,
                             "column": 5,
-                            "durationMicroseconds": 6000,
+                            "durationMicroseconds": 11000,
                             "functionName": "display",
                             "line": 14,
                             "message": "function without return type annotation returns QString. This may prevent proper compilation to Cpp."
@@ -64,7 +64,7 @@
                         {
                             "codegenResult": 2,
                             "column": 24,
-                            "durationMicroseconds": 0,
+                            "durationMicroseconds": 1000,
                             "functionName": "onEditingFinished",
                             "line": 42,
                             "message": "Cannot generate efficient code for call to untyped JavaScript function"

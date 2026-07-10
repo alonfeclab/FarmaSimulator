@@ -111,10 +111,18 @@
                         },
                         {
                             "codegenResult": 0,
+                            "column": 121,
+                            "durationMicroseconds": 0,
+                            "functionName": "wrapMode",
+                            "line": 70,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 71,
+                            "line": 82,
                             "message": ""
                         },
                         {
@@ -122,7 +130,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "contentWidth",
-                            "line": 72,
+                            "line": 83,
                             "message": ""
                         },
                         {
@@ -130,7 +138,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "contentHeight",
-                            "line": 73,
+                            "line": 84,
                             "message": ""
                         },
                         {
@@ -138,7 +146,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "boundsBehavior",
-                            "line": 75,
+                            "line": 86,
                             "message": ""
                         },
                         {
@@ -146,7 +154,7 @@
                             "column": 59,
                             "durationMicroseconds": 0,
                             "functionName": "policy",
-                            "line": 77,
+                            "line": 88,
                             "message": ""
                         },
                         {
@@ -154,7 +162,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 81,
+                            "line": 92,
                             "message": ""
                         },
                         {
@@ -162,24 +170,8 @@
                             "column": 39,
                             "durationMicroseconds": 10000,
                             "functionName": "text",
-                            "line": 104,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 39,
-                            "durationMicroseconds": 0,
-                            "functionName": "text",
-                            "line": 105,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 39,
-                            "durationMicroseconds": 0,
-                            "functionName": "text",
-                            "line": 106,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
+                            "line": 114,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
                         },
                         {
                             "codegenResult": 2,
@@ -187,7 +179,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "text",
                             "line": 115,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
+                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
                             "codegenResult": 2,
@@ -210,8 +202,8 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 118,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
+                            "line": 126,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
                         },
                         {
                             "codegenResult": 2,
@@ -219,7 +211,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "text",
                             "line": 127,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
+                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
                             "codegenResult": 2,
@@ -242,7 +234,23 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 130,
+                            "line": 138,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 39,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 139,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 39,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 140,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -258,7 +266,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 142,
+                            "line": 152,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -266,7 +274,15 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 143,
+                            "line": 153,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 39,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 154,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -274,7 +290,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 150,
+                            "line": 161,
                             "message": ""
                         },
                         {
@@ -282,7 +298,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 153,
+                            "line": 164,
                             "message": ""
                         },
                         {
@@ -290,7 +306,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 176,
+                            "line": 187,
                             "message": ""
                         },
                         {
@@ -298,7 +314,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 190,
+                            "line": 201,
                             "message": ""
                         },
                         {
@@ -306,7 +322,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "contentWidth",
-                            "line": 191,
+                            "line": 202,
                             "message": ""
                         },
                         {
@@ -314,7 +330,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "contentHeight",
-                            "line": 192,
+                            "line": 203,
                             "message": ""
                         },
                         {
@@ -322,7 +338,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "boundsBehavior",
-                            "line": 194,
+                            "line": 205,
                             "message": ""
                         },
                         {
@@ -330,7 +346,7 @@
                             "column": 59,
                             "durationMicroseconds": 0,
                             "functionName": "policy",
-                            "line": 196,
+                            "line": 207,
                             "message": ""
                         },
                         {
@@ -338,7 +354,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 200,
+                            "line": 211,
                             "message": ""
                         },
                         {
@@ -346,7 +362,7 @@
                             "column": 54,
                             "durationMicroseconds": 0,
                             "functionName": "r",
-                            "line": 221,
+                            "line": 231,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -354,7 +370,7 @@
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 224,
+                            "line": 234,
                             "message": "Cannot load property tipo from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
                         },
                         {
@@ -362,7 +378,7 @@
                             "column": 133,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 224,
+                            "line": 234,
                             "message": ""
                         },
                         {
@@ -370,15 +386,39 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "k",
-                            "line": 225,
+                            "line": 235,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
-                            "column": 43,
+                            "column": 42,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 237,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 54,
+                            "durationMicroseconds": 0,
+                            "functionName": "horizontalAlignment",
+                            "line": 240,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 42,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 245,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 36,
                             "durationMicroseconds": 0,
                             "functionName": "k",
-                            "line": 226,
+                            "line": 246,
                             "message": ""
                         },
                         {
@@ -386,7 +426,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 227,
+                            "line": 250,
                             "message": "Cannot load property brutoFT from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
                         },
                         {
@@ -394,7 +434,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 228,
+                            "line": 251,
                             "message": "Cannot load property brutoReal from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
                         },
                         {
@@ -402,7 +442,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 229,
+                            "line": 252,
                             "message": "Cannot load property costeSS from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
                         },
                         {
@@ -410,31 +450,15 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 230,
+                            "line": 253,
                             "message": "Cannot load property costeTotal from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 42,
-                            "durationMicroseconds": 0,
-                            "functionName": "text",
-                            "line": 231,
-                            "message": "Cannot load property rol from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/PersonalView.qml)::r with type QVariant."
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 132,
-                            "durationMicroseconds": 0,
-                            "functionName": "wrapMode",
-                            "line": 231,
-                            "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 170,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 239,
+                            "line": 261,
                             "message": ""
                         },
                         {
@@ -442,7 +466,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 241,
+                            "line": 263,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -450,7 +474,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 243,
+                            "line": 265,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -458,7 +482,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 244,
+                            "line": 266,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -466,7 +490,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 245,
+                            "line": 267,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         },
                         {
@@ -474,7 +498,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 253,
+                            "line": 275,
                             "message": ""
                         },
                         {
@@ -482,7 +506,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 268,
+                            "line": 290,
                             "message": ""
                         },
                         {
@@ -490,7 +514,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 277,
+                            "line": 299,
                             "message": "Cannot use shadowable base type for further lookups: Engine::personal with type QVariantMap"
                         }
                     ],

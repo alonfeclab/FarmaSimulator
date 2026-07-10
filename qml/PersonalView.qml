@@ -61,9 +61,20 @@ Flickable {
             font.pixelSize: 22; font.bold: true; color: "#14523f"
         }
 
-        // ---------------- 1. Datos de personal
+        // ---------------- Cuota de autónomo
         Card {
-            SectionTitle { text: "1. DATOS DE PERSONAL — salarios y condiciones" }
+            SectionTitle { text: "CUOTA DE AUTÓNOMO" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Text { text: "Cuota autónomos"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                MoneyField { k: "cuotaAutonomos" }
+            }
+        }
+
+        // ---------------- Datos de personal
+        Card {
+            SectionTitle { text: "SALARIOS BASE DE PERSONAL" }
 
             Flickable {
                 id: flickDatosPersonal
@@ -100,7 +111,7 @@ Flickable {
                         Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "salFarmaceutico"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "jornFarmaceutico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "pctSS"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
                         Celda { text: Fmt.eur(Engine.personal.datos[0].costeSS) }
                         Celda { text: Fmt.eur(Engine.personal.datos[0].salReal) }
                         Celda { text: Fmt.eur(Engine.personal.datos[0].costeTotal) }
@@ -155,7 +166,7 @@ Flickable {
             }
         }
 
-        // ---------------- 1b. Subida salarial anual
+        // ---------------- Subida salarial anual
         Card {
             SectionTitle { text: "SUBIDA SALARIAL ANUAL" }
 
@@ -180,9 +191,9 @@ Flickable {
             }
         }
 
-        // ---------------- 2. Plantilla recomendada
+        // ---------------- Plantilla recomendada
         Card {
-            SectionTitle { text: "2. PLANTILLA RECOMENDADA" }
+            SectionTitle { text: "PLANTILLA" }
 
             Flickable {
                 id: flickPlantilla
@@ -210,7 +221,6 @@ Flickable {
                         CabeceraCol { text: "Sal. bruto real/año" }
                         CabeceraCol { text: "Coste SS/año" }
                         CabeceraCol { text: "Coste total tipo" }
-                        Text { text: "Rol / turno"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 150 }
                     }
 
                     Repeater {
@@ -223,12 +233,24 @@ Flickable {
                             spacing: 8
                             Text { text: filaPl.r.tipo; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                             PctField { k: "plJornada" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
-                            NumField { k: "plPersonas" + filaPl.index; Layout.preferredWidth: 80; implicitWidth: 80 }
+                            Text {
+                                visible: filaPl.index === 0
+                                text: "1"
+                                Layout.preferredWidth: 80
+                                horizontalAlignment: Text.AlignRight
+                                font.pixelSize: 13
+                                color: "#1e2b28"
+                            }
+                            NumField {
+                                visible: filaPl.index !== 0
+                                k: "plPersonas" + filaPl.index
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                            }
                             Celda { text: Fmt.eur(filaPl.r.brutoFT) }
                             Celda { text: Fmt.eur(filaPl.r.brutoReal) }
                             Celda { text: Fmt.eur(filaPl.r.costeSS) }
                             Celda { text: Fmt.eur(filaPl.r.costeTotal) }
-                            Text { text: filaPl.r.rol; font.pixelSize: 11; color: "#6b7a76"; Layout.preferredWidth: 150; wrapMode: Text.WordWrap }
                         }
                     }
 

@@ -30,11 +30,27 @@
                             "message": ""
                         },
                         {
+                            "codegenResult": 0,
+                            "column": 25,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitHeight",
+                            "line": 24,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 27,
+                            "durationMicroseconds": 0,
+                            "functionName": "fill",
+                            "line": 27,
+                            "message": ""
+                        },
+                        {
                             "codegenResult": 2,
                             "column": 19,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 25,
+                            "line": 40,
                             "message": "Cannot access value for name label"
                         },
                         {
@@ -42,7 +58,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 28,
+                            "line": 43,
                             "message": "Cannot access value for name destacada"
                         },
                         {
@@ -50,7 +66,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 30,
+                            "line": 45,
                             "message": ""
                         },
                         {
@@ -58,15 +74,15 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "bold",
-                            "line": 27,
+                            "line": 42,
                             "message": "Cannot access value for name destacada"
                         },
                         {
                             "codegenResult": 2,
                             "column": 19,
-                            "durationMicroseconds": 12000,
+                            "durationMicroseconds": 10000,
                             "functionName": "text",
-                            "line": 33,
+                            "line": 48,
                             "message": "Cannot access value for name value"
                         },
                         {
@@ -74,7 +90,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 36,
+                            "line": 51,
                             "message": "Cannot access value for name destacada"
                         },
                         {
@@ -82,7 +98,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 45,
+                            "line": 60,
                             "message": "Cannot access value for name label"
                         },
                         {
@@ -90,7 +106,7 @@
                             "column": 101,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 45,
+                            "line": 60,
                             "message": ""
                         },
                         {
@@ -98,7 +114,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "k",
-                            "line": 46,
+                            "line": 61,
                             "message": "Cannot load property k from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/DatosBaseView.qml)::parent with type QQuickItem."
                         },
                         {
@@ -106,7 +122,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 55,
+                            "line": 70,
                             "message": ""
                         },
                         {
@@ -114,7 +130,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "top",
-                            "line": 51,
+                            "line": 66,
                             "message": ""
                         },
                         {
@@ -122,111 +138,247 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalCenter",
-                            "line": 52,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 29,
-                            "durationMicroseconds": 0,
-                            "functionName": "implicitHeight",
-                            "line": 65,
+                            "line": 67,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 31,
-                            "durationMicroseconds": 0,
-                            "functionName": "fill",
-                            "line": 69,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 58,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 77,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 60,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 78,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 63,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 79,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 130,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 82,
+                            "line": 86,
                             "message": ""
                         },
                         {
                             "codegenResult": 2,
-                            "column": 69,
+                            "column": 28,
                             "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 86,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 80,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 89,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 78,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
-                            "line": 90,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 66,
-                            "durationMicroseconds": 0,
-                            "functionName": "value",
+                            "functionName": "model",
                             "line": 92,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
+                            "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
                             "codegenResult": 2,
-                            "column": 63,
+                            "column": 51,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 102,
-                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
+                            "line": 94,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 37,
+                            "durationMicroseconds": 1000,
+                            "functionName": "onValueChanged",
+                            "line": 98,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 34,
+                            "durationMicroseconds": 0,
+                            "functionName": "onActivated",
+                            "line": 99,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 34,
+                            "durationMicroseconds": 0,
+                            "functionName": "onActivated",
+                            "line": 99,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 44,
+                            "durationMicroseconds": 0,
+                            "functionName": "onCompleted",
+                            "line": 97,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 39,
+                            "durationMicroseconds": 1000,
+                            "functionName": "color",
+                            "line": 104,
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 31,
                             "durationMicroseconds": 0,
-                            "functionName": "fill",
+                            "functionName": "text",
+                            "line": 110,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 39,
+                            "durationMicroseconds": 0,
+                            "functionName": "rightPadding",
                             "line": 114,
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
-                            "column": 27,
+                            "codegenResult": 0,
+                            "column": 44,
+                            "durationMicroseconds": 0,
+                            "functionName": "verticalAlignment",
+                            "line": 115,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 28,
+                            "durationMicroseconds": 0,
+                            "functionName": "x",
+                            "line": 119,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 28,
+                            "durationMicroseconds": 0,
+                            "functionName": "y",
+                            "line": 120,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 28,
+                            "durationMicroseconds": 0,
+                            "functionName": "y",
+                            "line": 127,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 32,
+                            "durationMicroseconds": 0,
+                            "functionName": "width",
+                            "line": 128,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 41,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitHeight",
+                            "line": 129,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 45,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitHeight",
+                            "line": 135,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 36,
+                            "durationMicroseconds": 0,
+                            "functionName": "model",
+                            "line": 136,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 43,
+                            "durationMicroseconds": 0,
+                            "functionName": "currentIndex",
+                            "line": 137,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 32,
+                            "durationMicroseconds": 0,
+                            "functionName": "width",
+                            "line": 153,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 38,
+                            "durationMicroseconds": 0,
+                            "functionName": "highlighted",
+                            "line": 154,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 125,
+                            "line": 157,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 48,
+                            "durationMicroseconds": 0,
+                            "functionName": "verticalAlignment",
+                            "line": 161,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 36,
+                            "durationMicroseconds": 0,
+                            "functionName": "color",
+                            "line": 165,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 30,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 172,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 30,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 176,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 23,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 181,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 27,
+                            "durationMicroseconds": 0,
+                            "functionName": "wrapMode",
+                            "line": 186,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 54,
+                            "durationMicroseconds": 0,
+                            "functionName": "value",
+                            "line": 195,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 59,
+                            "durationMicroseconds": 0,
+                            "functionName": "value",
+                            "line": 208,
                             "message": "Cannot use shadowable base type for further lookups: Engine::datosBase with type QVariantMap"
                         }
                     ],

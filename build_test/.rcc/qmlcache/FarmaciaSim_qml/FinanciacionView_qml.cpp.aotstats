@@ -96,7 +96,7 @@
                         {
                             "codegenResult": 2,
                             "column": 19,
-                            "durationMicroseconds": 10000,
+                            "durationMicroseconds": 12000,
                             "functionName": "text",
                             "line": 48,
                             "message": "Cannot access value for name value"
@@ -110,83 +110,147 @@
                             "message": "Cannot access value for name destacada"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 57,
-                            "message": "Cannot access value for name label"
+                            "line": 60,
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
-                            "column": 101,
+                            "column": 109,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 57,
+                            "line": 60,
                             "message": ""
                         },
                         {
                             "codegenResult": 2,
+                            "column": 19,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 62,
+                            "message": "Cannot generate efficient code for call to untyped JavaScript function"
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 22,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 63,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "k",
-                            "line": 58,
-                            "message": "Cannot load property k from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml)::parent with type QQuickItem."
+                            "line": 67,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 45,
+                            "durationMicroseconds": 0,
+                            "functionName": "invalid",
+                            "line": 67,
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 65,
-                            "message": "Cannot access value for name label"
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 101,
-                            "durationMicroseconds": 0,
-                            "functionName": "wrapMode",
-                            "line": 65,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 23,
-                            "durationMicroseconds": 0,
-                            "functionName": "k",
-                            "line": 66,
-                            "message": "Cannot load property k from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml)::parent with type QQuickItem."
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 22,
-                            "durationMicroseconds": 0,
-                            "functionName": "text",
-                            "line": 73,
-                            "message": "Cannot access value for name label"
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 101,
-                            "durationMicroseconds": 0,
-                            "functionName": "wrapMode",
-                            "line": 73,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 23,
-                            "durationMicroseconds": 0,
-                            "functionName": "k",
                             "line": 74,
+                            "message": "Cannot access value for name label"
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 101,
+                            "durationMicroseconds": 0,
+                            "functionName": "wrapMode",
+                            "line": 74,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 23,
+                            "durationMicroseconds": 0,
+                            "functionName": "k",
+                            "line": 75,
                             "message": "Cannot load property k from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml)::parent with type QQuickItem."
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 22,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 82,
+                            "message": "Cannot access value for name label"
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 101,
+                            "durationMicroseconds": 0,
+                            "functionName": "wrapMode",
+                            "line": 82,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 23,
+                            "durationMicroseconds": 0,
+                            "functionName": "k",
+                            "line": 83,
+                            "message": "Cannot load property k from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml)::parent with type QQuickItem."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 25,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitHeight",
+                            "line": 96,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 27,
+                            "durationMicroseconds": 0,
+                            "functionName": "left",
+                            "line": 100,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 28,
+                            "durationMicroseconds": 0,
+                            "functionName": "right",
+                            "line": 101,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 26,
+                            "durationMicroseconds": 0,
+                            "functionName": "top",
+                            "line": 102,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 26,
+                            "durationMicroseconds": 0,
+                            "functionName": "text",
+                            "line": 106,
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 82,
+                            "line": 120,
                             "message": ""
                         },
                         {
@@ -194,7 +258,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "top",
-                            "line": 79,
+                            "line": 117,
                             "message": ""
                         },
                         {
@@ -202,71 +266,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalCenter",
-                            "line": 80,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 33,
-                            "durationMicroseconds": 0,
-                            "functionName": "implicitHeight",
-                            "line": 92,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 31,
-                            "durationMicroseconds": 0,
-                            "functionName": "contentWidth",
-                            "line": 93,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 32,
-                            "durationMicroseconds": 0,
-                            "functionName": "contentHeight",
-                            "line": 94,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 33,
-                            "durationMicroseconds": 0,
-                            "functionName": "boundsBehavior",
-                            "line": 96,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 59,
-                            "durationMicroseconds": 0,
-                            "functionName": "policy",
-                            "line": 98,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 146,
-                            "durationMicroseconds": 0,
-                            "functionName": "horizontalAlignment",
-                            "line": 107,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 146,
-                            "durationMicroseconds": 0,
-                            "functionName": "horizontalAlignment",
-                            "line": 108,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 147,
-                            "durationMicroseconds": 0,
-                            "functionName": "horizontalAlignment",
-                            "line": 109,
+                            "line": 118,
                             "message": ""
                         },
                         {
@@ -274,7 +274,7 @@
                             "column": 137,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 131,
+                            "line": 130,
                             "message": ""
                         },
                         {
@@ -282,7 +282,7 @@
                             "column": 58,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 134,
+                            "line": 133,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -290,7 +290,7 @@
                             "column": 68,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 137,
+                            "line": 136,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -298,7 +298,7 @@
                             "column": 61,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 138,
+                            "line": 137,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -306,7 +306,7 @@
                             "column": 68,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 139,
+                            "line": 138,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -314,7 +314,7 @@
                             "column": 64,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 140,
+                            "line": 139,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -322,7 +322,7 @@
                             "column": 69,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 141,
+                            "line": 140,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -330,47 +330,47 @@
                             "column": 56,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 143,
+                            "line": 142,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
-                            "codegenResult": 0,
+                            "codegenResult": 2,
+                            "column": 21,
+                            "durationMicroseconds": 0,
+                            "functionName": "minimoLiquidez",
+                            "line": 153,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
+                        },
+                        {
+                            "codegenResult": 2,
                             "column": 26,
                             "durationMicroseconds": 0,
-                            "functionName": "columns",
-                            "line": 150,
-                            "message": ""
+                            "functionName": "invalid",
+                            "line": 155,
+                            "message": "Cannot use shadowable base type for further lookups: Engine::inputs with type QVariantMap"
                         },
                         {
                             "codegenResult": 0,
-                            "column": 39,
+                            "column": 25,
                             "durationMicroseconds": 0,
-                            "functionName": "alignment",
-                            "line": 158,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 39,
-                            "durationMicroseconds": 0,
-                            "functionName": "alignment",
-                            "line": 168,
+                            "functionName": "minimo",
+                            "line": 156,
                             "message": ""
                         },
                         {
                             "codegenResult": 2,
-                            "column": 71,
+                            "column": 76,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 184,
+                            "line": 164,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
                             "codegenResult": 2,
-                            "column": 68,
+                            "column": 73,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 185,
+                            "line": 166,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         },
                         {
@@ -378,7 +378,7 @@
                             "column": 59,
                             "durationMicroseconds": 0,
                             "functionName": "value",
-                            "line": 189,
+                            "line": 191,
                             "message": "Cannot use shadowable base type for further lookups: Engine::financiacion with type QVariantMap"
                         }
                     ],

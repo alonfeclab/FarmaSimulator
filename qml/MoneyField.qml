@@ -9,6 +9,7 @@ TextField {
     required property string k
     property int decimals: 0
     property string suffix: " €"
+    property bool invalid: false
 
     readonly property real value: Engine.inputs[k] !== undefined ? Engine.inputs[k] : 0
 
@@ -24,9 +25,9 @@ TextField {
 
     background: Rectangle {
         radius: 5
-        color: "#fffbe8"
-        border.color: root.activeFocus ? "#1a7a5e" : "#e0d6ac"
-        border.width: 1
+        color: root.invalid ? "#fdecea" : "#fffbe8"
+        border.color: root.invalid ? "#c0392b" : (root.activeFocus ? "#1a7a5e" : "#e0d6ac")
+        border.width: root.invalid ? 2 : 1
     }
 
     Connections {

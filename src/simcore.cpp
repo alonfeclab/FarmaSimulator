@@ -100,8 +100,17 @@ const std::array<TramoIRPF,6> kTramosIRPF {{
     { 300000, 999999999, 0.47 },
 }};
 
-// Índice de crecimiento: año 1 -> col D, año 2 -> col E, años 3..10 -> col F
-static inline int gidx(int i) { return i == 0 ? 0 : (i == 1 ? 1 : 2); }
+// IPC histórico de España (INE, variación media anual), últimos 10 años
+// disponibles — escenario "Realista". No editable por el usuario.
+static const std::array<double,10> kIpcHistorico {
+    -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
+};
+
+// Evolución simulada del margen comercial (no editable): empieza bajo y
+// crece con altibajos, siempre dentro de [33 %, 36,5 %].
+static const std::array<double,10> kMargenComercialSim {
+    0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
+};
 
 Results compute(const Inputs& in)
 {
@@ -134,7 +143,7 @@ Results compute(const Inputs& in)
         for (int i = 0; i < 4; ++i) {
             auto& r = P.plantilla[i];
             r.jornada  = in.plJornada[i];
-            r.personas = in.plPersonas[i];
+            r.personas = (i == 0) ? 1.0 : in.plPersonas[i]; // Titular: siempre 1 persona
             r.brutoFT  = d[i];
             if (i == 0) { // Propietario: E13..H13 = 0 (se retribuye vía beneficio)
                 r.brutoReal = r.costeSS = r.costePersona = r.costeTotal = 0;
@@ -207,23 +216,35 @@ Results compute(const Inputs& in)
     // ================================================= Proyección 10 años
     {
         auto& P = R.proyeccion;
+
+        // Escenario de crecimiento: Realista usa el IPC histórico de los
+        // últimos 10 años; Optimista usa el IPC constante fijado por el usuario.
+        const std::array<double,10> ipcAnual = (in.escenarioCrecimiento >= 0.5)
+            ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimista); return a; }()
+            : kIpcHistorico;
+
         for (int i = 0; i < 10; ++i) {
-            const int g = gidx(i);
+            // Año 1 parte de los valores iniciales tal cual (sin aplicar IPC);
+            // el crecimiento empieza a contar desde el año 2.
+            const double ipc = (i == 0) ? 0.0 : ipcAnual[i];
+            P.ipcAplicado[i]     = ipc;
+            P.margenComercial[i] = kMargenComercialSim[i];
+
             // Ventas (filas 6-7)
-            P.ventaReceta[i] = (i == 0 ? in.ventaReceta : P.ventaReceta[i-1]) * (1.0 + in.crecSeguro[g]);
-            P.ventaLibre[i]  = (i == 0 ? in.ventaLibre  : P.ventaLibre[i-1])  * (1.0 + in.crecLibre[g]);
+            P.ventaReceta[i] = (i == 0 ? in.ventaReceta : P.ventaReceta[i-1]) * (1.0 + ipc);
+            P.ventaLibre[i]  = (i == 0 ? in.ventaLibre  : P.ventaLibre[i-1])  * (1.0 + ipc);
             P.ventaTotal[i]  = P.ventaReceta[i] + P.ventaLibre[i];             // fila 8
-            P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - in.margen[g]);      // fila 9
+            P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - kMargenComercialSim[i]); // fila 9
             P.mComBruto[i]      = P.ventaTotal[i] - P.costeMercancia[i];       // fila 10
-            P.realesDecretos[i] = (i == 0 ? in.realesDecretos : P.realesDecretos[i-1]) * (1.0 + in.ipc[g]); // fila 11
+            P.realesDecretos[i] = (i == 0 ? in.realesDecretos : P.realesDecretos[i-1]) * (1.0 + ipc); // fila 11
             P.mComDespuesRD[i]  = P.mComBruto[i] - P.realesDecretos[i];        // fila 12
             P.alquiler[i] = 0;                                                 // fila 13 (constante 0)
             P.gastosPersonal[i] = (i == 0)
                 ? R.datosBase.gastosPersonal + R.datosBase.seguridadSocial     // B14 = SUM(D18:E19)
-                : P.gastosPersonal[i-1] * (1.0 + in.ipc[g]);                   // fila 14
+                : P.gastosPersonal[i-1] * (1.0 + ipc);                         // fila 14
             P.otrosGastos[i] = (i == 0)
                 ? R.datosBase.totalOtrosGastos                                 // B15 = D29
-                : P.otrosGastos[i-1] * (1.0 + in.crecSeguro[g]);               // fila 15 (crece con venta seguro)
+                : P.otrosGastos[i-1] * (1.0 + ipc);                            // fila 15
             P.intereses[i] = sumaAnual(R.amortBanco, i, true)
                            + sumaAnual(R.amortProp,  i, true);                 // fila 16 (negativo)
             P.beneficio[i] = P.mComDespuesRD[i] - P.alquiler[i]
@@ -283,12 +304,20 @@ Results compute(const Inputs& in)
         const double saldoCoop120  = R.amortCoop .rows[119].saldoFin;
         const double saldoProp120  = R.amortProp .rows[119].saldoFin;
 
+        // Revalorización del local a 10 años con el IPC realmente aplicado cada año.
+        double factorIpc10 = 1.0;
+        for (int y = 1; y < 10; ++y) factorIpc10 *= (1.0 + P.ipcAplicado[y]);
+
+        // Fondo de comercio ya amortizado en los 10 años (hoja Impuestos).
+        double amortFdCAcum10 = 0.0;
+        for (int i = 0; i < 10; ++i) amortFdCAcum10 += R.impuestos.amortFdC[i];
+
         for (int s = 0; s < 3; ++s) {
             A.inversionInicial[s] = in.liquidezAportada;                        // fila 7
             A.valorVentaFdC[s]    = P.ventaTotal[9] * in.factorVenta[s];        // fila 9
-            A.valorVentaLocal[s]  = in.localComercial * std::pow(1.0 + in.ipc[2], 9); // fila 10
+            A.valorVentaLocal[s]  = in.localComercial * factorIpc10;            // fila 10
             A.existencias10[s]    = P.ventaTotal[9] * 0.1;                      // fila 11
-            A.fdcPendiente[s]     = saldoBanco120;                              // fila 12
+            A.fdcPendiente[s]     = R.impuestos.fdc - amortFdCAcum10;          // fila 12
             A.deuda[s]            = -(saldoBanco120 + saldoCoop120 + saldoProp120); // fila 14
             A.patrimonioBruto[s]  = A.valorVentaFdC[s] + A.valorVentaLocal[s]
                                   + A.existencias10[s] + A.deuda[s];            // fila 15

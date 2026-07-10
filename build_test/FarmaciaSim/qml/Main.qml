@@ -22,6 +22,7 @@ ApplicationWindow {
     readonly property bool compact: width < breakpointCompacto
 
     readonly property var hojas: [
+        { nombre: "Simulación simple",   icono: "qrc:/qt/qml/FarmaciaSim/icons/simple.svg" },
         { nombre: "Datos Base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
         { nombre: "Proyección 10 Años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
@@ -125,21 +126,40 @@ ApplicationWindow {
             id: stack
             Layout.fillWidth: true
             Layout.fillHeight: true
-            currentIndex: 8
+            currentIndex: 0
 
+            // Al cambiar de pestaña, la vista siempre arranca con el scroll arriba del todo.
+            onCurrentIndexChanged: {
+                const item = stack.itemAt(stack.currentIndex)
+                if (!item) return
+                if (typeof item.resetScroll === "function") item.resetScroll()
+                else if (item.contentY !== undefined) item.contentY = 0
+            }
+
+            SimulacionSimpleView {}
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}
             ImpuestosView {}
             AnalisisView {}
-            AmortView { loan: Engine.banco }
+            AmortView {
+                loan: Engine.banco
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg"
+            }
             AmortView {
                 loan: Engine.cooperativa
                 emptyTexto: "No hay préstamo de cooperativa. Añádelo en Financiación."
-                emptyTabIndex: 1
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg"
+                emptyTabIndex: 2
                 emptyFocusKey: "pedidoInicial"
             }
-            AmortView { loan: Engine.propiedades }
+            AmortView {
+                loan: Engine.propiedades
+                emptyTexto: "No hay financiación de propiedades. Añádela en Financiación."
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg"
+                emptyTabIndex: 2
+                emptyFocusKey: "finPropiedades"
+            }
             PersonalView {}
         }
     }

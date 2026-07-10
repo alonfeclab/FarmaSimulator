@@ -20,6 +20,8 @@ set(src_and_dest_list
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/icons/propiedades.svg"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/icons/personal.svg"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/icons/personal.svg"
+    "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/icons/simple.svg"
+    "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/icons/simple.svg"
 
 )
 set(timestamp_file "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/.qt/FarmaciaSim_res.txt")

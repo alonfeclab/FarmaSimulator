@@ -19,6 +19,13 @@ namespace _qt_qml_FarmaciaSim_qml_NavPanel_qml {
         reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], nullptr
     };
 }
+namespace _qt_qml_FarmaciaSim_qml_SimulacionSimpleView_qml { 
+    extern const unsigned char qmlData[];
+    extern const QQmlPrivate::AOTCompiledFunction aotBuiltFunctions[];
+    const QQmlPrivate::CachedQmlUnit unit = {
+        reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), &aotBuiltFunctions[0], nullptr
+    };
+}
 namespace _qt_qml_FarmaciaSim_qml_DatosBaseView_qml { 
     extern const unsigned char qmlData[];
     extern const QQmlPrivate::AOTCompiledFunction aotBuiltFunctions[];
@@ -133,6 +140,7 @@ Q_GLOBAL_STATIC(Registry, unitRegistry)
 Registry::Registry() {
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/Main.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_Main_qml::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/NavPanel.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_NavPanel_qml::unit);
+    resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/SimulacionSimpleView.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_SimulacionSimpleView_qml::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/DatosBaseView.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_DatosBaseView_qml::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/FinanciacionView.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_FinanciacionView_qml::unit);
     resourcePathToCachedUnit.insert(QStringLiteral("/qt/qml/FarmaciaSim/qml/ProyeccionView.qml"), &QmlCacheGeneratedCode::_qt_qml_FarmaciaSim_qml_ProyeccionView_qml::unit);

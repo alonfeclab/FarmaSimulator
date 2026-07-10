@@ -7,10 +7,18 @@
                     "entries": [
                         {
                             "codegenResult": 0,
+                            "column": 5,
+                            "durationMicroseconds": 0,
+                            "functionName": "resetScroll",
+                            "line": 15,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 16,
+                            "line": 18,
                             "message": ""
                         },
                         {
@@ -18,7 +26,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "contentWidth",
-                            "line": 34,
+                            "line": 36,
                             "message": ""
                         },
                         {
@@ -26,7 +34,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "contentHeight",
-                            "line": 35,
+                            "line": 37,
                             "message": ""
                         },
                         {
@@ -34,7 +42,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "boundsBehavior",
-                            "line": 37,
+                            "line": 39,
                             "message": ""
                         },
                         {
@@ -42,7 +50,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 32,
+                            "line": 34,
                             "message": ""
                         },
                         {
@@ -50,7 +58,7 @@
                             "column": 59,
                             "durationMicroseconds": 0,
                             "functionName": "policy",
-                            "line": 39,
+                            "line": 41,
                             "message": ""
                         },
                         {
@@ -58,7 +66,7 @@
                             "column": 36,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 48,
+                            "line": 50,
                             "message": ""
                         },
                         {
@@ -66,7 +74,7 @@
                             "column": 57,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 48,
+                            "line": 50,
                             "message": ""
                         },
                         {
@@ -74,7 +82,7 @@
                             "column": 57,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 51,
+                            "line": 53,
                             "message": ""
                         },
                         {
@@ -82,7 +90,7 @@
                             "column": 47,
                             "durationMicroseconds": 0,
                             "functionName": "left",
-                            "line": 52,
+                            "line": 54,
                             "message": ""
                         },
                         {
@@ -90,7 +98,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 60,
+                            "line": 62,
                             "message": ""
                         },
                         {
@@ -98,7 +106,7 @@
                             "column": 60,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 60,
+                            "line": 62,
                             "message": ""
                         },
                         {
@@ -106,7 +114,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 63,
+                            "line": 65,
                             "message": "Cannot load property index from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::parent with type QQuickItem."
                         },
                         {
@@ -114,7 +122,7 @@
                             "column": 55,
                             "durationMicroseconds": 0,
                             "functionName": "centerIn",
-                            "line": 62,
+                            "line": 64,
                             "message": ""
                         },
                         {
@@ -122,7 +130,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "model",
-                            "line": 72,
+                            "line": 74,
                             "message": ""
                         },
                         {
@@ -130,7 +138,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 79,
+                            "line": 81,
                             "message": ""
                         },
                         {
@@ -138,7 +146,7 @@
                             "column": 61,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 79,
+                            "line": 81,
                             "message": ""
                         },
                         {
@@ -146,7 +154,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 80,
+                            "line": 82,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -154,7 +162,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 85,
+                            "line": 87,
                             "message": "Cannot load property label from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -162,7 +170,7 @@
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 88,
+                            "line": 90,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -170,7 +178,7 @@
                             "column": 61,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 83,
+                            "line": 85,
                             "message": ""
                         },
                         {
@@ -178,7 +186,7 @@
                             "column": 51,
                             "durationMicroseconds": 0,
                             "functionName": "left",
-                            "line": 84,
+                            "line": 86,
                             "message": ""
                         },
                         {
@@ -186,7 +194,7 @@
                             "column": 48,
                             "durationMicroseconds": 0,
                             "functionName": "bold",
-                            "line": 87,
+                            "line": 89,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -194,15 +202,23 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "model",
-                            "line": 92,
+                            "line": 94,
                             "message": "Cannot load property values from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 70,
+                            "durationMicroseconds": 0,
+                            "functionName": "editable",
+                            "line": 99,
+                            "message": "Cannot load property label from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
                             "codegenResult": 0,
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 96,
+                            "line": 100,
                             "message": ""
                         },
                         {
@@ -210,7 +226,7 @@
                             "column": 64,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 96,
+                            "line": 100,
                             "message": ""
                         },
                         {
@@ -218,15 +234,23 @@
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 97,
+                            "line": 101,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 50,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 104,
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
                             "column": 47,
-                            "durationMicroseconds": 10000,
+                            "durationMicroseconds": 29000,
                             "functionName": "text",
-                            "line": 102,
+                            "line": 107,
                             "message": "Cannot load property fmt from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -234,7 +258,7 @@
                             "column": 48,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 105,
+                            "line": 110,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
                         },
                         {
@@ -242,7 +266,7 @@
                             "column": 65,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 100,
+                            "line": 105,
                             "message": ""
                         },
                         {
@@ -250,7 +274,7 @@
                             "column": 56,
                             "durationMicroseconds": 0,
                             "functionName": "right",
-                            "line": 101,
+                            "line": 106,
                             "message": ""
                         },
                         {
@@ -258,15 +282,47 @@
                             "column": 52,
                             "durationMicroseconds": 0,
                             "functionName": "bold",
-                            "line": 104,
+                            "line": 109,
                             "message": "Cannot load property bold from (component in C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/ProyeccionView.qml)::modelData with type QVariant."
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 50,
+                            "durationMicroseconds": 0,
+                            "functionName": "visible",
+                            "line": 114,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 56,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitWidth",
+                            "line": 116,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 57,
+                            "durationMicroseconds": 0,
+                            "functionName": "implicitHeight",
+                            "line": 117,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 59,
+                            "durationMicroseconds": 0,
+                            "functionName": "centerIn",
+                            "line": 115,
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 121,
+                            "line": 135,
                             "message": ""
                         }
                     ],

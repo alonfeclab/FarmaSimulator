@@ -12,6 +12,8 @@ Item {
     readonly property int wCell: 108
     readonly property int hRow: 30
 
+    function resetScroll() { flick.contentX = 0; flick.contentY = 0 }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 24
@@ -93,10 +95,13 @@ Item {
                                 Rectangle {
                                     id: celda
                                     required property var modelData
+                                    required property int index
+                                    readonly property bool editable: fila.modelData.label === "Reales Decretos" && index === 0
                                     width: page.wCell; height: page.hRow
                                     color: fila.modelData.bold ? "#e3efe9"
                                          : (fila.index % 2 ? "#f7faf8" : "white")
                                     Text {
+                                        visible: !celda.editable
                                         anchors.verticalCenter: parent.verticalCenter
                                         anchors.right: parent.right; anchors.rightMargin: 8
                                         text: Fmt.byFmt(celda.modelData, fila.modelData.fmt)
@@ -104,6 +109,15 @@ Item {
                                         font.bold: fila.modelData.bold
                                         color: celda.modelData < 0 ? "#a33b2e"
                                              : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                                    }
+                                    MoneyField {
+                                        visible: celda.editable
+                                        anchors.centerIn: parent
+                                        implicitWidth: page.wCell - 6
+                                        implicitHeight: page.hRow - 4
+                                        padding: 2
+                                        font.pixelSize: 12
+                                        k: "realesDecretos"
                                     }
                                 }
                             }
@@ -115,7 +129,7 @@ Item {
 
         Text {
             Layout.fillWidth: true
-            text: "Los crecimientos anuales se editan en la hoja Financiación; el año 3 se aplica hasta el año 10."
+            text: "El escenario de crecimiento (Realista/Optimista) se elige en la hoja Financiación."
             font.pixelSize: 12
             color: "#6b7a76"
             wrapMode: Text.WordWrap

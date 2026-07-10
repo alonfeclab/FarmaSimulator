@@ -3,6 +3,7 @@ typeinfo FarmaciaSim.qmltypes
 prefer :/qt/qml/FarmaciaSim/
 Main 1.0 qml/Main.qml
 NavPanel 1.0 qml/NavPanel.qml
+SimulacionSimpleView 1.0 qml/SimulacionSimpleView.qml
 DatosBaseView 1.0 qml/DatosBaseView.qml
 FinanciacionView 1.0 qml/FinanciacionView.qml
 ProyeccionView 1.0 qml/ProyeccionView.qml

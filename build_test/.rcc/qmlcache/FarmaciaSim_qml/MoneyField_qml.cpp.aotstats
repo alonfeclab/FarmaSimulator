@@ -10,15 +10,15 @@
                             "column": 35,
                             "durationMicroseconds": 1000,
                             "functionName": "value",
-                            "line": 13,
+                            "line": 14,
                             "message": "Cannot generate efficient code for LoadElement with non-list base type Engine::inputs with type QVariantMap (adjusted to QJSValue, stored as QJSValue)"
                         },
                         {
                             "codegenResult": 2,
                             "column": 5,
-                            "durationMicroseconds": 10000,
+                            "durationMicroseconds": 16000,
                             "functionName": "display",
-                            "line": 15,
+                            "line": 16,
                             "message": "function without return type annotation returns QString. This may prevent proper compilation to Cpp."
                         },
                         {
@@ -26,7 +26,7 @@
                             "column": 26,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalAlignment",
-                            "line": 19,
+                            "line": 20,
                             "message": ""
                         },
                         {
@@ -34,7 +34,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "inputMethodHints",
-                            "line": 23,
+                            "line": 24,
                             "message": ""
                         },
                         {
@@ -42,7 +42,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "onValueChanged",
-                            "line": 40,
+                            "line": 41,
                             "message": ""
                         },
                         {
@@ -50,7 +50,7 @@
                             "column": 27,
                             "durationMicroseconds": 1000,
                             "functionName": "onActiveFocusChanged",
-                            "line": 41,
+                            "line": 42,
                             "message": "Cannot generate efficient code for call to untyped JavaScript function"
                         },
                         {
@@ -58,7 +58,7 @@
                             "column": 17,
                             "durationMicroseconds": 0,
                             "functionName": "onAccepted",
-                            "line": 49,
+                            "line": 50,
                             "message": ""
                         },
                         {
@@ -66,12 +66,12 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "onEditingFinished",
-                            "line": 50,
+                            "line": 51,
                             "message": "Cannot generate efficient code for call to untyped JavaScript function"
                         },
                         {
                             "codegenResult": 0,
-                            "column": 23,
+                            "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 28,
@@ -79,10 +79,26 @@
                         },
                         {
                             "codegenResult": 0,
+                            "column": 23,
+                            "durationMicroseconds": 2000,
+                            "functionName": "color",
+                            "line": 29,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 23,
+                            "durationMicroseconds": 0,
+                            "functionName": "width",
+                            "line": 30,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
                             "column": 17,
-                            "durationMicroseconds": 26000,
+                            "durationMicroseconds": 9000,
                             "functionName": "target",
-                            "line": 33,
+                            "line": 34,
                             "message": ""
                         },
                         {
@@ -90,7 +106,7 @@
                             "column": 9,
                             "durationMicroseconds": 0,
                             "functionName": "onIrA",
-                            "line": 34,
+                            "line": 35,
                             "message": "Functions without type annotations won't be compiled"
                         },
                         {
@@ -98,7 +114,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "onCompleted",
-                            "line": 39,
+                            "line": 40,
                             "message": ""
                         }
                     ],

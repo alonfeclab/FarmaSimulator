@@ -16,7 +16,7 @@
                         {
                             "codegenResult": 2,
                             "column": 5,
-                            "durationMicroseconds": 6000,
+                            "durationMicroseconds": 37000,
                             "functionName": "display",
                             "line": 15,
                             "message": "function without return type annotation returns QString. This may prevent proper compilation to Cpp."

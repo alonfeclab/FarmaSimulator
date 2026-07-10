@@ -49,9 +49,11 @@ template <> constexpr inline auto Engine::qt_create_metaobjectdata<qt_meta_tag_Z
         "key",
         "value",
         "restaurarValoresIniciales",
+        "simularSimple",
+        "QVariantMap",
+        "cambios",
         "exportarPdf",
         "inputs",
-        "QVariantMap",
         "datosBase",
         "financiacion",
         "personal",
@@ -75,32 +77,36 @@ template <> constexpr inline auto Engine::qt_create_metaobjectdata<qt_meta_tag_Z
         }}),
         // Method 'restaurarValoresIniciales'
         QtMocHelpers::MethodData<void()>(10, 6, QMC::AccessPublic, QMetaType::Void),
+        // Method 'simularSimple'
+        QtMocHelpers::MethodData<QVariantMap(const QVariantMap &) const>(11, 6, QMC::AccessPublic, 0x80000000 | 12, {{
+            { 0x80000000 | 12, 13 },
+        }}),
         // Method 'exportarPdf'
-        QtMocHelpers::MethodData<QString()>(11, 6, QMC::AccessPublic, QMetaType::QString),
+        QtMocHelpers::MethodData<QString()>(14, 6, QMC::AccessPublic, QMetaType::QString),
     };
     QtMocHelpers::UintData qt_properties {
         // property 'inputs'
-        QtMocHelpers::PropertyData<QVariantMap>(12, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(15, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'datosBase'
-        QtMocHelpers::PropertyData<QVariantMap>(14, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(16, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'financiacion'
-        QtMocHelpers::PropertyData<QVariantMap>(15, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(17, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'personal'
-        QtMocHelpers::PropertyData<QVariantMap>(16, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(18, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'proyeccion'
-        QtMocHelpers::PropertyData<QVariantList>(17, 0x80000000 | 18, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantList>(19, 0x80000000 | 20, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'impuestos'
-        QtMocHelpers::PropertyData<QVariantMap>(19, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(21, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'analisis'
-        QtMocHelpers::PropertyData<QVariantMap>(20, 0x80000000 | 13, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
+        QtMocHelpers::PropertyData<QVariantMap>(22, 0x80000000 | 12, QMC::DefaultPropertyFlags | QMC::EnumOrFlag, 0),
         // property 'banco'
-        QtMocHelpers::PropertyData<AmortModel*>(21, 0x80000000 | 22, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
+        QtMocHelpers::PropertyData<AmortModel*>(23, 0x80000000 | 24, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
         // property 'cooperativa'
-        QtMocHelpers::PropertyData<AmortModel*>(23, 0x80000000 | 22, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
+        QtMocHelpers::PropertyData<AmortModel*>(25, 0x80000000 | 24, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
         // property 'propiedades'
-        QtMocHelpers::PropertyData<AmortModel*>(24, 0x80000000 | 22, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
+        QtMocHelpers::PropertyData<AmortModel*>(26, 0x80000000 | 24, QMC::DefaultPropertyFlags | QMC::EnumOrFlag | QMC::Constant),
         // property 'rutaDatos'
-        QtMocHelpers::PropertyData<QString>(25, QMetaType::QString, QMC::DefaultPropertyFlags | QMC::Constant),
+        QtMocHelpers::PropertyData<QString>(27, QMetaType::QString, QMC::DefaultPropertyFlags | QMC::Constant),
     };
     QtMocHelpers::UintData qt_enums {
     };
@@ -130,7 +136,9 @@ void Engine::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         case 0: _t->recalculated(); break;
         case 1: _t->set((*reinterpret_cast<std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<double>>(_a[2]))); break;
         case 2: _t->restaurarValoresIniciales(); break;
-        case 3: { QString _r = _t->exportarPdf();
+        case 3: { QVariantMap _r = _t->simularSimple((*reinterpret_cast<std::add_pointer_t<QVariantMap>>(_a[1])));
+            if (_a[0]) *reinterpret_cast<QVariantMap*>(_a[0]) = std::move(_r); }  break;
+        case 4: { QString _r = _t->exportarPdf();
             if (_a[0]) *reinterpret_cast<QString*>(_a[0]) = std::move(_r); }  break;
         default: ;
         }
@@ -177,14 +185,14 @@ int Engine::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 4)
+        if (_id < 5)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 4;
+        _id -= 5;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 4)
+        if (_id < 5)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 4;
+        _id -= 5;
     }
     if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty
             || _c == QMetaObject::ResetProperty || _c == QMetaObject::BindableProperty

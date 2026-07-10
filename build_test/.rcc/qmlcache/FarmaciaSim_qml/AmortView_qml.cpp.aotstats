@@ -10,7 +10,7 @@
                             "column": 35,
                             "durationMicroseconds": 1000,
                             "functionName": "vacio",
-                            "line": 19,
+                            "line": 20,
                             "message": ""
                         },
                         {
@@ -18,7 +18,7 @@
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "anchosCol",
-                            "line": 21,
+                            "line": 22,
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
@@ -26,7 +26,15 @@
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "columnasResumen",
-                            "line": 22,
+                            "line": 23,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 5,
+                            "durationMicroseconds": 2000,
+                            "functionName": "resetScroll",
+                            "line": 25,
                             "message": ""
                         },
                         {
@@ -34,7 +42,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 30,
+                            "line": 33,
                             "message": "Cannot access value for name etiqueta"
                         },
                         {
@@ -42,7 +50,7 @@
                             "column": 80,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 30,
+                            "line": 33,
                             "message": ""
                         },
                         {
@@ -50,7 +58,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 31,
+                            "line": 34,
                             "message": "Cannot access value for name valor"
                         },
                         {
@@ -58,7 +66,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 35,
+                            "line": 38,
                             "message": ""
                         },
                         {
@@ -66,7 +74,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 39,
+                            "line": 42,
                             "message": ""
                         },
                         {
@@ -74,7 +82,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 43,
+                            "line": 46,
                             "message": ""
                         },
                         {
@@ -82,7 +90,15 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "alignment",
-                            "line": 46,
+                            "line": 49,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 25,
+                            "durationMicroseconds": 0,
+                            "functionName": "radius",
+                            "line": 57,
                             "message": ""
                         },
                         {
@@ -90,7 +106,31 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "alignment",
-                            "line": 53,
+                            "line": 54,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 29,
+                            "durationMicroseconds": 0,
+                            "functionName": "source",
+                            "line": 61,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 33,
+                            "durationMicroseconds": 0,
+                            "functionName": "sourceSize",
+                            "line": 62,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 39,
+                            "durationMicroseconds": 0,
+                            "functionName": "centerIn",
+                            "line": 60,
                             "message": ""
                         },
                         {
@@ -98,7 +138,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 56,
+                            "line": 68,
                             "message": ""
                         },
                         {
@@ -106,7 +146,7 @@
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalAlignment",
-                            "line": 59,
+                            "line": 71,
                             "message": ""
                         },
                         {
@@ -114,7 +154,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "wrapMode",
-                            "line": 60,
+                            "line": 72,
                             "message": ""
                         },
                         {
@@ -122,7 +162,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "alignment",
-                            "line": 61,
+                            "line": 73,
                             "message": ""
                         },
                         {
@@ -130,15 +170,15 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 65,
+                            "line": 77,
                             "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 28,
-                            "durationMicroseconds": 21000,
+                            "durationMicroseconds": 19000,
                             "functionName": "onClicked",
-                            "line": 67,
+                            "line": 79,
                             "message": ""
                         },
                         {
@@ -146,7 +186,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "alignment",
-                            "line": 66,
+                            "line": 78,
                             "message": ""
                         },
                         {
@@ -154,7 +194,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 74,
+                            "line": 86,
                             "message": ""
                         },
                         {
@@ -162,7 +202,7 @@
                             "column": 29,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 79,
+                            "line": 91,
                             "message": ""
                         },
                         {
@@ -170,7 +210,7 @@
                             "column": 26,
                             "durationMicroseconds": 0,
                             "functionName": "columns",
-                            "line": 85,
+                            "line": 97,
                             "message": ""
                         },
                         {
@@ -178,7 +218,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 83,
+                            "line": 95,
                             "message": ""
                         },
                         {
@@ -186,7 +226,7 @@
                             "column": 65,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 89,
+                            "line": 101,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -194,7 +234,7 @@
                             "column": 66,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 90,
+                            "line": 102,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -202,7 +242,7 @@
                             "column": 50,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 91,
+                            "line": 103,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -210,7 +250,7 @@
                             "column": 60,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 92,
+                            "line": 104,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -218,7 +258,7 @@
                             "column": 57,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 93,
+                            "line": 105,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -226,7 +266,7 @@
                             "column": 55,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 94,
+                            "line": 106,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -234,7 +274,7 @@
                             "column": 60,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 95,
+                            "line": 107,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -242,7 +282,7 @@
                             "column": 69,
                             "durationMicroseconds": 0,
                             "functionName": "valor",
-                            "line": 96,
+                            "line": 108,
                             "message": "Cannot use shadowable base type for further lookups: AmortModel::info with type QVariantMap"
                         },
                         {
@@ -250,7 +290,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 102,
+                            "line": 114,
                             "message": ""
                         },
                         {
@@ -258,7 +298,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 111,
+                            "line": 123,
                             "message": ""
                         },
                         {
@@ -266,7 +306,7 @@
                             "column": 31,
                             "durationMicroseconds": 0,
                             "functionName": "syncView",
-                            "line": 117,
+                            "line": 129,
                             "message": ""
                         },
                         {
@@ -274,7 +314,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "implicitWidth",
-                            "line": 125,
+                            "line": 137,
                             "message": "Cannot generate efficient code for LoadElement with non-list base type AmortView::anchosCol with type QVariant (adjusted to QJSValue, stored as QJSValue)"
                         },
                         {
@@ -282,7 +322,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 131,
+                            "line": 143,
                             "message": ""
                         },
                         {
@@ -290,7 +330,7 @@
                             "column": 53,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 128,
+                            "line": 140,
                             "message": ""
                         },
                         {
@@ -298,7 +338,7 @@
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "right",
-                            "line": 129,
+                            "line": 141,
                             "message": ""
                         },
                         {
@@ -306,7 +346,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "model",
-                            "line": 141,
+                            "line": 153,
                             "message": ""
                         },
                         {
@@ -314,7 +354,7 @@
                             "column": 37,
                             "durationMicroseconds": 0,
                             "functionName": "boundsBehavior",
-                            "line": 143,
+                            "line": 155,
                             "message": ""
                         },
                         {
@@ -322,7 +362,7 @@
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "columnWidthProvider",
-                            "line": 145,
+                            "line": 157,
                             "message": "Functions without type annotations won't be compiled"
                         },
                         {
@@ -330,7 +370,7 @@
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "columnWidthProvider",
-                            "line": 145,
+                            "line": 157,
                             "message": "Cannot generate efficient code for LoadClosure"
                         },
                         {
@@ -338,7 +378,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "rowHeightProvider",
-                            "line": 146,
+                            "line": 158,
                             "message": ""
                         },
                         {
@@ -346,7 +386,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "rowHeightProvider",
-                            "line": 146,
+                            "line": 158,
                             "message": "Cannot generate efficient code for LoadClosure"
                         },
                         {
@@ -354,7 +394,7 @@
                             "column": 63,
                             "durationMicroseconds": 0,
                             "functionName": "policy",
-                            "line": 148,
+                            "line": 160,
                             "message": ""
                         },
                         {
@@ -362,7 +402,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 156,
+                            "line": 168,
                             "message": ""
                         },
                         {
@@ -370,7 +410,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 161,
+                            "line": 173,
                             "message": ""
                         },
                         {
@@ -378,7 +418,7 @@
                             "column": 36,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 163,
+                            "line": 175,
                             "message": "Cannot generate efficient code for call to untyped JavaScript function"
                         },
                         {
@@ -386,7 +426,7 @@
                             "column": 53,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 158,
+                            "line": 170,
                             "message": ""
                         },
                         {
@@ -394,7 +434,7 @@
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "right",
-                            "line": 159,
+                            "line": 171,
                             "message": ""
                         }
                     ],

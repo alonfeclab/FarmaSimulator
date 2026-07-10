@@ -38,6 +38,7 @@ Flickable {
     component CalcRow: RowLayout {
         property string label
         property real value
+        property string fmt: "eur"
         property bool destacada: false
         Layout.fillWidth: true
         Text {
@@ -46,7 +47,7 @@ Flickable {
             wrapMode: Text.WordWrap
         }
         Text {
-            text: Fmt.eur(value); font.pixelSize: 14; font.bold: true
+            text: Fmt.byFmt(value, fmt); font.pixelSize: 14; font.bold: true
             color: destacada ? "#14523f" : "#1e2b28"
         }
     }
@@ -88,26 +89,10 @@ Flickable {
                     spacing: 8
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "% amortización local (fijo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                        PctField { k: "impAmortLocalPct" }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "% amortización farmacia (mínimo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                        PctField { k: "impAmortMinPct" }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "% amortización farmacia (máximo)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                        PctField { k: "impAmortMaxPct" }
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Mínimo personal exento (IRPF)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                        MoneyField { k: "minimoPersonal" }
-                    }
+                    CalcRow { label: "% amortización local (fijo)"; value: Engine.inputs.impAmortLocalPct; fmt: "pct1" }
+                    CalcRow { label: "% amortización farmacia (mínimo)"; value: Engine.inputs.impAmortMinPct; fmt: "pct1" }
+                    CalcRow { label: "% amortización farmacia (máximo)"; value: Engine.inputs.impAmortMaxPct; fmt: "pct1" }
+                    CalcRow { label: "Mínimo personal exento (IRPF)"; value: Engine.inputs.minimoPersonal }
                     CalcRow { label: "Deducción mínimo personal (× 19%)"; value: Engine.impuestos.deduccionMinimo }
                 }
             }
@@ -156,11 +141,19 @@ Flickable {
                     Repeater {
                         model: {
                             const I = Engine.impuestos
+                            function cumSum(arr) {
+                                let sum = 0
+                                const out = []
+                                for (const v of arr) { sum += v; out.push(sum) }
+                                return out
+                            }
                             let filas = [
                                 { label: "Beneficio farmacia", values: I.beneficio, fmt: "eur", bold: false },
                                 { label: "Amortización local", values: I.amortLocal, fmt: "eur", bold: false },
+                                { label: "Suma amortización local", values: cumSum(I.amortLocal), fmt: "eur", bold: false },
                                 { label: "% amort. farmacia ajustado", values: I.pctAjustado, fmt: "pct2", bold: false },
                                 { label: "Amortización F.C. farmacia", values: I.amortFdC, fmt: "eur", bold: false },
+                                { label: "Suma amortización farmacia", values: cumSum(I.amortFdC), fmt: "eur", bold: false },
                                 { label: "BASE IMPONIBLE", values: I.baseImponible, fmt: "eur", bold: true }
                             ]
                             for (const t of I.tramos)

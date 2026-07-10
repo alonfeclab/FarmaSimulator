@@ -382,21 +382,24 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
 
     const auto& D = r.datosBase;
 
-    d.tituloSeccion(QStringLiteral("PyG estimada para el estudio"));
+    d.tituloSeccion(QStringLiteral("Ventas"));
     Tabla t = kv(d);
     t.filaDatos({ QStringLiteral("Venta receta"),               d.eur(in.ventaReceta) });
     t.filaDatos({ QStringLiteral("Venta libre"),                d.eur(in.ventaLibre) });
     t.filaDatos({ QStringLiteral("VENTA TOTAL"),                d.eur(D.ventaTotal) }, true);
-    t.filaDatos({ QStringLiteral("Coste mercancía"),            d.eur(D.costeMercancia) });
-    t.filaDatos({ QStringLiteral("M. comercial bruto"),         d.eur(D.mComBruto) });
-    t.filaDatos({ QStringLiteral("M. comercial bruto %"),       d.pct(in.margenPct) });
-    t.filaDatos({ QStringLiteral("Reales decretos"),            d.eur(in.realesDecretos) });
-    t.filaDatos({ QStringLiteral("M. COMERCIAL DESPUÉS RDs"),   d.eur(D.mComDespuesRD) }, true);
+
+    d.tituloSeccion(QStringLiteral("Margen comercial"));
+    Tabla t1b = kv(d);
+    t1b.filaDatos({ QStringLiteral("Coste mercancía"),          d.eur(D.costeMercancia) });
+    t1b.filaDatos({ QStringLiteral("M. comercial bruto"),       d.eur(D.mComBruto) });
+    t1b.filaDatos({ QStringLiteral("M. comercial bruto %"),     d.pct(in.margenPct) });
+    t1b.filaDatos({ QStringLiteral("Reales decretos"),          d.eur(in.realesDecretos) });
+    t1b.filaDatos({ QStringLiteral("M. COMERCIAL DESPUÉS RDs"), d.eur(D.mComDespuesRD) }, true);
 
     d.tituloSeccion(QStringLiteral("Gastos de personal"));
     Tabla t2 = kv(d);
-    t2.filaDatos({ QStringLiteral("Gastos de personal (hoja Personal)"), d.eur(D.gastosPersonal) });
-    t2.filaDatos({ QStringLiteral("Seguridad Social (hoja Personal)"),   d.eur(D.seguridadSocial) });
+    t2.filaDatos({ QStringLiteral("Gastos de personal"), d.eur(D.gastosPersonal) });
+    t2.filaDatos({ QStringLiteral("Seguridad Social"),   d.eur(D.seguridadSocial) });
     t2.filaDatos({ QStringLiteral("Cuota autónomos"),                    d.eur(in.cuotaAutonomos) });
     t2.filaDatos({ QStringLiteral("TOTAL GASTOS PERSONAL"),              d.eur(D.totalGastosPersonal) }, true);
 
@@ -435,22 +438,14 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     d.tituloHoja(QStringLiteral("2. Estudio de financiación"));
 
     const auto& F = r.financiacion;
-    const qreal wLabel = d.ancho() - 2 * kMargen - 3 * 110;
 
-    d.tituloSeccion(QStringLiteral("Crecimientos previstos"));
+    d.tituloSeccion(QStringLiteral("Escenario de crecimiento"));
     {
-        Tabla t(d, { { QStringLiteral("Concepto"), wLabel, Qt::AlignLeft },
-                     { QStringLiteral("Año 1"), 110 },
-                     { QStringLiteral("Año 2"), 110 },
-                     { QStringLiteral("Año 3+"), 110 } });
-        t.filaDatos({ QStringLiteral("IPC"),
-                      d.pct(in.ipc[0]), d.pct(in.ipc[1]), d.pct(in.ipc[2]) });
-        t.filaDatos({ QStringLiteral("Venta seguro"),
-                      d.pct(in.crecSeguro[0]), d.pct(in.crecSeguro[1]), d.pct(in.crecSeguro[2]) });
-        t.filaDatos({ QStringLiteral("Venta libre"),
-                      d.pct(in.crecLibre[0]), d.pct(in.crecLibre[1]), d.pct(in.crecLibre[2]) });
-        t.filaDatos({ QStringLiteral("M. comercial"),
-                      d.pct(in.margen[0]), d.pct(in.margen[1]), d.pct(in.margen[2]) });
+        Tabla t = kv(d);
+        t.filaDatos({ QStringLiteral("Escenario"),
+                      in.escenarioCrecimiento >= 0.5 ? QStringLiteral("Optimista") : QStringLiteral("Realista") });
+        if (in.escenarioCrecimiento >= 0.5)
+            t.filaDatos({ QStringLiteral("IPC"), d.pct(in.ipcOptimista) });
     }
 
     d.tituloSeccion(QStringLiteral("Inversión operación"));

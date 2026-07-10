@@ -109,6 +109,7 @@ void Engine::cargarDeDisco()
             if (v > 0) **n = v;
         }
     }
+    m_in.plPersonas[0] = 1; // Farmacéutico titular: siempre 1 persona, no editable
 }
 
 void Engine::registerInputs()
@@ -127,13 +128,9 @@ void Engine::registerInputs()
     m_dbl["robot"]          = &i.robot;
     m_dbl["seguros"]        = &i.seguros;
     m_dbl["otrosGastos"]    = &i.otrosGastos;
-    // ---- Financiación: crecimientos
-    for (int k = 0; k < 3; ++k) {
-        m_dbl[QStringLiteral("ipc%1").arg(k)]        = &i.ipc[k];
-        m_dbl[QStringLiteral("crecSeguro%1").arg(k)] = &i.crecSeguro[k];
-        m_dbl[QStringLiteral("crecLibre%1").arg(k)]  = &i.crecLibre[k];
-        m_dbl[QStringLiteral("margen%1").arg(k)]     = &i.margen[k];
-    }
+    // ---- Financiación: escenario de crecimiento
+    m_dbl["escenarioCrecimiento"] = &i.escenarioCrecimiento;
+    m_dbl["ipcOptimista"]         = &i.ipcOptimista;
     // ---- Financiación: inversión, tipos, aportaciones
     m_dbl["coeficiente"]       = &i.coeficiente;
     m_dbl["localComercial"]    = &i.localComercial;
@@ -185,6 +182,9 @@ void Engine::registerInputs()
 
 void Engine::set(const QString& key, double value)
 {
+    if (key == QStringLiteral("plPersonas0"))
+        return; // Farmacéutico titular: siempre 1 persona, no editable
+
     if (auto it = m_dbl.find(key); it != m_dbl.end()) {
         if (**it == value) return;
         **it = value;
@@ -339,11 +339,6 @@ void Engine::buildMaps()
     static const char* tiposDatos[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
     static const char* tiposPlant[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
                                          "Auxiliar de farmacia", "Técnico especialista" };
-    static const char* roles[4] = {
-        "L-V 9:00–17:00 · 20% mostrador · 80% gestión/dirección",
-        "L-V 13:00–21:00 · Turno cierre",
-        "Turnos escalonados · Apoyo mostrador hora punta",
-        "½ jornada · Stock, pedidos, administración" };
     QVariantList datos, plantilla;
     for (int k = 0; k < 3; ++k) {
         const auto& r = P.datos[k];
@@ -360,8 +355,7 @@ void Engine::buildMaps()
             { "jornada", r.jornada }, { "personas", r.personas },
             { "brutoFT", r.brutoFT }, { "brutoReal", r.brutoReal },
             { "costeSS", r.costeSS }, { "costePersona", r.costePersona },
-            { "costeTotal", r.costeTotal },
-            { "rol", QString::fromUtf8(roles[k]) } };
+            { "costeTotal", r.costeTotal }};
     }
     m_personal = QVariantMap{
         { "datos", datos },
@@ -379,12 +373,15 @@ void Engine::buildMaps()
         proyRow("Venta Receta",                  Y.ventaReceta),
         proyRow("Venta Libre",                   Y.ventaLibre),
         proyRow("VENTA TOTAL",                   Y.ventaTotal, "eur", true),
+        proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
         proyRow("Coste Mercancía (Proveedores)", Y.costeMercancia),
+        proyRow("M. Comercial %",                Y.margenComercial, "pct1"),
         proyRow("M. Comercial Bruto",            Y.mComBruto),
         proyRow("Reales Decretos",               Y.realesDecretos),
         proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur", true),
         proyRow("Alquiler Local Comercial",      Y.alquiler),
         proyRow("Gastos de Personal + S.S.",     Y.gastosPersonal),
+        proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
         proyRow("Otros Gastos",                  Y.otrosGastos),
         proyRow("Intereses de Deudas",           Y.intereses),
         proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),
@@ -394,7 +391,6 @@ void Engine::buildMaps()
         proyRow("Devolución Cooperativa",        Y.devCooperativa),
         proyRow("SALARIO NETO ANUAL TITULAR",    Y.salarioNetoAnual, "eur", true),
         proyRow("SALARIO NETO MENSUAL TITULAR",  Y.salarioNetoMensual, "eur", true),
-        proyRow("% GASTO PERSONAL s/ FACTURACIÓN", Y.pctGastoPersonal, "pct1"),
     };
 
     // ---- Impuestos (IRPF, v2)
@@ -449,5 +445,57 @@ void Engine::buildMaps()
         { "amortLocal",        toList10(A.amortLocal) },
         { "baseImponible",     toList10(A.baseImponible) },
         { "fdcPendienteSim",   toList10(A.fdcPendienteSim) },
+    };
+}
+
+// ---------------------------------------------------------------- simulación aislada
+// Calcula una proyección "de bolsillo" con algunas entradas sustituidas, a
+// partir de una copia de las entradas actuales. No toca m_in ni dispara
+// recalc()/guardarEnDisco(): así los cambios de la hoja "Simulación simple"
+// no se propagan a las demás hojas ni se guardan.
+QVariantMap Engine::simularSimple(const QVariantMap& cambios) const
+{
+    sim::Inputs copia = m_in;
+    if (cambios.contains(QStringLiteral("ventaReceta")))
+        copia.ventaReceta = cambios[QStringLiteral("ventaReceta")].toDouble();
+    if (cambios.contains(QStringLiteral("ventaLibre")))
+        copia.ventaLibre = cambios[QStringLiteral("ventaLibre")].toDouble();
+    if (cambios.contains(QStringLiteral("existencias")))
+        copia.existencias = cambios[QStringLiteral("existencias")].toDouble();
+    if (cambios.contains(QStringLiteral("liquidezAportada")))
+        copia.liquidezAportada = cambios[QStringLiteral("liquidezAportada")].toDouble();
+    if (cambios.contains(QStringLiteral("finPropiedades")))
+        copia.finPropiedades = cambios[QStringLiteral("finPropiedades")].toDouble();
+    if (cambios.contains(QStringLiteral("pedidoInicial")))
+        copia.pedidoInicial = cambios[QStringLiteral("pedidoInicial")].toDouble();
+
+    const sim::Results r = sim::compute(copia);
+    const auto& Y = r.proyeccion;
+    const QVariantList proyeccion{
+        proyRow("Venta Receta",                  Y.ventaReceta),
+        proyRow("Venta Libre",                   Y.ventaLibre),
+        proyRow("VENTA TOTAL",                   Y.ventaTotal, "eur", true),
+        proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
+        proyRow("Coste Mercancía (Proveedores)", Y.costeMercancia),
+        proyRow("M. Comercial %",                Y.margenComercial, "pct1"),
+        proyRow("M. Comercial Bruto",            Y.mComBruto),
+        proyRow("Reales Decretos",               Y.realesDecretos),
+        proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur", true),
+        proyRow("Alquiler Local Comercial",      Y.alquiler),
+        proyRow("Gastos de Personal + S.S.",     Y.gastosPersonal),
+        proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
+        proyRow("Otros Gastos",                  Y.otrosGastos),
+        proyRow("Intereses de Deudas",           Y.intereses),
+        proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),
+        proyRow("Pago Impuestos",                Y.pagoImpuestos),
+        proyRow("LIQUIDEZ DESPUÉS DE IMP.",      Y.liquidez, "eur", true),
+        proyRow("Devolución Capital al Banco",   Y.devCapitalBanco),
+        proyRow("Devolución Cooperativa",        Y.devCooperativa),
+        proyRow("SALARIO NETO ANUAL TITULAR",    Y.salarioNetoAnual, "eur", true),
+        proyRow("SALARIO NETO MENSUAL TITULAR",  Y.salarioNetoMensual, "eur", true),
+    };
+    return QVariantMap{
+        { "ventaTotal", r.datosBase.ventaTotal },
+        { "proyeccion", proyeccion },
     };
 }

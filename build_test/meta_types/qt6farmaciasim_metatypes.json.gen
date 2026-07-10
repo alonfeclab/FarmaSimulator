@@ -134,8 +134,22 @@
                     },
                     {
                         "access": "public",
+                        "arguments": [
+                            {
+                                "name": "cambios",
+                                "type": "QVariantMap"
+                            }
+                        ],
                         "index": 3,
-                        "lineNumber": 39,
+                        "isConst": true,
+                        "lineNumber": 40,
+                        "name": "simularSimple",
+                        "returnType": "QVariantMap"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "lineNumber": 44,
                         "name": "exportarPdf",
                         "returnType": "QString"
                     }
@@ -331,7 +345,7 @@
                     {
                         "access": "public",
                         "index": 0,
-                        "lineNumber": 54,
+                        "lineNumber": 59,
                         "name": "recalculated",
                         "returnType": "void"
                     }

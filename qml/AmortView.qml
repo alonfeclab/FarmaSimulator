@@ -22,6 +22,8 @@ Item {
     readonly property var anchosCol: [48, 76, 112, 104, 104, 104, 112]
     readonly property int columnasResumen: width > 700 ? 4 : (width > 420 ? 2 : 1)
 
+    function resetScroll() { tabla.contentX = 0; tabla.contentY = 0 }
+
     // Dato del resumen del préstamo
     component Dato: ColumnLayout {
         property string etiqueta

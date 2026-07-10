@@ -6,6 +6,8 @@ set(src_and_dest_list
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/qml/Main.qml"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/NavPanel.qml"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/qml/NavPanel.qml"
+    "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/SimulacionSimpleView.qml"
+    "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/qml/SimulacionSimpleView.qml"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/DatosBaseView.qml"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim/qml/DatosBaseView.qml"
     "C:/Users/indmf/Documents/Farmacia/FarmaciaSim/qml/FinanciacionView.qml"

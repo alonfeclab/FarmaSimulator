@@ -15,6 +15,21 @@ Flickable {
 
     KeyboardAvoider { target: page }
 
+    component Card: Rectangle {
+        default property alias content: box.data
+        Layout.fillWidth: true
+        radius: 12
+        color: "white"
+        border.color: "#dde5e1"
+        implicitHeight: box.implicitHeight + 40
+        ColumnLayout {
+            id: box
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 8
+        }
+    }
+
     // Fila calculada (solo lectura)
     component CalcRow: RowLayout {
         property string label
@@ -57,77 +72,140 @@ Flickable {
 
         Text { text: "Datos base del estudio"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
 
-        Rectangle {
-            Layout.fillWidth: true
-            radius: 12
-            color: "white"
-            border.color: "#dde5e1"
-            implicitHeight: inner.implicitHeight + 40
+        // ---------------- Escenario de crecimiento
+        Card {
+            SectionTitle { text: "ESCENARIO DE CRECIMIENTO" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
 
-            ColumnLayout {
-                id: inner
-                anchors.fill: parent
-                anchors.margins: 20
-                spacing: 8
-
-                SectionTitle { text: "PyG ESTIMADA PARA EL ESTUDIO" }
-
-                EditRow { label: "VENTA RECETA";  k: "ventaReceta" }
-                EditRow { label: "VENTA LIBRE";   k: "ventaLibre" }
-                CalcRow { label: "VENTA TOTAL";   value: Engine.datosBase.ventaTotal; destacada: true }
-                CalcRow { label: "COSTE MERCANCÍA"; value: Engine.datosBase.costeMercancia }
-                CalcRow { label: "M. COMERCIAL BRUTO"; value: Engine.datosBase.mComBruto }
-                RowLayout {
+                Text {
+                    text: "Escenario de crecimiento"
+                    font.pixelSize: 13; color: "#3c4a46"
                     Layout.fillWidth: true
-                    Text { text: "M. COMERCIAL BRUTO %"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                    PctField { k: "margenPct" }
+                    wrapMode: Text.WordWrap
                 }
-                EditRow { label: "REALES DECRETOS"; k: "realesDecretos" }
-                CalcRow { label: "M. COMERCIAL DESPUÉS RDS"; value: Engine.datosBase.mComDespuesRD; destacada: true }
+                ComboBox {
+                    id: escenarioCombo
+                    implicitWidth: 150
+                    implicitHeight: 40
+                    model: ["Realista", "Optimista"]
 
-                Item { Layout.preferredHeight: 6 }
-                CalcRow { label: "GASTOS DE PERSONAL  (hoja Personal)"; value: Engine.datosBase.gastosPersonal }
-                CalcRow { label: "SEGURIDAD SOCIAL  (hoja Personal)"; value: Engine.datosBase.seguridadSocial }
-                EditRow { label: "CUOTA AUTÓNOMOS"; k: "cuotaAutonomos" }
-                CalcRow { label: "TOTAL GASTOS PERSONAL"; value: Engine.datosBase.totalGastosPersonal; destacada: true }
+                    readonly property real value: Engine.inputs.escenarioCrecimiento !== undefined
+                                                   ? Engine.inputs.escenarioCrecimiento : 0
 
-                Item { Layout.preferredHeight: 6 }
-                EditRow { label: "ALQUILER LOCAL"; k: "alquilerLocal" }
-                EditRow { label: "SUMINISTROS"; k: "suministros" }
-                EditRow { label: "GASTOS ASESORÍA"; k: "asesoria" }
-                EditRow { label: "MANTENIMIENTO INFORMÁTICO"; k: "mantenimiento" }
-                EditRow { label: "ROBOT"; k: "robot" }
-                EditRow { label: "SEGUROS"; k: "seguros" }
-                EditRow { label: "OTROS GASTOS"; k: "otrosGastos" }
-                CalcRow { label: "TOTAL OTROS GASTOS"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
+                    Component.onCompleted: currentIndex = Math.round(value)
+                    onValueChanged: currentIndex = Math.round(value)
+                    onActivated: (idx) => Engine.set("escenarioCrecimiento", idx)
+
+                    background: Rectangle {
+                        radius: 5
+                        color: "#fffbe8"
+                        border.color: escenarioCombo.activeFocus || escenarioCombo.popup.visible
+                                      ? "#1a7a5e" : "#e0d6ac"
+                        border.width: 1
+                    }
+
+                    contentItem: Text {
+                        text: escenarioCombo.displayText
+                        font.pixelSize: 14
+                        color: "#1e2b28"
+                        leftPadding: 10
+                        rightPadding: escenarioCombo.indicator.width + 8
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    indicator: Text {
+                        x: escenarioCombo.width - width - 10
+                        y: (escenarioCombo.height - height) / 2
+                        text: "▾"
+                        font.pixelSize: 12
+                        color: "#14523f"
+                    }
+
+                    popup: Popup {
+                        y: escenarioCombo.height
+                        width: escenarioCombo.width
+                        implicitHeight: listView.contentHeight
+                        padding: 1
+
+                        contentItem: ListView {
+                            id: listView
+                            clip: true
+                            implicitHeight: contentHeight
+                            model: escenarioCombo.popup.visible ? escenarioCombo.delegateModel : null
+                            currentIndex: escenarioCombo.highlightedIndex
+                            ScrollIndicator.vertical: ScrollIndicator {}
+                        }
+
+                        background: Rectangle {
+                            radius: 5
+                            color: "#fffbe8"
+                            border.color: "#e0d6ac"
+                            border.width: 1
+                        }
+                    }
+
+                    delegate: ItemDelegate {
+                        id: comboDelegate
+                        required property string modelData
+                        required property int index
+                        width: escenarioCombo.width
+                        highlighted: escenarioCombo.highlightedIndex === index
+
+                        contentItem: Text {
+                            text: comboDelegate.modelData
+                            font.pixelSize: 14
+                            color: "#1e2b28"
+                            leftPadding: 10
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                        }
+                    }
+                }
+                Text {
+                    text: "IPC"
+                    font.pixelSize: 13; color: "#3c4a46"
+                    visible: escenarioCombo.currentIndex === 1
+                }
+                PctField {
+                    k: "ipcOptimista"
+                    visible: escenarioCombo.currentIndex === 1
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                text: escenarioCombo.currentIndex === 1
+                      ? "Se aplica el IPC indicado, constante, a los 10 años de la proyección."
+                      : "Se aplica el IPC histórico de España de los últimos 10 años a la proyección."
+                font.pixelSize: 12
+                color: "#6b7a76"
+                wrapMode: Text.WordWrap
             }
         }
 
-        // Resultado final destacado
-        Rectangle {
-            Layout.fillWidth: true
-            radius: 12
-            color: "#14523f"
-            implicitHeight: 64
+        // ---------------- Ventas
+        Card {
+            SectionTitle { text: "VENTAS" }
+            EditRow { label: "VENTA RECETA";  k: "ventaReceta" }
+            EditRow { label: "VENTA LIBRE";   k: "ventaLibre" }
+            CalcRow { label: "VENTA TOTAL";   value: Engine.datosBase.ventaTotal; destacada: true }
+        }
 
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
-                Text {
-                    text: "Bº ANTES DE IMP. Y AMORT."
-                    color: "white"
-                    font.pixelSize: 15
-                    font.bold: true
-                    Layout.fillWidth: true
-                }
-                Text {
-                    text: Fmt.eur(Engine.datosBase.beneficioAntesImp)
-                    color: "#ffe9a8"
-                    font.pixelSize: 20
-                    font.bold: true
-                }
-            }
+        // ---------------- Otros gastos
+        Card {
+            SectionTitle { text: "OTROS GASTOS" }
+            EditRow { label: "ALQUILER LOCAL"; k: "alquilerLocal" }
+            EditRow { label: "SUMINISTROS"; k: "suministros" }
+            EditRow { label: "GASTOS ASESORÍA"; k: "asesoria" }
+            EditRow { label: "MANTENIMIENTO INFORMÁTICO"; k: "mantenimiento" }
+            EditRow { label: "ROBOT"; k: "robot" }
+            EditRow { label: "SEGUROS"; k: "seguros" }
+            EditRow { label: "OTROS GASTOS"; k: "otrosGastos" }
+            CalcRow { label: "TOTAL OTROS GASTOS"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
         }
     }
 }

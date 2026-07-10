@@ -3,6 +3,7 @@ build/
 build-*/
 out/
 web/
+build_test/
 
 # Qt Creator (config y cachés específicos de la máquina)
 .qtcreator/
