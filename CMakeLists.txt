@@ -4,14 +4,20 @@ project(FarmaciaSim VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Svg)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Svg Test)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
-qt_add_executable(FarmaciaSim
-    src/main.cpp
+# Motor de cálculo puro (sin Qt), separado en una librería para poder
+# enlazarlo también desde los tests unitarios sin arrastrar el módulo QML.
+add_library(farmaciasim_core STATIC
     src/simcore.h
     src/simcore.cpp
+)
+target_include_directories(farmaciasim_core PUBLIC src)
+
+qt_add_executable(FarmaciaSim
+    src/main.cpp
     src/engine.h
     src/engine.cpp
     src/amortmodel.h
@@ -35,6 +41,10 @@ foreach(_icono datos_base financiacion proyeccion impuestos analisis banco coope
     )
 endforeach()
 
+set_source_files_properties(app_icon.ico PROPERTIES
+    QT_RESOURCE_ALIAS app_icon.ico
+)
+
 qt_add_qml_module(FarmaciaSim
     URI FarmaciaSim
     VERSION 1.0
@@ -44,21 +54,23 @@ qt_add_qml_module(FarmaciaSim
     QML_FILES
         qml/Main.qml
         qml/NavPanel.qml
-        qml/SimulacionSimpleView.qml
-        qml/DatosBaseView.qml
-        qml/FinanciacionView.qml
-        qml/ProyeccionView.qml
-        qml/ImpuestosView.qml
-        qml/AnalisisView.qml
-        qml/AmortView.qml
-        qml/PersonalView.qml
-        qml/MoneyField.qml
-        qml/PctField.qml
-        qml/NumField.qml
-        qml/SectionTitle.qml
-        qml/KeyboardAvoider.qml
         qml/Fmt.qml
         qml/Nav.qml
+        qml/views/SimulacionSimpleView.qml
+        qml/views/DatosBaseView.qml
+        qml/views/FinanciacionView.qml
+        qml/views/ProyeccionView.qml
+        qml/views/ImpuestosView.qml
+        qml/views/AnalisisView.qml
+        qml/views/AmortView.qml
+        qml/views/PersonalView.qml
+        qml/components/MoneyField.qml
+        qml/components/PctField.qml
+        qml/components/NumField.qml
+        qml/components/SectionTitle.qml
+        qml/components/KeyboardAvoider.qml
+        qml/components/Card.qml
+        qml/components/YearTable.qml
     RESOURCES
         qml/icons/datos_base.svg
         qml/icons/financiacion.svg
@@ -70,17 +82,24 @@ qt_add_qml_module(FarmaciaSim
         qml/icons/propiedades.svg
         qml/icons/personal.svg
         qml/icons/simple.svg
+        app_icon.ico
 )
 
 # El código de registro QML generado incluye los headers por su nombre base
 target_include_directories(FarmaciaSim PRIVATE src)
 
-target_link_libraries(FarmaciaSim PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
+target_link_libraries(FarmaciaSim PRIVATE farmaciasim_core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
 
 set_target_properties(FarmaciaSim PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
+
+# Ícono del ejecutable: Windows lo usa para la barra de tareas, el acceso
+# directo y el Explorador de archivos.
+if(WIN32)
+    target_sources(FarmaciaSim PRIVATE app_icon.rc)
+endif()
 
 # En Windows, los plugins de Qt (imageformats/qsvg.dll, platforms, módulos QML, etc.)
 # no se copian junto al ejecutable a menos que se ejecute windeployqt. Sin esto,
@@ -97,4 +116,9 @@ if(WIN32)
             COMMENT "Desplegando dependencias de Qt (windeployqt)"
         )
     endif()
+endif()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
 endif()

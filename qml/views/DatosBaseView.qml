@@ -15,21 +15,6 @@ Flickable {
 
     KeyboardAvoider { target: page }
 
-    component Card: Rectangle {
-        default property alias content: box.data
-        Layout.fillWidth: true
-        radius: 12
-        color: "white"
-        border.color: "#dde5e1"
-        implicitHeight: box.implicitHeight + 40
-        ColumnLayout {
-            id: box
-            anchors.fill: parent
-            anchors.margins: 20
-            spacing: 8
-        }
-    }
-
     // Fila calculada (solo lectura)
     component CalcRow: RowLayout {
         property string label

@@ -1,0 +1,26 @@
+# Compila y corre los tests unitarios (motor de cálculo puro en src/simcore.cpp).
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.11.1'
+          modules: 'qtsvg'
+
+      - name: Configurar y compilar
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build --parallel --target farmaciasim_tests
+
+      - name: Ejecutar tests
+        run: ctest --test-dir build --output-on-failure

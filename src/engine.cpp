@@ -119,7 +119,6 @@ void Engine::registerInputs()
     m_dbl["ventaReceta"]    = &i.ventaReceta;
     m_dbl["ventaLibre"]     = &i.ventaLibre;
     m_dbl["margenPct"]      = &i.margenPct;
-    m_dbl["realesDecretos"] = &i.realesDecretos;
     m_dbl["cuotaAutonomos"] = &i.cuotaAutonomos;
     m_dbl["alquilerLocal"]  = &i.alquilerLocal;
     m_dbl["suministros"]    = &i.suministros;
@@ -332,6 +331,8 @@ void Engine::buildMaps()
         { "finBancariaFarmacia",  F.finBancariaFarmacia },
         { "finBancariaLocal",     F.finBancariaLocal },
         { "totalFinanciacion",    F.totalFinanciacion },
+        { "minimoLiquidez",       F.minimoLiquidez },
+        { "liquidezInvalida",     F.liquidezInvalida },
     };
 
     // ---- Personal
@@ -499,5 +500,7 @@ QVariantMap Engine::simularSimple(const QVariantMap& cambios) const
     return QVariantMap{
         { "ventaTotal", r.datosBase.ventaTotal },
         { "proyeccion", proyeccion },
+        { "minimoLiquidez", r.financiacion.minimoLiquidez },
+        { "liquidezInvalida", r.financiacion.liquidezInvalida },
     };
 }

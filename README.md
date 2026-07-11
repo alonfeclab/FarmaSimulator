@@ -38,6 +38,21 @@ cmake --build build --config Release
 build\Release\FarmaciaSim.exe
 ```
 
+## Tests
+
+Los tests unitarios (`tests/test_simcore.cpp`, con Qt Test) cubren el motor de
+cálculo puro (`simcore.cpp`): fórmulas (`pmt`, `irr`, deducción de Reales Decretos),
+invariantes estructurales de `compute()` y un test de regresión con valores de
+referencia, para detectar cambios accidentales en las fórmulas replicadas del Excel.
+
+```bat
+cmake --build build --target farmaciasim_tests
+ctest --test-dir build --output-on-failure
+```
+
+Corren automáticamente en GitHub Actions en cada push/PR
+([.github/workflows/tests.yml](.github/workflows/tests.yml)).
+
 ## Fidelidad con el Excel
 
 - El motor (`simcore.cpp`) replica cada fórmula celda a celda; cada línea lleva un

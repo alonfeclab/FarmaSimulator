@@ -50,26 +50,12 @@ Flickable {
     })
     readonly property var filasEsenciales: page.preview.proyeccion.filter(f => f.bold)
 
-    component Card: Rectangle {
-        default property alias content: box.data
-        Layout.fillWidth: true
-        radius: 12
-        color: "white"
-        border.color: "#dde5e1"
-        implicitHeight: box.implicitHeight + 40
-        ColumnLayout {
-            id: box
-            anchors.fill: parent
-            anchors.margins: 20
-            spacing: 8
-        }
-    }
-
     // Campo editable ligado al estado LOCAL de esta hoja (no a Engine).
     component LocalField: TextField {
         id: field
 
         property real value: 0
+        property bool invalid : false
         signal committed(real v)
 
         function display() { return Fmt.num(value, 0) + " €" }
@@ -84,8 +70,8 @@ Flickable {
 
         background: Rectangle {
             radius: 5
-            color: "#fffbe8"
-            border.color: field.activeFocus ? "#1a7a5e" : "#e0d6ac"
+            color: field.invalid ? "#fdecea" : "#fffbe8"
+            border.color: field.invalid ? "#c0392b" : (field.activeFocus ? "#1a7a5e" : "#e0d6ac")
             border.width: 1
         }
 
@@ -108,12 +94,37 @@ Flickable {
     }
 
     component EditRow: RowLayout {
+        id: editRoot
         property string label
         property real value
+        property bool invalid
+        property alias infoLabel : subLabel
+        property alias infoValue : subLabelValue
         signal committed(real v)
         Layout.fillWidth: true
-        Text { text: parent.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        LocalField { value: parent.value; onCommitted: (v) => parent.committed(v) }
+        Text { text: editRoot.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        ColumnLayout {
+            LocalField {
+                value: editRoot.value;
+                Layout.alignment: Qt.AlignRight
+                onCommitted: (v) => editRoot.committed(v)
+                invalid: editRoot.invalid
+            }
+            RowLayout {
+                id: subLabelLayout
+                Text {
+                    id: subLabel
+                    font.pixelSize: 11;
+                    color: editRoot.invalid ? "#c0392b" : "#3c4a46";
+                }
+                Text {
+                    id: subLabelValue
+                    font.pixelSize: 11;
+                    color: editRoot.invalid ? "#c0392b" : "#3c4a46";
+                }
+                visible: subLabel.text.length === 0 ? false : true;
+            }
+        }
     }
 
     component CalcRow: RowLayout {
@@ -159,7 +170,14 @@ Flickable {
             EditRow { label: "Venta libre"; value: local.ventaLibre; onCommitted: (v) => local.ventaLibre = v }
             CalcRow { label: "VENTA TOTAL"; value: page.preview.ventaTotal; destacada: true }
             EditRow { label: "Existencias"; value: local.existencias; onCommitted: (v) => local.existencias = v }
-            EditRow { label: "Aportación liquidez"; value: local.liquidezAportada; onCommitted: (v) => local.liquidezAportada = v }
+            EditRow {
+                label: "Aportación liquidez";
+                value: local.liquidezAportada;
+                onCommitted: (v) => local.liquidezAportada = v
+                infoLabel.text: "Aportación mínima"
+                invalid: page.preview.liquidezInvalida
+                infoValue.text: Fmt.eur(page.preview.minimoLiquidez)
+            }
             EditRow { label: "Aportación propiedad hipotecada"; value: local.finPropiedades; onCommitted: (v) => local.finPropiedades = v }
             EditRow { label: "Aportación cooperativa"; value: local.pedidoInicial; onCommitted: (v) => local.pedidoInicial = v }
             EditRow { label: "Alquiler"; value: local.alquilerLocal; onCommitted: (v) => local.alquilerLocal = v }
@@ -175,91 +193,15 @@ Flickable {
             border.color: "#dde5e1"
             clip: true
 
-            Flickable {
-                id: flick
+            YearTable {
+                id: tabla
                 anchors.fill: parent
                 anchors.margins: 14
-                contentWidth: page.wLabel + page.numAnios * page.wCell
-                contentHeight: tabla.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                pressDelay: 150
-                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
-
-                Column {
-                    id: tabla
-
-                    // -------- cabecera
-                    Row {
-                        Rectangle {
-                            width: page.wLabel; height: page.hRow; color: "#14523f"
-                            radius: 4
-                            Text {
-                                anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: parent.left; anchors.leftMargin: 8
-                                text: "Concepto"; color: "white"; font.bold: true; font.pixelSize: 13
-                            }
-                        }
-                        Repeater {
-                            model: page.numAnios
-                            Rectangle {
-                                required property int index
-                                width: page.wCell; height: page.hRow; color: "#14523f"
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Año " + (parent.index + 1)
-                                    color: "white"; font.bold: true; font.pixelSize: 13
-                                }
-                            }
-                        }
-                    }
-
-                    // -------- filas (solo las destacadas, solo los primeros años)
-                    Repeater {
-                        model: page.filasEsenciales
-                        Row {
-                            id: fila
-                            required property int index
-                            required property var modelData
-
-                            Rectangle {
-                                width: page.wLabel; height: page.hRow
-                                color: fila.modelData.bold ? "#e3efe9"
-                                     : (fila.index % 2 ? "#f7faf8" : "white")
-                                Text {
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    anchors.left: parent.left; anchors.leftMargin: 8
-                                    width: page.wLabel - 12
-                                    elide: Text.ElideRight
-                                    text: fila.modelData.label
-                                    font.pixelSize: 13
-                                    font.bold: fila.modelData.bold
-                                    color: fila.modelData.bold ? "#14523f" : "#3c4a46"
-                                }
-                            }
-                            Repeater {
-                                model: page.numAnios
-                                Rectangle {
-                                    id: celda
-                                    required property int index
-                                    readonly property real valor: fila.modelData.values[index]
-                                    width: page.wCell; height: page.hRow
-                                    color: fila.modelData.bold ? "#e3efe9"
-                                         : (fila.index % 2 ? "#f7faf8" : "white")
-                                    Text {
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.right: parent.right; anchors.rightMargin: 8
-                                        text: Fmt.byFmt(celda.valor, fila.modelData.fmt)
-                                        font.pixelSize: 13
-                                        font.bold: fila.modelData.bold
-                                        color: celda.valor < 0 ? "#a33b2e"
-                                             : fila.modelData.bold ? "#14523f" : "#1e2b28"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                wLabel: page.wLabel
+                wCell: page.wCell
+                hRow: page.hRow
+                numYears: page.numAnios
+                model: page.filasEsenciales
             }
         }
 

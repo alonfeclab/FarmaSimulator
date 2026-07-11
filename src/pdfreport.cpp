@@ -393,7 +393,7 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t1b.filaDatos({ QStringLiteral("Coste mercancía"),          d.eur(D.costeMercancia) });
     t1b.filaDatos({ QStringLiteral("M. comercial bruto"),       d.eur(D.mComBruto) });
     t1b.filaDatos({ QStringLiteral("M. comercial bruto %"),     d.pct(in.margenPct) });
-    t1b.filaDatos({ QStringLiteral("Reales decretos"),          d.eur(in.realesDecretos) });
+    t1b.filaDatos({ QStringLiteral("Reales decretos"),          d.eur(D.realesDecretos) });
     t1b.filaDatos({ QStringLiteral("M. COMERCIAL DESPUÉS RDs"), d.eur(D.mComDespuesRD) }, true);
 
     d.tituloSeccion(QStringLiteral("Gastos de personal"));

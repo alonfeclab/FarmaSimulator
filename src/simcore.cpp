@@ -90,6 +90,33 @@ static AmortResult amortizar(double principal, double tasaAnual, int plazoAnios,
     return a;
 }
 
+// Escala de deducciones "Reales Decretos" (RD 823/2008, art. 2.5): tramos
+// sobre la facturación MENSUAL de recetas al SNS (PVP+IVA).
+struct TramoRD { double desde, base, pct; };
+static const std::array<TramoRD,9> kTramosRD {{
+    {      0.00,     0.00, 0.000 },
+    {  37500.00,     0.00, 0.078 },
+    {  45000.00,   585.00, 0.091 },
+    {  58345.61,  1799.45, 0.114 },
+    { 120206.01,  8851.53, 0.136 },
+    { 208075.90, 20801.83, 0.157 },
+    { 295242.83, 34487.04, 0.172 },
+    { 382409.76, 49479.75, 0.182 },
+    { 600000.00, 89081.17, 0.200 },
+}};
+
+double calcularRealesDecretos(double ventaRecetaAnual)
+{
+    const double mensual = ventaRecetaAnual / 12.0;
+    const TramoRD* tramo = &kTramosRD[0];
+    for (const auto& t : kTramosRD) {
+        if (mensual < t.desde) break;
+        tramo = &t;
+    }
+    const double deduccionMensual = tramo->base + (mensual - tramo->desde) * tramo->pct;
+    return deduccionMensual * 12.0;
+}
+
 // Escala general IRPF 2026 (hoja Impuestos, filas 26-31)
 const std::array<TramoIRPF,6> kTramosIRPF {{
     {      0,     12450, 0.19 },
@@ -166,7 +193,8 @@ Results compute(const Inputs& in)
         D.ventaTotal     = in.ventaReceta + in.ventaLibre;       // D12
         D.mComBruto      = D.ventaTotal * in.margenPct;          // D14
         D.costeMercancia = D.ventaTotal - D.mComBruto;           // D13
-        D.mComDespuesRD  = D.mComBruto - in.realesDecretos;      // D17
+        D.realesDecretos = calcularRealesDecretos(in.ventaReceta); // D16
+        D.mComDespuesRD  = D.mComBruto - D.realesDecretos;       // D17
         D.gastosPersonal  = R.personal.totBrutoReal;             // D18 = 'Personal '!E17
         D.seguridadSocial = R.personal.totSS;                    // D19 = 'Personal '!F17
         D.totalGastosPersonal = D.gastosPersonal + D.seguridadSocial + in.cuotaAutonomos; // D21
@@ -194,6 +222,10 @@ Results compute(const Inputs& in)
                             + F.finBancariaFarmacia + F.finBancariaLocal
                             + in.finPropiedades * in.pctFinPropiedades
                             + in.excesoAportacion + in.pedidoInicial;       // D50
+        F.minimoLiquidez = (F.totalInversion
+                          - in.finPropiedades * in.pctFinPropiedades
+                            - in.pedidoInicial - in.localComercial)* (1-in.pctFinFarmacia) + in.localComercial * (1-in.pctFinLocal);
+        F.liquidezInvalida = in.liquidezAportada < F.minimoLiquidez;
     }
 
     // ================================================= Amortizaciones
@@ -236,7 +268,7 @@ Results compute(const Inputs& in)
             P.ventaTotal[i]  = P.ventaReceta[i] + P.ventaLibre[i];             // fila 8
             P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - kMargenComercialSim[i]); // fila 9
             P.mComBruto[i]      = P.ventaTotal[i] - P.costeMercancia[i];       // fila 10
-            P.realesDecretos[i] = (i == 0 ? in.realesDecretos : P.realesDecretos[i-1]) * (1.0 + ipc); // fila 11
+            P.realesDecretos[i] = (i == 0 ? R.datosBase.realesDecretos : P.realesDecretos[i-1]) * (1.0 + ipc); // fila 11
             P.mComDespuesRD[i]  = P.mComBruto[i] - P.realesDecretos[i];        // fila 12
             P.alquiler[i] = 0;                                                 // fila 13 (constante 0)
             P.gastosPersonal[i] = (i == 0)

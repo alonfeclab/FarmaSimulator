@@ -13,7 +13,6 @@ struct Inputs {
     double ventaReceta      = 800000;   // D10
     double ventaLibre       = 200000;   // D11
     double margenPct        = 0.34;     // D15
-    double realesDecretos   = 33800;    // D16
     double cuotaAutonomos   = 1500;     // D20
     double alquilerLocal    = 0;        // D22
     double suministros      = 2500;     // D23
@@ -119,7 +118,7 @@ struct PersonalResult {
 };
 
 struct DatosBaseResult {
-    double ventaTotal=0, costeMercancia=0, mComBruto=0, mComDespuesRD=0;
+    double ventaTotal=0, costeMercancia=0, mComBruto=0, realesDecretos=0, mComDespuesRD=0;
     double gastosPersonal=0, seguridadSocial=0, totalGastosPersonal=0;
     double totalOtrosGastos=0, beneficioAntesImp=0;
 };
@@ -130,6 +129,8 @@ struct FinanciacionResult {
     double ajd=0;           // D21 (v2): 1,5% de FdC + existencias
     double impuestos=0;     // D23 (v2): ITP + AJD
     double finBancariaFarmacia=0, finBancariaLocal=0, totalFinanciacion=0;
+    double minimoLiquidez=0;    // Aportación mínima recomendada = totalInversion - (finPropiedades*pctFinPropiedades) - pedidoInicial
+    bool   liquidezInvalida=false; // liquidezAportada < minimoLiquidez
 };
 
 // Hoja "Impuestos" (IRPF por tramos, escala general 2026) — nueva en v2
@@ -190,6 +191,11 @@ struct Results {
     ImpuestosResult    impuestos;
     AnalisisResult     analisis;
 };
+
+// Deducción "Reales Decretos" (RD 823/2008 art. 2.5): escala progresiva por
+// tramos sobre la facturación MENSUAL de recetas (PVP+IVA) al SNS. Se aplica
+// a la media mensual de la venta de receta anual y se anualiza (x12).
+double calcularRealesDecretos(double ventaRecetaAnual);
 
 // PMT de Excel: cuota constante (negativa) de un préstamo.
 double pmt(double tasaMensual, int numPagos, double principal);

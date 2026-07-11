@@ -17,21 +17,6 @@ Flickable {
 
     KeyboardAvoider { target: page }
 
-    component Card: Rectangle {
-        default property alias content: box.data
-        Layout.fillWidth: true
-        radius: 12
-        color: "white"
-        border.color: "#dde5e1"
-        implicitHeight: box.implicitHeight + 40
-        ColumnLayout {
-            id: box
-            anchors.fill: parent
-            anchors.margins: 20
-            spacing: 8
-        }
-    }
-
     component CalcRow: RowLayout {
         property string label
         property real value
@@ -50,21 +35,27 @@ Flickable {
         }
     }
 
-    component EditRow: RowLayout {
+    component EditRow: ColumnLayout {
         id: editRow
         property string label
         property string k
         property bool invalid: false
+        property bool showMinimo: false
         property real minimo: 0
         Layout.fillWidth: true
-        Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        spacing: 2
+        RowLayout {
+            Layout.fillWidth: true
+            Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+            MoneyField { k: editRow.k; invalid: editRow.invalid }
+        }
         Text {
             text: "Mínimo recomendado: " + Fmt.eur(editRow.minimo)
-            visible: editRow.invalid
+            visible: editRow.showMinimo
+            Layout.alignment: Qt.AlignRight
             font.pixelSize: 11
-            color: "#3c4a46"
+            color: editRow.invalid ? "#c0392b" : "#3c4a46"
         }
-        MoneyField { k: editRow.k; invalid: editRow.invalid }
     }
 
     component PctRow: RowLayout {
@@ -149,11 +140,9 @@ Flickable {
             EditRow {
                 label: "Liquidez aportada"
                 k: "liquidezAportada"
-                readonly property real minimoLiquidez:
-                    (Engine.financiacion.totalInversion - Engine.inputs["localComercial"]) * (1 - Engine.inputs["pctFinFarmacia"])
-                    + Engine.inputs["localComercial"] * (1 - Engine.inputs["pctFinLocal"])
-                invalid: Engine.inputs["liquidezAportada"] < minimoLiquidez
-                minimo: minimoLiquidez
+                invalid: Engine.financiacion.liquidezInvalida
+                showMinimo: true
+                minimo: Engine.financiacion.minimoLiquidez
             }
 
             SourceGroup {
