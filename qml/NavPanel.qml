@@ -40,6 +40,7 @@ Rectangle {
                 required property int index
                 required property var modelData
 
+                objectName: "navItem" + index
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.compact ? 50 : 42
                 radius: 8

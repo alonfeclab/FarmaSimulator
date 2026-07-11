@@ -4,7 +4,7 @@ project(FarmaciaSim VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Svg Test)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Svg Test QuickTest)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -16,8 +16,10 @@ add_library(farmaciasim_core STATIC
 )
 target_include_directories(farmaciasim_core PUBLIC src)
 
-qt_add_executable(FarmaciaSim
-    src/main.cpp
+# Módulo QML de la app (vistas, componentes, Engine/AmortModel/pdfreport) en
+# una librería propia, para poder enlazarlo tanto desde FarmaciaSim como desde
+# el ejecutable de tests QML sin duplicar la lista de archivos .qml.
+add_library(farmaciasim_ui STATIC
     src/engine.h
     src/engine.cpp
     src/amortmodel.h
@@ -25,6 +27,8 @@ qt_add_executable(FarmaciaSim
     src/pdfreport.h
     src/pdfreport.cpp
 )
+target_include_directories(farmaciasim_ui PUBLIC src)
+target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
 
 # Debe declararse ANTES de qt_add_qml_module
 set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES
@@ -45,9 +49,13 @@ set_source_files_properties(app_icon.ico PROPERTIES
     QT_RESOURCE_ALIAS app_icon.ico
 )
 
-qt_add_qml_module(FarmaciaSim
+qt_add_qml_module(farmaciasim_ui
     URI FarmaciaSim
     VERSION 1.0
+    # farmaciasim_ui es una librería, no el ejecutable final: sin esto, el
+    # directorio de salida del módulo no termina en "FarmaciaSim" (su URI) y
+    # herramientas como qmllint (el linter QML de Qt Creator) no lo resuelven bien.
+    OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml/FarmaciaSim
     # Nota: el proyecto debe estar en una ruta SIN acentos ni espacios
     # (qmlimportscanner falla con ellas en Windows). El escaneo de imports
     # es imprescindible para el build estático de WebAssembly.
@@ -86,9 +94,13 @@ qt_add_qml_module(FarmaciaSim
 )
 
 # El código de registro QML generado incluye los headers por su nombre base
-target_include_directories(FarmaciaSim PRIVATE src)
+target_include_directories(farmaciasim_ui PRIVATE src)
 
-target_link_libraries(FarmaciaSim PRIVATE farmaciasim_core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
+qt_add_executable(FarmaciaSim
+    src/main.cpp
+)
+
+target_link_libraries(FarmaciaSim PRIVATE farmaciasim_ui farmaciasim_uiplugin)
 
 set_target_properties(FarmaciaSim PROPERTIES
     WIN32_EXECUTABLE TRUE

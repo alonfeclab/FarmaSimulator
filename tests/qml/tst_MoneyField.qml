@@ -1,0 +1,56 @@
+import QtQuick
+import QtTest
+import FarmaciaSim
+
+// Usa el singleton Engine real (recálculo real). El ejecutable de tests corre
+// en su propio directorio de salida (ver tests/CMakeLists.txt), así que el
+// farmaciasim_datos.json que Engine guarda aquí no es el de la app real.
+TestCase {
+    id: testCase
+    name: "MoneyField"
+    width: 300
+    height: 200
+    visible: true
+    when: windowShown
+
+    Component {
+        id: moneyFieldComponent
+        MoneyField {}
+    }
+
+    // Vuelve Engine a los valores por defecto antes y después de cada test,
+    // para que no se contaminen entre sí ni entre ejecuciones sucesivas.
+    function init() { Engine.restaurarValoresIniciales() }
+    function cleanup() { Engine.restaurarValoresIniciales() }
+
+    function test_displayShowsCurrentEngineValue() {
+        const field = createTemporaryObject(moneyFieldComponent, testCase, { k: "ventaLibre" })
+        verify(field !== null)
+
+        compare(field.value, Engine.inputs["ventaLibre"])
+        compare(field.text, Fmt.num(Engine.inputs["ventaLibre"], 0) + " €")
+    }
+
+    function test_editingFinishedUpdatesEngineAndRedisplays() {
+        const field = createTemporaryObject(moneyFieldComponent, testCase, { k: "ventaLibre" })
+        verify(field !== null)
+
+        field.text = "999.999"
+        field.editingFinished()
+
+        compare(Engine.inputs["ventaLibre"], 999999)
+        compare(field.text, Fmt.num(999999, 0) + " €")
+    }
+
+    function test_invalidTextIsIgnoredAndKeepsPreviousValue() {
+        const field = createTemporaryObject(moneyFieldComponent, testCase, { k: "ventaLibre" })
+        verify(field !== null)
+        const previo = Engine.inputs["ventaLibre"]
+
+        field.text = "no es un número"
+        field.editingFinished()
+
+        compare(Engine.inputs["ventaLibre"], previo)
+        compare(field.text, Fmt.num(previo, 0) + " €")
+    }
+}

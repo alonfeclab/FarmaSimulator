@@ -50,7 +50,23 @@ cmake --build build --target farmaciasim_tests
 ctest --test-dir build --output-on-failure
 ```
 
-Corren automáticamente en GitHub Actions en cada push/PR
+Los tests gráficos (`tests/qml/tst_*.qml`, con Qt Quick Test) cubren la capa QML:
+formateo (`Fmt.qml`), navegación (`NavPanel.qml`, con clicks simulados) y campos
+editables (`MoneyField.qml`, contra el singleton `Engine` real). Para poder hacer
+`import FarmaciaSim` desde los tests, el módulo QML de la app vive en la librería
+`farmaciasim_ui` (`CMakeLists.txt`), compartida entre `FarmaciaSim` y
+`farmaciasim_qml_tests`.
+
+```bat
+cmake --build build --target farmaciasim_qml_tests
+ctest --test-dir build --output-on-failure
+```
+
+El ejecutable de tests QML corre en su propio directorio de salida
+(`tests/qml-tests-bin/`) para que el `farmaciasim_datos.json` que guarda `Engine`
+al recalcular no coincida con el de `FarmaciaSim.exe`.
+
+Ambas suites corren automáticamente en GitHub Actions en cada push/PR
 ([.github/workflows/tests.yml](.github/workflows/tests.yml)).
 
 ## Fidelidad con el Excel

@@ -1,4 +1,5 @@
-# Compila y corre los tests unitarios (motor de cálculo puro en src/simcore.cpp).
+# Compila y corre los tests unitarios (motor de cálculo puro en src/simcore.cpp)
+# y los tests gráficos QML (Qt Quick Test, en tests/qml/).
 name: Tests
 
 on:
@@ -19,7 +20,9 @@ jobs:
       - name: Configurar y compilar
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
-          cmake --build build --parallel --target farmaciasim_tests
+          cmake --build build --parallel --target farmaciasim_tests farmaciasim_qml_tests
 
       - name: Ejecutar tests
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --output-on-failure
