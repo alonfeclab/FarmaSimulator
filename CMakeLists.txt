@@ -4,7 +4,7 @@ project(FarmaciaSim VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Svg Test QuickTest)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Quick QuickControls2 Svg Test QuickTest)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -16,19 +16,27 @@ add_library(farmaciasim_core STATIC
 )
 target_include_directories(farmaciasim_core PUBLIC src)
 
-# Módulo QML de la app (vistas, componentes, Engine/AmortModel/pdfreport) en
-# una librería propia, para poder enlazarlo tanto desde FarmaciaSim como desde
+# Generación del informe PDF: backend puro (QPainter/QPdfWriter de Qt Gui),
+# sin ninguna dependencia de QML/Quick. Separado para no arrastrar todo el
+# módulo QML solo por generar un PDF.
+add_library(farmaciasim_pdf STATIC
+    src/pdfreport.h
+    src/pdfreport.cpp
+)
+target_include_directories(farmaciasim_pdf PUBLIC src)
+target_link_libraries(farmaciasim_pdf PUBLIC farmaciasim_core Qt6::Gui)
+
+# Módulo QML de la app (vistas, componentes, Engine/AmortModel) en una
+# librería propia, para poder enlazarlo tanto desde FarmaciaSim como desde
 # el ejecutable de tests QML sin duplicar la lista de archivos .qml.
 add_library(farmaciasim_ui STATIC
     src/engine.h
     src/engine.cpp
     src/amortmodel.h
     src/amortmodel.cpp
-    src/pdfreport.h
-    src/pdfreport.cpp
 )
 target_include_directories(farmaciasim_ui PUBLIC src)
-target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
+target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core farmaciasim_pdf Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
 
 # Debe declararse ANTES de qt_add_qml_module
 set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES

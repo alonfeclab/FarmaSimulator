@@ -6,6 +6,15 @@ target_link_libraries(farmaciasim_tests PRIVATE Qt6::Test farmaciasim_core)
 
 add_test(NAME farmaciasim_tests COMMAND farmaciasim_tests)
 
+# ------------------------------------------------------------- Tests del PDF
+qt_add_executable(farmaciasim_pdf_tests
+    test_pdfreport.cpp
+)
+
+target_link_libraries(farmaciasim_pdf_tests PRIVATE Qt6::Test farmaciasim_pdf)
+
+add_test(NAME farmaciasim_pdf_tests COMMAND farmaciasim_pdf_tests)
+
 # ------------------------------------------------------------- Tests QML
 qt_add_executable(farmaciasim_qml_tests
     qml_test_main.cpp
