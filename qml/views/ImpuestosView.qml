@@ -89,7 +89,7 @@ Flickable {
 
         // ---------------- Pasos 2 y 3: tabla a 10 años
         Card {
-            SectionTitle { text: "PASOS 2 Y 3: AMORTIZACIONES, BASE IMPONIBLE E IRPF POR TRAMOS (ESCALA 2026)"; }
+            SectionTitle { text: "AMORTIZACIONES, BASE IMPONIBLE E IRPF POR TRAMOS (ESCALA 2026)"; }
 
             YearTable {
                 Layout.fillWidth: true

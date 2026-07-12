@@ -85,6 +85,8 @@ ApplicationWindow {
     Connections {
         target: Nav
         function onIrA(indice, foco) {
+            // Si vamos a enfocar un campo concreto, no reseteemos el scroll a top.
+            if (foco !== "" && indice !== stack.currentIndex) stack.suppressScrollReset = true
             stack.currentIndex = indice
         }
     }
@@ -128,8 +130,15 @@ ApplicationWindow {
             Layout.fillHeight: true
             currentIndex: 0
 
-            // Al cambiar de pestaña, la vista siempre arranca con el scroll arriba del todo.
+            property bool suppressScrollReset: false
+
+            // Al cambiar de pestaña, la vista siempre arranca con el scroll arriba del todo,
+            // salvo que la navegación traiga un campo concreto que enfocar (ver Nav.irA).
             onCurrentIndexChanged: {
+                if (stack.suppressScrollReset) {
+                    stack.suppressScrollReset = false
+                    return
+                }
                 const item = stack.itemAt(stack.currentIndex)
                 if (!item) return
                 if (typeof item.resetScroll === "function") item.resetScroll()
@@ -148,14 +157,14 @@ ApplicationWindow {
             }
             AmortView {
                 loan: Engine.cooperativa
-                emptyTexto: "No hay préstamo de cooperativa. Añádelo en Financiación."
+                emptyTexto: "No hay préstamo de cooperativa.\nAñádelo en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg"
                 emptyTabIndex: 2
                 emptyFocusKey: "pedidoInicial"
             }
             AmortView {
                 loan: Engine.propiedades
-                emptyTexto: "No hay financiación de propiedades. Añádela en Financiación."
+                emptyTexto: "No hay financiación de propiedades.\nAñádela en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg"
                 emptyTabIndex: 2
                 emptyFocusKey: "finPropiedades"

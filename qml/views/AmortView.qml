@@ -80,12 +80,17 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 Layout.alignment: Qt.AlignHCenter
-                Layout.maximumWidth: 420
+                Layout.fillWidth: true
             }
             Button {
                 text: page.emptyBotonTexto
                 Layout.alignment: Qt.AlignHCenter
                 onClicked: Nav.irA(page.emptyTabIndex, page.emptyFocusKey)
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed:  mouse.accepted = false
+                }
             }
             Item { Layout.fillHeight: true }
         }

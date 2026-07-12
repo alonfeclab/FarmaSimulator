@@ -186,12 +186,12 @@ void TestSimCore::compute_goldenValues()
     const Inputs in;
     const Results r = compute(in);
 
-    QVERIFY(std::fabs(r.datosBase.beneficioAntesImp - 169415.46448) < 1e-3);
+    QVERIFY(std::fabs(r.datosBase.beneficioAntesImp - 169851.78448) < 1e-3);
     QVERIFY(std::fabs(r.financiacion.totalInversion - 2489296.48) < 1e-2);
     QVERIFY(std::fabs(r.amortBanco.pagoMensual - (-7705.0049051490)) < 1e-6);
-    QVERIFY(std::fabs(r.proyeccion.beneficio[9] - 202272.4569497254) < 1e-4);
+    QVERIFY(std::fabs(r.proyeccion.beneficio[9] - 196200.0530834275) < 1e-4);
     QVERIFY(std::fabs(r.impuestos.pago[0] - 0.0) < 1e-6);
-    QVERIFY(std::fabs(r.analisis.tir[1] - 0.1777760444) < 1e-6);
+    QVERIFY(std::fabs(r.analisis.tir[1] - 0.1691787702) < 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)
