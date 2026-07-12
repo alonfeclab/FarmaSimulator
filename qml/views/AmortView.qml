@@ -47,6 +47,7 @@ Item {
             font.bold: true;
             color: "#14523f"
             wrapMode: Text.WordWrap
+            Layout.fillWidth: true
         }
 
         // ---------------- estado vacío: aún no hay importe de préstamo

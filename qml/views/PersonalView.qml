@@ -319,8 +319,11 @@ Flickable {
                 anchors.rightMargin: 20
                 Text {
                     text: "SALARIO NETO MENSUAL TITULAR (Año 1)"
-                    color: "white"; font.pixelSize: 15; font.bold: true
+                    color: "white";
+                    font.pixelSize: 15;
+                    font.bold: true
                     Layout.fillWidth: true
+                    wrapMode: Text.wrapMode
                 }
                 Text {
                     text: Fmt.eur(Engine.personal.salarioNetoMensualAnio1)
