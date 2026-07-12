@@ -8,7 +8,7 @@ import FarmaciaSim
 Flickable {
     id: page
 
-    contentWidth: width
+    contentWidth: Math.max(width, col.implicitWidth)
     contentHeight: col.implicitHeight + 48
     clip: true
     ScrollBar.vertical: ScrollBar {}
@@ -42,18 +42,60 @@ Flickable {
         spacing: 14
 
         Text {
-            text: "Personal recomendado (propietario farmacéutico + empleados)"
-            font.pixelSize: 22; font.bold: true; color: "#14523f"
+            text: "Personal"
+            font.pixelSize: 22;
+            font.bold: true;
+            color: "#14523f"
+            wrapMode: Text.WordWrap
         }
 
         // ---------------- Cuota de autónomo
         Card {
-            SectionTitle { text: "CUOTA DE AUTÓNOMO" }
+            SectionTitle { text: "CUOTA DE AUTÓNOMO (RETA)" }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: "Cuota autónomos"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                MoneyField { k: "cuotaAutonomos" }
+                Text {
+                    text: "Cuota anual año 1 (según tramo de rendimientos netos)"
+                    font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap
+                }
+                Text {
+                    text: Fmt.eur(Engine.datosBase.cuotaAutonomos)
+                    font.pixelSize: 15; font.bold: true; color: "#14523f"
+                }
+            }
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: "#6b7a76"
+                text: "Se calcula automáticamente cada año según la escala oficial de 15 tramos de rendimientos netos (no editable)."
+            }
+
+            YearTable {
+                Layout.fillWidth: true
+                Layout.topMargin: 8
+                wLabel: 230
+                wCell: 100
+                hRow: 28
+                fontSize: 12
+                model: {
+                    function rowByLabel(label) {
+                        for (const r of Engine.proyeccion)
+                            if (r.label === label) return r.values
+                        return []
+                    }
+                    const cuota = rowByLabel("Cuota Autónomos (RETA)")
+                    const beneficio = rowByLabel("BENEFICIO FARMACIA")
+                    const beneficioPreCuota = beneficio.map((v, i) => v + cuota[i])
+                    const cuotaMensual = cuota.map(v => v / 12.0)
+                    return [
+                        { label: "Beneficio de referencia (año)", values: beneficioPreCuota, fmt: "eur", bold: false },
+                        { label: "Rendimiento neto mensual (tramo)", values: beneficioPreCuota.map(v => v / 12.0), fmt: "eur", bold: false },
+                        { label: "CUOTA AUTÓNOMOS ANUAL", values: cuota, fmt: "eur", bold: true },
+                        { label: "Cuota autónomos mensual", values: cuotaMensual, fmt: "eur", bold: false },
+                    ]
+                }
             }
         }
 

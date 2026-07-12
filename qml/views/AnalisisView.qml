@@ -12,7 +12,7 @@ Flickable {
     readonly property int wLabelEscenarios: 200
     readonly property bool angosto: width < 640
 
-    contentWidth: width
+    contentWidth: Math.max(width, col.implicitWidth)
     contentHeight: col.implicitHeight + 48
     clip: true
     ScrollBar.vertical: ScrollBar {}
@@ -54,7 +54,10 @@ Flickable {
 
         Text {
             text: "Patrimonio, liquidez y amortización del fondo de comercio"
-            font.pixelSize: 22; font.bold: true; color: "#14523f"
+            font.pixelSize: 22;
+            font.bold: true;
+            color: "#14523f"
+            wrapMode: Text.WordWrap
         }
 
         // ---------------- Valor patrimonio año 10

@@ -119,7 +119,6 @@ void Engine::registerInputs()
     m_dbl["ventaReceta"]    = &i.ventaReceta;
     m_dbl["ventaLibre"]     = &i.ventaLibre;
     m_dbl["margenPct"]      = &i.margenPct;
-    m_dbl["cuotaAutonomos"] = &i.cuotaAutonomos;
     m_dbl["alquilerLocal"]  = &i.alquilerLocal;
     m_dbl["suministros"]    = &i.suministros;
     m_dbl["asesoria"]       = &i.asesoria;
@@ -313,6 +312,7 @@ void Engine::buildMaps()
         { "mComDespuesRD",       D.mComDespuesRD },
         { "gastosPersonal",      D.gastosPersonal },
         { "seguridadSocial",     D.seguridadSocial },
+        { "cuotaAutonomos",      m_r.proyeccion.cuotaAutonomos[0] },
         { "totalGastosPersonal", D.totalGastosPersonal },
         { "totalOtrosGastos",    D.totalOtrosGastos },
         { "beneficioAntesImp",   D.beneficioAntesImp },
@@ -383,6 +383,7 @@ void Engine::buildMaps()
         proyRow("Alquiler Local Comercial",      Y.alquiler),
         proyRow("Gastos de Personal + S.S.",     Y.gastosPersonal),
         proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
+        proyRow("Cuota Autónomos (RETA)",        Y.cuotaAutonomos),
         proyRow("Otros Gastos",                  Y.otrosGastos),
         proyRow("Intereses de Deudas",           Y.intereses),
         proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),

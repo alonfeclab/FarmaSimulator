@@ -11,11 +11,10 @@ Flickable {
     readonly property int wLabel: 230
     readonly property int wCell: 100
     readonly property int hRow: 28
-    readonly property bool angosto: width < 640
 
-    contentWidth: width
+    contentWidth: Math.max(width, col.implicitWidth)
     contentHeight: col.implicitHeight + 48
-    clip: true
+    clip: false
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
@@ -28,11 +27,14 @@ Flickable {
         Layout.fillWidth: true
         Text {
             text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            color: destacada ? "#14523f" : "#3c4a46";
+            Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
         Text {
-            text: Fmt.byFmt(value, fmt); font.pixelSize: 14; font.bold: true
+            text: Fmt.byFmt(value, fmt);
+            font.pixelSize: 14;
+            font.bold: true
             color: destacada ? "#14523f" : "#1e2b28"
         }
     }
@@ -46,16 +48,18 @@ Flickable {
         spacing: 14
 
         Text {
-            text: "Cálculo del pago de impuestos (IRPF)"
-            font.pixelSize: 22; font.bold: true; color: "#14523f"
+            text: "Impuestos"
+            font.pixelSize: 22;
+            font.bold: true;
+            color: "#14523f"
         }
 
         // ---------------- Paso 1: parámetros y base amortizable
         Card {
-            SectionTitle { text: "PASO 1: PARÁMETROS Y BASE AMORTIZABLE" }
+            SectionTitle { text: "PARÁMETROS Y BASE AMORTIZABLE" }
 
             GridLayout {
-                columns: page.angosto ? 1 : 2
+                columns: width >= 2 * (page.wLabel + page.wCell) + columnSpacing ? 2 : 1
                 columnSpacing: 40
                 rowSpacing: 8
                 Layout.fillWidth: true
@@ -85,7 +89,7 @@ Flickable {
 
         // ---------------- Pasos 2 y 3: tabla a 10 años
         Card {
-            SectionTitle { text: "PASOS 2 Y 3: AMORTIZACIONES, BASE IMPONIBLE E IRPF POR TRAMOS (ESCALA 2026)" }
+            SectionTitle { text: "PASOS 2 Y 3: AMORTIZACIONES, BASE IMPONIBLE E IRPF POR TRAMOS (ESCALA 2026)"; }
 
             YearTable {
                 Layout.fillWidth: true

@@ -24,6 +24,7 @@ private slots:
     void pmt_edgeCases();
     void irr_npvIsZeroAtSolution();
     void realesDecretos_matchesTramoTable();
+    void cuotaAutonomos_matchesTramoTable();
     void compute_datosBaseInvariants();
     void compute_amortBancoFullyAmortizes();
     void compute_personalTotalsSumRows();
@@ -100,6 +101,22 @@ void TestSimCore::realesDecretos_matchesTramoTable()
     }
 }
 
+void TestSimCore::cuotaAutonomos_matchesTramoTable()
+{
+    // Beneficio <= 0 -> tramo más bajo (200/205,88 €/mes con MEI).
+    QCOMPARE(calcularCuotaAutonomos(0.0), 205.88 * 12.0);
+    QCOMPARE(calcularCuotaAutonomos(-50000.0), 205.88 * 12.0);
+
+    // 1500 €/mes de beneficio -> tramo [1300, 1500) -> 302,64 €/mes.
+    QVERIFY(std::fabs(calcularCuotaAutonomos(1500.0 * 12.0) - 302.64 * 12.0) < 1e-6);
+
+    // Límite exacto del tramo [1500, 1700): 1700 €/mes de beneficio.
+    QVERIFY(std::fabs(calcularCuotaAutonomos(1700.0 * 12.0) - 319.12 * 12.0) < 1e-6);
+
+    // Tramo más alto (>= 6000 €/mes de beneficio).
+    QVERIFY(std::fabs(calcularCuotaAutonomos(650000.0) - 607.31 * 12.0) < 1e-6);
+}
+
 void TestSimCore::compute_datosBaseInvariants()
 {
     const Inputs in; // valores por defecto = valores del Excel
@@ -110,7 +127,7 @@ void TestSimCore::compute_datosBaseInvariants()
     QVERIFY(std::fabs(D.mComBruto - D.ventaTotal * in.margenPct) < 1e-6);
     QVERIFY(std::fabs((D.costeMercancia + D.mComBruto) - D.ventaTotal) < 1e-6);
     QVERIFY(std::fabs(D.totalGastosPersonal
-                       - (D.gastosPersonal + D.seguridadSocial + in.cuotaAutonomos)) < 1e-6);
+                       - (D.gastosPersonal + D.seguridadSocial + r.proyeccion.cuotaAutonomos[0])) < 1e-6);
 }
 
 void TestSimCore::compute_amortBancoFullyAmortizes()

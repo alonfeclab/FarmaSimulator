@@ -8,6 +8,8 @@ import FarmaciaSim
 Item {
     id: page
 
+    clip: true
+
     required property AmortModel loan
 
     // Estado "vacío": se muestran cuando aún no hay importe de préstamo.
@@ -39,7 +41,13 @@ Item {
         anchors.margins: 24
         spacing: 12
 
-        Text { text: page.loan.titulo; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text {
+            text: page.loan.titulo;
+            font.pixelSize: 22;
+            font.bold: true;
+            color: "#14523f"
+            wrapMode: Text.WordWrap
+        }
 
         // ---------------- estado vacío: aún no hay importe de préstamo
         ColumnLayout {

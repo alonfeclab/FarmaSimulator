@@ -117,6 +117,44 @@ double calcularRealesDecretos(double ventaRecetaAnual)
     return deduccionMensual * 12.0;
 }
 
+// Escala RETA (autónomos) 2026 = 2025, congelada (Orden PJC/297/2026, BOE
+// 31-mar-2026): 15 tramos por rendimientos netos mensuales, cuota mínima
+// mensual de cada tramo (base mínima de cotización + MEI 0,9%).
+struct TramoRETA { double desde, cuotaMensual; };
+static const std::array<TramoRETA,15> kTramosRETA {{
+    {      0.00, 205.88 },
+    {   670.00, 226.47 },
+    {   900.00, 267.64 },
+    {  1166.70, 299.64 },
+    {  1300.00, 302.64 },
+    {  1500.00, 302.64 },
+    {  1700.00, 319.12 },
+    {  1850.00, 324.26 },
+    {  2030.00, 329.41 },
+    {  2330.00, 349.98 },
+    {  2760.00, 380.85 },
+    {  3190.00, 401.43 },
+    {  3620.00, 432.29 },
+    {  4050.00, 514.61 },
+    {  6000.00, 607.31 },
+}};
+
+// Tarifa plana para alta inicial en el RETA (vigente desde 2023, 2026 =
+// 2025): 80 €/mes fijos + MEI, con independencia del tramo de rendimientos,
+// durante los primeros 12 meses de actividad.
+static constexpr double kTarifaPlanaMensual = 88.64;
+
+double calcularCuotaAutonomos(double beneficioAnual)
+{
+    const double mensual = std::max(0.0, beneficioAnual) / 12.0;
+    const TramoRETA* tramo = &kTramosRETA[0];
+    for (const auto& t : kTramosRETA) {
+        if (mensual < t.desde) break;
+        tramo = &t;
+    }
+    return tramo->cuotaMensual * 12.0;
+}
+
 // Escala general IRPF 2026 (hoja Impuestos, filas 26-31)
 const std::array<TramoIRPF,6> kTramosIRPF {{
     {      0,     12450, 0.19 },
@@ -197,10 +235,10 @@ Results compute(const Inputs& in)
         D.mComDespuesRD  = D.mComBruto - D.realesDecretos;       // D17
         D.gastosPersonal  = R.personal.totBrutoReal;             // D18 = 'Personal '!E17
         D.seguridadSocial = R.personal.totSS;                    // D19 = 'Personal '!F17
-        D.totalGastosPersonal = D.gastosPersonal + D.seguridadSocial + in.cuotaAutonomos; // D21
         D.totalOtrosGastos = in.alquilerLocal + in.suministros + in.asesoria
                            + in.mantenimiento + in.robot + in.seguros + in.otrosGastos; // D29
-        D.beneficioAntesImp = D.mComDespuesRD - D.totalGastosPersonal - D.totalOtrosGastos; // D30
+        // D20/D21 (cuota autónomos y total gastos personal) se completan más
+        // abajo, tras calcular la cuota RETA del año 1 en la Proyección.
     }
 
     // ================================================= Financiación (v2)
@@ -258,7 +296,8 @@ Results compute(const Inputs& in)
         for (int i = 0; i < 10; ++i) {
             // Año 1 parte de los valores iniciales tal cual (sin aplicar IPC);
             // el crecimiento empieza a contar desde el año 2.
-            const double ipc = (i == 0) ? 0.0 : ipcAnual[i];
+            // IPC negativo se trata como 0% (no se aplica deflación en la proyección).
+            const double ipc = (i == 0) ? 0.0 : std::max(0.0, ipcAnual[i]);
             P.ipcAplicado[i]     = ipc;
             P.margenComercial[i] = kMargenComercialSim[i];
 
@@ -279,9 +318,23 @@ Results compute(const Inputs& in)
                 : P.otrosGastos[i-1] * (1.0 + ipc);                            // fila 15
             P.intereses[i] = sumaAnual(R.amortBanco, i, true)
                            + sumaAnual(R.amortProp,  i, true);                 // fila 16 (negativo)
-            P.beneficio[i] = P.mComDespuesRD[i] - P.alquiler[i]
-                           - P.gastosPersonal[i] - P.otrosGastos[i] + P.intereses[i]; // fila 17
+            const double beneficioPreCuota = P.mComDespuesRD[i] - P.alquiler[i]
+                           - P.gastosPersonal[i] - P.otrosGastos[i] + P.intereses[i];
+            // Cuota de autónomos (RETA) del año: el año 1 usa la tarifa plana
+            // de alta inicial (fija, con independencia del tramo); del año 2
+            // en adelante se ubica el tramo según el beneficio proyectado del
+            // año anterior (antes de la propia cuota).
+            P.cuotaAutonomos[i] = (i == 0)
+                ? kTarifaPlanaMensual * 12.0
+                : calcularCuotaAutonomos(beneficioPreCuota);
+            P.beneficio[i] = beneficioPreCuota - P.cuotaAutonomos[i];          // fila 17
         }
+
+        // Datos Base (D20/D21): usan la cuota RETA calculada para el año 1.
+        R.datosBase.totalGastosPersonal = R.datosBase.gastosPersonal
+            + R.datosBase.seguridadSocial + P.cuotaAutonomos[0];               // D21
+        R.datosBase.beneficioAntesImp = R.datosBase.mComDespuesRD
+            - R.datosBase.totalGastosPersonal - R.datosBase.totalOtrosGastos;  // D30
 
         // ------------------------- Hoja Impuestos (IRPF, v2) — entre filas 17 y 18
         {

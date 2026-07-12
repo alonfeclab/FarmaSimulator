@@ -10,9 +10,11 @@ ColumnLayout {
 
     Text {
         id: label
+        Layout.fillWidth: true
         font.pixelSize: 15
         font.bold: true
         color: "#14523f"
+        wrapMode: Text.WordWrap
     }
     Rectangle {
         Layout.fillWidth: true

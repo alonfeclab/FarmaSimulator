@@ -13,7 +13,6 @@ struct Inputs {
     double ventaReceta      = 800000;   // D10
     double ventaLibre       = 200000;   // D11
     double margenPct        = 0.34;     // D15
-    double cuotaAutonomos   = 1500;     // D20
     double alquilerLocal    = 0;        // D22
     double suministros      = 2500;     // D23
     double asesoria         = 5000;     // D24
@@ -161,7 +160,7 @@ extern const std::array<TramoIRPF,6> kTramosIRPF;
 struct ProyeccionResult {           // 10 valores = años 1..10
     std::array<double,10> ventaReceta{}, ventaLibre{}, ventaTotal{},
         costeMercancia{}, mComBruto{}, realesDecretos{}, mComDespuesRD{},
-        alquiler{}, gastosPersonal{}, otrosGastos{}, intereses{},
+        alquiler{}, gastosPersonal{}, cuotaAutonomos{}, otrosGastos{}, intereses{},
         beneficio{}, pagoImpuestos{}, liquidez{}, devCapitalBanco{},
         devCooperativa{}, salarioNetoAnual{}, salarioNetoMensual{},
         pctGastoPersonal{};
@@ -196,6 +195,13 @@ struct Results {
 // tramos sobre la facturación MENSUAL de recetas (PVP+IVA) al SNS. Se aplica
 // a la media mensual de la venta de receta anual y se anualiza (x12).
 double calcularRealesDecretos(double ventaRecetaAnual);
+
+// Cuota RETA (autónomos) anual según la escala real de 15 tramos de
+// rendimientos netos (Seguridad Social, tabla 2026 = 2025, congelada).
+// beneficioAnual es el beneficio de la farmacia antes de esta cuota; se
+// promedia a mensual para ubicar el tramo, y se aplica la cuota mínima
+// mensual de ese tramo (incluye el 0,9% del MEI).
+double calcularCuotaAutonomos(double beneficioAnual);
 
 // PMT de Excel: cuota constante (negativa) de un préstamo.
 double pmt(double tasaMensual, int numPagos, double principal);

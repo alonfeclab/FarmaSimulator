@@ -400,7 +400,7 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     Tabla t2 = kv(d);
     t2.filaDatos({ QStringLiteral("Gastos de personal"), d.eur(D.gastosPersonal) });
     t2.filaDatos({ QStringLiteral("Seguridad Social"),   d.eur(D.seguridadSocial) });
-    t2.filaDatos({ QStringLiteral("Cuota autónomos"),                    d.eur(in.cuotaAutonomos) });
+    t2.filaDatos({ QStringLiteral("Cuota autónomos (RETA, año 1)"),      d.eur(r.proyeccion.cuotaAutonomos[0]) });
     t2.filaDatos({ QStringLiteral("TOTAL GASTOS PERSONAL"),              d.eur(D.totalGastosPersonal) }, true);
 
     d.tituloSeccion(QStringLiteral("Otros gastos"));
@@ -524,6 +524,7 @@ void hojaProyeccion(Doc& d, const sim::Results& r)
         { QStringLiteral("M. COMERCIAL DESPUÉS DE RDs"),      Y.mComDespuesRD,    true,  true  },
         { QStringLiteral("Alquiler local comercial"),         Y.alquiler,         true,  false },
         { QStringLiteral("Gastos de personal + S.S."),        Y.gastosPersonal,   true,  false },
+        { QStringLiteral("Cuota autónomos (RETA)"),           Y.cuotaAutonomos,   true,  false },
         { QStringLiteral("Otros gastos"),                     Y.otrosGastos,      true,  false },
         { QStringLiteral("Intereses de deudas"),              Y.intereses,        true,  false },
         { QStringLiteral("BENEFICIO FARMACIA"),               Y.beneficio,        true,  true  },
