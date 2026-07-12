@@ -475,27 +475,12 @@ QVariantMap Engine::simularSimple(const QVariantMap& cambios) const
     const sim::Results r = sim::compute(copia);
     const auto& Y = r.proyeccion;
     const QVariantList proyeccion{
-        proyRow("Venta Receta",                  Y.ventaReceta),
-        proyRow("Venta Libre",                   Y.ventaLibre),
-        proyRow("VENTA TOTAL",                   Y.ventaTotal, "eur", true),
-        proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
-        proyRow("Coste Mercancía (Proveedores)", Y.costeMercancia),
-        proyRow("M. Comercial %",                Y.margenComercial, "pct1"),
-        proyRow("M. Comercial Bruto",            Y.mComBruto),
-        proyRow("Reales Decretos",               Y.realesDecretos),
-        proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur", true),
-        proyRow("Alquiler Local Comercial",      Y.alquiler),
-        proyRow("Gastos de Personal + S.S.",     Y.gastosPersonal),
-        proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
-        proyRow("Otros Gastos",                  Y.otrosGastos),
-        proyRow("Intereses de Deudas",           Y.intereses),
-        proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),
-        proyRow("Pago Impuestos",                Y.pagoImpuestos),
-        proyRow("LIQUIDEZ DESPUÉS DE IMP.",      Y.liquidez, "eur", true),
-        proyRow("Devolución Capital al Banco",   Y.devCapitalBanco),
-        proyRow("Devolución Cooperativa",        Y.devCooperativa),
-        proyRow("SALARIO NETO ANUAL TITULAR",    Y.salarioNetoAnual, "eur", true),
-        proyRow("SALARIO NETO MENSUAL TITULAR",  Y.salarioNetoMensual, "eur", true),
+        proyRow("Venta total",                   Y.ventaTotal, "eur"),
+        proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur"),
+        proyRow("Beneficio farmacia",            Y.beneficio, "eur"),
+        proyRow("Liquidez después de imp.",      Y.liquidez, "eur"),
+        proyRow("Salario neto anual titular",    Y.salarioNetoAnual, "eur", true),
+        proyRow("Salario neto mensual titular",  Y.salarioNetoMensual, "eur", true),
     };
     return QVariantMap{
         { "ventaTotal", r.datosBase.ventaTotal },

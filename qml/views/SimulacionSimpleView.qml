@@ -48,7 +48,7 @@ Flickable {
         pedidoInicial:    local.pedidoInicial,
         alquilerLocal:    local.alquilerLocal,
     })
-    readonly property var filasEsenciales: page.preview.proyeccion.filter(f => f.bold)
+    readonly property var filasEsenciales: page.preview.proyeccion
 
     // Campo editable ligado al estado LOCAL de esta hoja (no a Engine).
     component LocalField: TextField {

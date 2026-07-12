@@ -13,6 +13,7 @@ FarmaciaSim/
 ├── CMakeLists.txt
 ├── src/
 │   ├── simcore.h/.cpp      Motor de cálculo puro (sin Qt) con todas las fórmulas
+│   ├── pdfreport.h/.cpp    Backend del informe PDF (Qt Gui, sin QML)
 │   ├── engine.h/.cpp       Fachada QML (singleton Engine): entradas + resultados
 │   ├── amortmodel.h/.cpp   Modelo de tabla para los cuadros de amortización
 │   └── main.cpp
@@ -50,6 +51,16 @@ cmake --build build --target farmaciasim_tests
 ctest --test-dir build --output-on-failure
 ```
 
+Los tests del informe (`tests/test_pdfreport.cpp`, con Qt Test) cubren
+`pdfreport.cpp`: que `escribirInforme()` produzca un PDF válido y no reviente con
+casos extremos (sin ventas ni financiación). Como es un backend puro (Qt Gui,
+sin QML), vive en su propia librería `farmaciasim_pdf`.
+
+```bat
+cmake --build build --target farmaciasim_pdf_tests
+ctest --test-dir build --output-on-failure
+```
+
 Los tests gráficos (`tests/qml/tst_*.qml`, con Qt Quick Test) cubren la capa QML:
 formateo (`Fmt.qml`), navegación (`NavPanel.qml`, con clicks simulados) y campos
 editables (`MoneyField.qml`, contra el singleton `Engine` real). Para poder hacer
@@ -66,7 +77,7 @@ El ejecutable de tests QML corre en su propio directorio de salida
 (`tests/qml-tests-bin/`) para que el `farmaciasim_datos.json` que guarda `Engine`
 al recalcular no coincida con el de `FarmaciaSim.exe`.
 
-Ambas suites corren automáticamente en GitHub Actions en cada push/PR
+Las tres suites corren automáticamente en GitHub Actions en cada push/PR
 ([.github/workflows/tests.yml](.github/workflows/tests.yml)).
 
 ## Fidelidad con el Excel
