@@ -1,3 +1,0 @@
-set(__QT_DEPLOY_TARGET_FarmaciaSim_FILE C:/Users/indmf/Documents/Farmacia/FarmaciaSim/build_test/FarmaciaSim.exe)
-set(__QT_DEPLOY_TARGET_FarmaciaSim_TYPE EXECUTABLE)
-set(__QT_DEPLOY_TARGET_FarmaciaSim_RUNTIME_DLLS C:/Qt6/6.11.1/mingw_64/bin/Qt6QuickControls2.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Svg.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6QuickTemplates2.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Quick.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6OpenGL.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6QmlMeta.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6QmlWorkerScript.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6QmlModels.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Qml.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Network.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Gui.dll;C:/Qt6/6.11.1/mingw_64/bin/Qt6Core.dll)
