@@ -212,6 +212,7 @@ Flickable {
                 numYears: page.numAnios
                 // La página (Flickable) ya lleva el scroll vertical.
                 flickableDirection: Flickable.HorizontalFlick
+                fallback: page
                 model: page.filasEsenciales
             }
         }

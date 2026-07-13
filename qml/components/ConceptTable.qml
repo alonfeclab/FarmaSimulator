@@ -25,6 +25,11 @@ Flickable {
     property bool closableColumns: false
     signal closeColumn(int index)
 
+    // Página que debe recibir el scroll de rueda cuando esta tabla no lo
+    // necesite (ver FastWheel). Null cuando la tabla es el contenido
+    // principal de la página (Proyección, Comparación).
+    property Flickable fallback: null
+
     implicitHeight: tabla.implicitHeight
     contentWidth: wLabel + cols * wCell
     contentHeight: tabla.implicitHeight
@@ -40,7 +45,7 @@ Flickable {
     pressDelay: 150
     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-    FastWheel { flick: root }
+    FastWheel { flick: root; fallback: root.fallback }
 
     Column {
         id: tabla

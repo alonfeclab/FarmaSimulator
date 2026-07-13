@@ -101,6 +101,7 @@ Flickable {
                 fontSize: 12
                 // La página (Flickable) ya lleva el scroll vertical.
                 flickableDirection: Flickable.HorizontalFlick
+                fallback: page
                 model: {
                     const I = Engine.impuestos
                     function cumSum(arr) {

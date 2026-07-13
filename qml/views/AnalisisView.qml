@@ -77,7 +77,7 @@ Flickable {
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                FastWheel { flick: flickPatrimonio }
+                FastWheel { flick: flickPatrimonio; fallback: page }
 
                 ColumnLayout {
                     id: patrimonioCol
@@ -151,7 +151,7 @@ Flickable {
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                FastWheel { flick: flickLiquidez }
+                FastWheel { flick: flickLiquidez; fallback: page }
 
                 ColumnLayout {
                     id: liquidezCol

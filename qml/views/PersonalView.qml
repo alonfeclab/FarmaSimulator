@@ -82,6 +82,7 @@ Flickable {
                 fontSize: 12
                 // La página (Flickable) ya lleva el scroll vertical.
                 flickableDirection: Flickable.HorizontalFlick
+                fallback: page
                 model: {
                     function rowByLabel(label) {
                         for (const r of Engine.proyeccion)
@@ -118,7 +119,7 @@ Flickable {
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                FastWheel { flick: flickDatosPersonal }
+                FastWheel { flick: flickDatosPersonal; fallback: page }
 
                 ColumnLayout {
                     id: datosPersonalCol
@@ -240,7 +241,7 @@ Flickable {
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
-                FastWheel { flick: flickPlantilla }
+                FastWheel { flick: flickPlantilla; fallback: page }
 
                 ColumnLayout {
                     id: plantillaCol

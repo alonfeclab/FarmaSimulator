@@ -36,15 +36,21 @@ Rectangle {
         // Lista de pestañas con scroll propio: en móvil, con muchas pestañas,
         // no debe empujar fuera de la pantalla los botones de abajo (PDF,
         // restaurar valores); si no caben todas, se hace scroll solo aquí.
-        ScrollView {
+        Flickable {
             id: navScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            contentWidth: width
+            contentHeight: navCol.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar {}
+
+            FastWheel { flick: navScroll }
 
             ColumnLayout {
-                width: navScroll.availableWidth
+                id: navCol
+                width: navScroll.width
                 spacing: 4
 
                 Repeater {
