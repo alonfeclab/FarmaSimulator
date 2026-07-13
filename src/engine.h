@@ -26,6 +26,7 @@ class Engine : public QObject
     Q_PROPERTY(AmortModel* cooperativa  READ cooperativa  CONSTANT)
     Q_PROPERTY(AmortModel* propiedades  READ propiedades  CONSTANT)
     Q_PROPERTY(QString rutaDatos        READ rutaDatos    CONSTANT)
+    Q_PROPERTY(QVariantList escenariosComparacion READ escenariosComparacion NOTIFY escenariosComparacionChanged)
 
 public:
     explicit Engine(QObject* parent = nullptr);
@@ -43,6 +44,19 @@ public:
     // devuelve la ruta. WASM: lo descarga el navegador. Vacío si falla.
     Q_INVOKABLE QString exportarPdf();
 
+    // Congela la proyección actual (m_proyeccion) como un nuevo escenario
+    // guardado para la hoja "Comparación".
+    Q_INVOKABLE void anadirEscenarioComparacion();
+    Q_INVOKABLE void quitarEscenarioComparacion(int index);
+
+    // Pivota los escenarios guardados: una fila por concepto, una columna
+    // (values[i]) por escenario, con el valor de ese concepto en el año dado.
+    Q_INVOKABLE QVariantList comparacionAnio(int anio) const;
+
+    // Grupo "Financiación" de la vista completa: valores fijos (no varían por
+    // año) de cada escenario guardado, pivotados igual que comparacionAnio().
+    Q_INVOKABLE QVariantList comparacionFinanciacion() const;
+
     QVariantMap inputs()        const { return m_inputs; }
     QVariantMap datosBase()     const { return m_datosBase; }
     QVariantMap financiacion()  const { return m_financiacion; }
@@ -54,9 +68,11 @@ public:
     AmortModel* cooperativa()   const { return m_coop; }
     AmortModel* propiedades()   const { return m_prop; }
     QString rutaDatos()         const { return m_rutaDatos; }
+    QVariantList escenariosComparacion() const { return m_escenariosComparacion; }
 
 signals:
     void recalculated();
+    void escenariosComparacionChanged();
 
 private:
     void registerInputs();
@@ -79,4 +95,10 @@ private:
     QVariantMap  m_inputs, m_datosBase, m_financiacion, m_personal, m_impuestos, m_analisis;
     QVariantList m_proyeccion;
     QString m_rutaDatos;
+
+    // Escenarios congelados para comparación: cada entrada es
+    // { "id": qint64, "nombre": QString, "proyeccion": QVariantList (copia de m_proyeccion),
+    //   "financiacion": QVariantMap (liquidezAportada, finBancariaFarmacia, finBancariaLocal,
+    //   pedidoInicial, finPropiedades) }.
+    QVariantList m_escenariosComparacion;
 };

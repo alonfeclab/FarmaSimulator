@@ -323,7 +323,7 @@ Flickable {
                     font.pixelSize: 15;
                     font.bold: true
                     Layout.fillWidth: true
-                    wrapMode: Text.wrapMode
+                    wrapMode: Text.WordWrap
                 }
                 Text {
                     text: Fmt.eur(Engine.personal.salarioNetoMensualAnio1)

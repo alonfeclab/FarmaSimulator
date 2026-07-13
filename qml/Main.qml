@@ -31,7 +31,8 @@ ApplicationWindow {
         { nombre: "Amort. Banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
         { nombre: "Amort. Cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
         { nombre: "Amort. Propiedades",  icono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg" },
-        { nombre: "Personal",            icono: "qrc:/qt/qml/FarmaciaSim/icons/personal.svg" }
+        { nombre: "Personal",            icono: "qrc:/qt/qml/FarmaciaSim/icons/personal.svg" },
+        { nombre: "Comparación",         icono: "qrc:/qt/qml/FarmaciaSim/icons/comparacion.svg" }
     ]
 
     header: ToolBar {
@@ -170,6 +171,7 @@ ApplicationWindow {
                 emptyFocusKey: "finPropiedades"
             }
             PersonalView {}
+            ComparacionView {}
         }
     }
 }

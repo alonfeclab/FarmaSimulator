@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSaveFile>
@@ -63,6 +64,7 @@ void Engine::guardarEnDisco() const
         o[it.key()] = *it.value();
     for (auto it = m_int.cbegin(); it != m_int.cend(); ++it)
         o[it.key()] = *it.value();
+    o["escenariosComparacion"] = QJsonArray::fromVariantList(m_escenariosComparacion);
 
 #ifdef Q_OS_WASM
     const QByteArray json = QJsonDocument(o).toJson(QJsonDocument::Compact);
@@ -110,6 +112,11 @@ void Engine::cargarDeDisco()
         }
     }
     m_in.plPersonas[0] = 1; // Farmacéutico titular: siempre 1 persona, no editable
+
+    if (const auto it = o.constFind(QStringLiteral("escenariosComparacion"));
+        it != o.constEnd() && it->isArray()) {
+        m_escenariosComparacion = it->toArray().toVariantList();
+    }
 }
 
 void Engine::registerInputs()
@@ -448,6 +455,102 @@ void Engine::buildMaps()
         { "baseImponible",     toList10(A.baseImponible) },
         { "fdcPendienteSim",   toList10(A.fdcPendienteSim) },
     };
+}
+
+// ---------------------------------------------------------------- comparación de escenarios
+void Engine::anadirEscenarioComparacion()
+{
+    // Valores de la hoja Financiación para el grupo de la "vista completa":
+    // no varían por año, así que se guardan como un valor fijo por escenario.
+    const QVariantMap fin{
+        { "liquidezAportada",    m_inputs.value(QStringLiteral("liquidezAportada")) },
+        { "finBancariaFarmacia", m_financiacion.value(QStringLiteral("finBancariaFarmacia")) },
+        { "finBancariaLocal",    m_financiacion.value(QStringLiteral("finBancariaLocal")) },
+        { "pedidoInicial",       m_inputs.value(QStringLiteral("pedidoInicial")) },
+        { "finPropiedades",      m_inputs.value(QStringLiteral("finPropiedades")) },
+    };
+    const QVariantMap esc{
+        { "id",           QDateTime::currentMSecsSinceEpoch() },
+        { "nombre",       QStringLiteral("Escenario %1").arg(m_escenariosComparacion.size() + 1) },
+        { "proyeccion",   m_proyeccion },
+        { "financiacion", fin },
+    };
+    m_escenariosComparacion.append(esc);
+    guardarEnDisco();
+    emit escenariosComparacionChanged();
+}
+
+void Engine::quitarEscenarioComparacion(int index)
+{
+    if (index < 0 || index >= m_escenariosComparacion.size())
+        return;
+    m_escenariosComparacion.removeAt(index);
+    guardarEnDisco();
+    emit escenariosComparacionChanged();
+}
+
+// Pivota "escenario -> filas(concepto, 10 años)" a "filas(concepto) -> escenarios",
+// quedándonos con el valor del año pedido de cada escenario.
+QVariantList Engine::comparacionAnio(int anio) const
+{
+    QVariantList filas;
+    if (m_escenariosComparacion.isEmpty())
+        return filas;
+
+    const QVariantList plantilla = m_escenariosComparacion.first().toMap()
+                                        .value(QStringLiteral("proyeccion")).toList();
+    for (int r = 0; r < plantilla.size(); ++r) {
+        const QVariantMap filaPlantilla = plantilla[r].toMap();
+        QVariantList valores;
+        for (const QVariant& ev : m_escenariosComparacion) {
+            const QVariantList filasEsc = ev.toMap().value(QStringLiteral("proyeccion")).toList();
+            double v = 0;
+            if (r < filasEsc.size()) {
+                const QVariantList vals = filasEsc[r].toMap().value(QStringLiteral("values")).toList();
+                if (anio >= 0 && anio < vals.size())
+                    v = vals[anio].toDouble();
+            }
+            valores << v;
+        }
+        filas << QVariantMap{
+            { "label", filaPlantilla.value(QStringLiteral("label")) },
+            { "values", valores },
+            { "fmt", filaPlantilla.value(QStringLiteral("fmt")) },
+            { "bold", filaPlantilla.value(QStringLiteral("bold")) },
+        };
+    }
+    return filas;
+}
+
+QVariantList Engine::comparacionFinanciacion() const
+{
+    static const struct { const char* clave; const char* label; } kFilas[] = {
+        { "liquidezAportada",    "Liquidez aportada" },
+        { "finBancariaFarmacia", "Financiación farmacia" },
+        { "finBancariaLocal",    "Financiación local" },
+        { "pedidoInicial",       "Cooperativa" },
+        { "finPropiedades",      "Hipoteca propiedad" },
+    };
+
+    QVariantList filas;
+    if (m_escenariosComparacion.isEmpty())
+        return filas;
+
+    for (const auto& f : kFilas) {
+        const QString clave = QString::fromUtf8(f.clave);
+        QVariantList valores;
+        for (const QVariant& ev : m_escenariosComparacion) {
+            const QVariantMap fin = ev.toMap().value(QStringLiteral("financiacion")).toMap();
+            valores << fin.value(clave, 0.0);
+        }
+        filas << QVariantMap{
+            { "label", QString::fromUtf8(f.label) },
+            { "values", valores },
+            { "fmt", QStringLiteral("eur") },
+            { "bold", false },
+        };
+    }
+    return filas;
 }
 
 // ---------------------------------------------------------------- simulación aislada

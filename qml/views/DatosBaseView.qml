@@ -192,5 +192,51 @@ Flickable {
             EditRow { label: "OTROS GASTOS"; k: "otrosGastos" }
             CalcRow { label: "TOTAL OTROS GASTOS"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
         }
+
+        // ---------------- Comparación de escenarios
+        Button {
+            id: btnComparar
+            Layout.fillWidth: true
+            Layout.preferredHeight: 44
+            Layout.topMargin: 4
+            text: "Añadir a comparación"
+            font.pixelSize: 13
+            font.bold: true
+            onClicked: {
+                Engine.anadirEscenarioComparacion()
+                avisoComparar.mostrar("Escenario añadido a la comparación")
+            }
+            background: Rectangle {
+                radius: 8
+                color: btnComparar.down ? "#0f5a43" : "#1a7a5e"
+                border.color: "#2b8a6a"
+            }
+            contentItem: Text {
+                text: btnComparar.text
+                color: "#ffe9a8"
+                font: btnComparar.font
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+        Text {
+            id: avisoComparar
+            visible: false
+            Layout.fillWidth: true
+            horizontalAlignment: Text.AlignHCenter
+            color: "#14523f"
+            font.pixelSize: 12
+
+            function mostrar(mensaje) {
+                text = mensaje
+                visible = true
+                temporizadorAvisoComparar.restart()
+            }
+            Timer {
+                id: temporizadorAvisoComparar
+                interval: 3000
+                onTriggered: avisoComparar.visible = false
+            }
+        }
     }
 }
