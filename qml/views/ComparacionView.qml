@@ -212,6 +212,54 @@ Item {
                         }
                     }
                 }
+
+                Item { Layout.fillWidth: true }
+
+                Text {
+                    id: avisoPdfComparacion
+                    visible: false
+                    color: "#14523f"
+                    font.pixelSize: 12
+
+                    function mostrar(mensaje) {
+                        text = mensaje
+                        visible = true
+                        temporizadorAvisoPdfComparacion.restart()
+                    }
+                    Timer {
+                        id: temporizadorAvisoPdfComparacion
+                        interval: 4000
+                        onTriggered: avisoPdfComparacion.visible = false
+                    }
+                }
+
+                Button {
+                    id: btnPdfComparacion
+                    Layout.preferredHeight: 40
+                    text: "Exportar tabla a PDF"
+                    font.pixelSize: 13
+                    font.bold: true
+                    onClicked: {
+                        const destino = Engine.exportarPdfComparacion(anioCombo.currentIndex)
+                        avisoPdfComparacion.mostrar(destino.length > 0
+                            ? "PDF guardado en: " + destino
+                            : "No se pudo crear el PDF")
+                    }
+                    background: Rectangle {
+                        radius: 8
+                        color: btnPdfComparacion.down ? "#0f5a43" : "#1a7a5e"
+                        border.color: "#2b8a6a"
+                    }
+                    contentItem: Text {
+                        text: btnPdfComparacion.text
+                        color: "#ffe9a8"
+                        font: btnPdfComparacion.font
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 12
+                        rightPadding: 12
+                    }
+                }
             }
 
             Rectangle {

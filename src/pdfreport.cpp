@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QPdfWriter>
 #include <QRegularExpression>
+#include <QVariantMap>
 
 #include <algorithm>
 #include <cmath>
@@ -237,14 +238,19 @@ struct Tabla {
     }
 
     // 'destacada' = fila de totales (fondo verde suave, texto verde, negrita).
-    void filaDatos(const QStringList& celdas, bool destacada = false)
+    // 'grupo'/'finGrupo' = fila de un grupo aparte (p.ej. "Financiación" en la
+    // tabla de Comparación): fondo propio, y si es la última del grupo, una
+    // línea divisoria inferior, igual que ConceptTable.qml.
+    void filaDatos(const QStringList& celdas, bool destacada = false,
+                    bool grupo = false, bool finGrupo = false)
     {
         if (d.y + hFila > d.yFin()) {
             d.saltoPagina();
             if (conCabecera)
                 cabecera();
         }
-        const QColor fondo = destacada ? kVerdeSuave
+        const QColor fondo = grupo ? QColor("#eef5f1")
+                            : destacada ? kVerdeSuave
                             : (fila % 2 ? kZebra : QColor(Qt::white));
         d.p.setPen(Qt::NoPen);
         d.p.setBrush(fondo);
@@ -262,8 +268,30 @@ struct Tabla {
                          cols.at(i).align | Qt::AlignVCenter, t);
             x += cols.at(i).w;
         }
+        if (finGrupo) {
+            d.p.setPen(QPen(QColor("#8fb3a3"), 2));
+            d.p.drawLine(QPointF(d.xIzq(), d.y + hFila), QPointF(d.xIzq() + anchoTotal(), d.y + hFila));
+        }
         d.y += hFila;
         ++fila;
+    }
+
+    // Fila separadora a todo lo ancho (p.ej. el título "FINANCIACIÓN").
+    void filaSeparador(const QString& etiqueta)
+    {
+        if (d.y + hFila > d.yFin()) {
+            d.saltoPagina();
+            if (conCabecera)
+                cabecera();
+        }
+        d.p.setPen(Qt::NoPen);
+        d.p.setBrush(QColor("#dde9e2"));
+        d.p.drawRect(QRectF(d.xIzq(), d.y, anchoTotal(), hFila));
+        d.p.setFont(d.f(ptFuente, true));
+        d.p.setPen(kVerde);
+        d.p.drawText(QRectF(d.xIzq() + 6, d.y, anchoTotal() - 12, hFila),
+                     Qt::AlignLeft | Qt::AlignVCenter, etiqueta);
+        d.y += hFila;
     }
 
     void cerrar()
@@ -460,6 +488,7 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.filaDatos({ QStringLiteral("AJD (1,5% FdC + existencias)"),      d.eur(F.ajd) });
     t2.filaDatos({ QStringLiteral("Impuestos (ITP + AJD)"),             d.eur(F.impuestos) });
     t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
+    t2.filaDatos({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.gastosAperturaHipoteca) });
     t2.filaDatos({ QStringLiteral("TOTAL INVERSIÓN"),                   d.eur(F.totalInversion) }, true);
 
     d.tituloSeccion(QStringLiteral("Tipos y plazos"));
@@ -487,6 +516,7 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t3.filaDatos({ QStringLiteral("Aportación familiar"),               d.eur(in.aportacionFamiliar) });
     t3.filaDatos({ QStringLiteral("Financiación bancaria farmacia"),    d.eur(F.finBancariaFarmacia) });
     t3.filaDatos({ QStringLiteral("Financiación bancaria local"),       d.eur(F.finBancariaLocal) });
+    t3.filaDatos({ QStringLiteral("TOTAL BANCO"),                       d.eur(F.finBancariaFarmacia + F.finBancariaLocal) }, true);
     t3.filaDatos({ QStringLiteral("Financiación propiedades"),          d.eur(in.finPropiedades) });
     t3.filaDatos({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.excesoAportacion) });
     t3.filaDatos({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.pedidoInicial) });
@@ -755,6 +785,47 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
     d.y += 52;
 }
 
+// ---------------------------------------------------------------- comparación
+void hojaComparacion(Doc& d, const QVariantList& filas, const QStringList& nombres, int anio)
+{
+    d.paginaNueva(QPageLayout::Landscape, QStringLiteral("Comparación de escenarios"));
+    if (d.numPag == 1) {   // sin portada previa: esta página sí lleva cabecera/pie
+        d.cabecera();
+        d.pie();
+    }
+    d.tituloHoja(QStringLiteral("Comparación de escenarios — Año %1").arg(anio));
+
+    const qreal wLabel = 220;
+    const qreal wTotal = d.ancho() - 2 * kMargen;
+    const int n = std::max(1, int(nombres.size()));
+    const qreal wVal = (wTotal - wLabel) / n;
+
+    QVector<Col> cols{ { QStringLiteral("Concepto"), wLabel, Qt::AlignLeft } };
+    for (const QString& nombre : nombres)
+        cols.append({ nombre, wVal });
+
+    Tabla t(d, cols, true, 19, 8.5);
+    for (const QVariant& fv : filas) {
+        const QVariantMap f = fv.toMap();
+        if (f.value(QStringLiteral("separator")).toBool()) {
+            t.filaSeparador(f.value(QStringLiteral("label")).toString());
+            continue;
+        }
+        const QString fmt = f.value(QStringLiteral("fmt")).toString();
+        QStringList celdas{ f.value(QStringLiteral("label")).toString() };
+        for (const QVariant& v : f.value(QStringLiteral("values")).toList()) {
+            const double val = v.toDouble();
+            if (fmt == QLatin1String("pct1"))      celdas << d.pct(val, 1);
+            else if (fmt == QLatin1String("pct2")) celdas << d.pct(val, 2);
+            else if (fmt == QLatin1String("num"))  celdas << d.num(val, 1);
+            else                                    celdas << d.eur(val);
+        }
+        t.filaDatos(celdas, f.value(QStringLiteral("bold")).toBool(),
+                    f.value(QStringLiteral("grupo")).toBool(),
+                    f.value(QStringLiteral("groupEnd")).toBool());
+    }
+}
+
 } // namespace
 
 // ---------------------------------------------------------------- API
@@ -772,6 +843,14 @@ bool escribirInforme(QIODevice* dev, const sim::Inputs& in, const sim::Results& 
     hojaAnalisis(d, in, r);
     hojaPersonal(d, in, r);
 
+    return d.p.end();
+}
+
+bool escribirComparacion(QIODevice* dev, const QVariantList& filas,
+                          const QStringList& nombresEscenarios, int anio)
+{
+    Doc d(dev);
+    hojaComparacion(d, filas, nombresEscenarios, anio);
     return d.p.end();
 }
 

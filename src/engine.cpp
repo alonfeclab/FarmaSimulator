@@ -236,19 +236,16 @@ static void descargarEnNavegador(const QByteArray& datos, const QString& nombre)
 }
 #endif
 
-QString Engine::exportarPdf()
+// Guarda/descarga los bytes de un PDF ya generado. Escritorio: lo guarda en
+// Documentos con el prefijo dado y lo abre; WASM: lo descarga el navegador.
+// Devuelve la ruta (o "descargas del navegador" en WASM), vacío si falla.
+static QString guardarPdf(const QByteArray& datos, const QString& prefijoNombre)
 {
-    QBuffer buf;
-    buf.open(QIODevice::WriteOnly);
-    if (!pdf::escribirInforme(&buf, m_in, m_r))
-        return {};
-    buf.close();
-
-    const QString nombre = QStringLiteral("FarmaciaSim_Informe_%1.pdf")
-        .arg(QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_HHmm")));
+    const QString nombre = prefijoNombre + QLatin1Char('_')
+        + QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_HHmm")) + QStringLiteral(".pdf");
 
 #ifdef Q_OS_WASM
-    descargarEnNavegador(buf.data(), nombre);
+    descargarEnNavegador(datos, nombre);
     return QStringLiteral("descargas del navegador");
 #else
     QString dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
@@ -261,11 +258,66 @@ QString Engine::exportarPdf()
         qWarning("No se pudo escribir el PDF en '%s'", qPrintable(ruta));
         return {};
     }
-    f.write(buf.data());
+    f.write(datos);
     f.close();
     QDesktopServices::openUrl(QUrl::fromLocalFile(ruta));   // abrirlo al momento
     return ruta;
 #endif
+}
+
+QString Engine::exportarPdf()
+{
+    QBuffer buf;
+    buf.open(QIODevice::WriteOnly);
+    if (!pdf::escribirInforme(&buf, m_in, m_r))
+        return {};
+    buf.close();
+
+    return guardarPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"));
+}
+
+QString Engine::exportarPdfComparacion(int anio)
+{
+    if (m_escenariosComparacion.isEmpty() || anio < 0)
+        return {};
+
+    // Igual que ComparacionView.qml (filasTabla), pero siempre en "vista
+    // completa": el grupo "Financiación" se intercala después de "VENTA
+    // TOTAL" sin depender del interruptor de la interfaz.
+    const QVariantList filas = comparacionAnio(anio);
+    const QVariantList filasFin = comparacionFinanciacion();
+
+    QVariantList grupo;
+    grupo << QVariantMap{ { "label", QStringLiteral("FINANCIACIÓN") }, { "separator", true } };
+    for (int i = 0; i < filasFin.size(); ++i) {
+        QVariantMap f = filasFin[i].toMap();
+        f[QStringLiteral("grupo")] = true;
+        f[QStringLiteral("groupEnd")] = (i == filasFin.size() - 1);
+        grupo << f;
+    }
+
+    int idx = -1;
+    for (int i = 0; i < filas.size(); ++i) {
+        if (filas[i].toMap().value(QStringLiteral("label")).toString() == QStringLiteral("VENTA TOTAL")) {
+            idx = i;
+            break;
+        }
+    }
+    const QVariantList filasTabla = idx < 0
+        ? filas + grupo
+        : filas.mid(0, idx + 1) + grupo + filas.mid(idx + 1);
+
+    QStringList nombres;
+    for (const QVariant& ev : m_escenariosComparacion)
+        nombres << ev.toMap().value(QStringLiteral("nombre")).toString();
+
+    QBuffer buf;
+    buf.open(QIODevice::WriteOnly);
+    if (!pdf::escribirComparacion(&buf, filasTabla, nombres, anio + 1))
+        return {};
+    buf.close();
+
+    return guardarPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
 }
 
 void Engine::recalc()
