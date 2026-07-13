@@ -57,7 +57,7 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 8
                 Text {
-                    text: "Cuota anual año 1 (según tramo de rendimientos netos)"
+                    text: "Cuota anual año 1"
                     font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap
                 }
                 Text {
@@ -89,12 +89,12 @@ Flickable {
                             if (r.label === label) return r.values
                         return []
                     }
-                    const cuota = rowByLabel("Cuota Autónomos (RETA)")
+                    const cuota = rowByLabel("Cuota Autónomos")
                     const beneficio = rowByLabel("BENEFICIO FARMACIA")
                     const beneficioPreCuota = beneficio.map((v, i) => v + cuota[i])
                     const cuotaMensual = cuota.map(v => v / 12.0)
                     return [
-                        { label: "Beneficio de referencia (año)", values: beneficioPreCuota, fmt: "eur", bold: false },
+                        { label: "Beneficio de referencia", values: beneficioPreCuota, fmt: "eur", bold: false },
                         { label: "Rendimiento neto mensual (tramo)", values: beneficioPreCuota.map(v => v / 12.0), fmt: "eur", bold: false },
                         { label: "CUOTA AUTÓNOMOS ANUAL", values: cuota, fmt: "eur", bold: true },
                         { label: "Cuota autónomos mensual", values: cuotaMensual, fmt: "eur", bold: false },
@@ -179,7 +179,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "TOTAL (base cálculo)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        Text { text: "TOTAL"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
@@ -295,7 +295,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "TOTAL PLANTILLA (coste empresa/año)"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Text { text: "TOTAL PLANTILLA"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
                         Celda { text: Fmt.num(Engine.personal.totPersonas) + " pers."; negrita: true; Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 108 }

@@ -326,7 +326,7 @@ Item {
                 color: "#14523f"
             }
             Text {
-                text: "¿Quieres exportar solo el año seleccionado o los 10 años (uno por página)?"
+                text: "¿Exportar solo el año actual o los 10 años?"
                 font.pixelSize: 13
                 color: "#3c4a46"
                 wrapMode: Text.WordWrap

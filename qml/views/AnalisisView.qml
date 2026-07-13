@@ -54,7 +54,7 @@ Flickable {
         spacing: 14
 
         Text {
-            text: "Patrimonio, liquidez y amortización del fondo de comercio"
+            text: "Análisis Inversión"
             font.pixelSize: 22;
             font.bold: true;
             color: "#14523f"
@@ -106,9 +106,9 @@ Flickable {
                         NumField { k: "factorVenta1"; decimals: 1; Layout.preferredWidth: page.wCell }
                         NumField { k: "factorVenta2"; decimals: 1; Layout.preferredWidth: page.wCell }
                     }
-                    Row3 { label: "Valor venta F. de C. año 10"; vals: Engine.analisis.valorVentaFdC }
+                    Row3 { label: "Valor venta FdC año 10"; vals: Engine.analisis.valorVentaFdC }
                     Row3 { label: "Valor venta local (incr. IPC)"; vals: Engine.analisis.valorVentaLocal }
-                    Row3 { label: "Exist. (10% facturación año 10)"; vals: Engine.analisis.existencias10 }
+                    Row3 { label: "Existencias (10% factur.)"; vals: Engine.analisis.existencias10 }
                     Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analisis.fdcPendiente }
                     RowLayout {
                         Layout.fillWidth: true

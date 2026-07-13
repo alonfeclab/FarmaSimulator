@@ -478,15 +478,15 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
 
     d.tituloSeccion(QStringLiteral("Inversión operación"));
     Tabla t2 = kv(d);
-    t2.filaDatos({ QStringLiteral("Coeficiente (sobre venta total)"),   d.num(in.coeficiente, 1) });
+    t2.filaDatos({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.coeficiente, 1) });
     t2.filaDatos({ QStringLiteral("Fondo de comercio"),                 d.eur(F.fondoComercio) });
     t2.filaDatos({ QStringLiteral("Local comercial"),                   d.eur(in.localComercial) });
     t2.filaDatos({ QStringLiteral("Existencias"),                       d.eur(in.existencias) });
-    t2.filaDatos({ QStringLiteral("Honorarios (5% FdC + Local)"),       d.eur(F.honorarios) });
-    t2.filaDatos({ QStringLiteral("IVA (21% honorarios)"),              d.eur(F.iva) });
-    t2.filaDatos({ QStringLiteral("Impuesto ITP (8% local)"),           d.eur(F.impuestoITP) });
-    t2.filaDatos({ QStringLiteral("AJD (1,5% FdC + existencias)"),      d.eur(F.ajd) });
-    t2.filaDatos({ QStringLiteral("Impuestos (ITP + AJD)"),             d.eur(F.impuestos) });
+    t2.filaDatos({ QStringLiteral("Honorarios (5%)"),                   d.eur(F.honorarios) });
+    t2.filaDatos({ QStringLiteral("IVA (21%)"),                         d.eur(F.iva) });
+    t2.filaDatos({ QStringLiteral("ITP (8%)"),                          d.eur(F.impuestoITP) });
+    t2.filaDatos({ QStringLiteral("AJD (1,5%)"),                        d.eur(F.ajd) });
+    t2.filaDatos({ QStringLiteral("Impuestos"),                         d.eur(F.impuestos) });
     t2.filaDatos({ QStringLiteral("Notario"),                           d.eur(in.notario) });
     t2.filaDatos({ QStringLiteral("Registro"),                          d.eur(in.registro) });
     t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
@@ -550,19 +550,19 @@ void hojaProyeccion(Doc& d, const sim::Results& r)
         { QStringLiteral("Venta receta"),                     Y.ventaReceta,      true,  false },
         { QStringLiteral("Venta libre"),                      Y.ventaLibre,       true,  false },
         { QStringLiteral("VENTA TOTAL"),                      Y.ventaTotal,       true,  true  },
-        { QStringLiteral("Coste mercancía (proveedores)"),    Y.costeMercancia,   true,  false },
+        { QStringLiteral("Coste mercancía"),                  Y.costeMercancia,   true,  false },
         { QStringLiteral("M. comercial bruto"),               Y.mComBruto,        true,  false },
         { QStringLiteral("Reales decretos"),                  Y.realesDecretos,   true,  false },
         { QStringLiteral("M. COMERCIAL DESPUÉS DE RDs"),      Y.mComDespuesRD,    true,  true  },
-        { QStringLiteral("Alquiler local comercial"),         Y.alquiler,         true,  false },
-        { QStringLiteral("Gastos de personal + S.S."),        Y.gastosPersonal,   true,  false },
-        { QStringLiteral("Cuota autónomos (RETA)"),           Y.cuotaAutonomos,   true,  false },
+        { QStringLiteral("Alquiler local"),                   Y.alquiler,         true,  false },
+        { QStringLiteral("Gastos personal + SS"),             Y.gastosPersonal,   true,  false },
+        { QStringLiteral("Cuota autónomos"),                  Y.cuotaAutonomos,   true,  false },
         { QStringLiteral("Otros gastos"),                     Y.otrosGastos,      true,  false },
         { QStringLiteral("Intereses de deudas"),              Y.intereses,        true,  false },
         { QStringLiteral("BENEFICIO FARMACIA"),               Y.beneficio,        true,  true  },
         { QStringLiteral("Pago impuestos"),                   Y.pagoImpuestos,    true,  false },
         { QStringLiteral("LIQUIDEZ DESPUÉS DE IMPUESTOS"),    Y.liquidez,         true,  true  },
-        { QStringLiteral("Devolución capital al banco"),      Y.devCapitalBanco,  true,  false },
+        { QStringLiteral("Devolución banco"),                 Y.devCapitalBanco,  true,  false },
         { QStringLiteral("Devolución cooperativa"),           Y.devCooperativa,   true,  false },
         { QStringLiteral("SALARIO NETO ANUAL TITULAR"),       Y.salarioNetoAnual, true,  true  },
         { QStringLiteral("SALARIO NETO MENSUAL TITULAR"),     Y.salarioNetoMensual, true, true },
@@ -616,9 +616,9 @@ void hojaImpuestos(Doc& d, const sim::Results& r)
 
     d.tituloSeccion(QStringLiteral("Desglose por tramos de la escala"));
     static const char* tramoLabels[6] = {
-        "Tramo 0 – 12.450 € (19%)",      "Tramo 12.450 – 20.200 € (24%)",
-        "Tramo 20.200 – 35.200 € (30%)", "Tramo 35.200 – 60.000 € (37%)",
-        "Tramo 60.000 – 300.000 € (45%)","Tramo > 300.000 € (47%)" };
+        "0 – 12.450 € (19%)",      "12.450 – 20.200 € (24%)",
+        "20.200 – 35.200 € (30%)", "35.200 – 60.000 € (37%)",
+        "60.000 – 300.000 € (45%)","> 300.000 € (47%)" };
     Tabla t2(d, colsAnios(d), true, 19, 7.6);
     for (int k = 0; k < 6; ++k) {
         QStringList celdas{ QString::fromUtf8(tramoLabels[k]) };
@@ -656,7 +656,7 @@ void hojaAnalisis(Doc& d, const sim::Inputs& in, const sim::Results& r)
         f3(QStringLiteral("Factor de venta"),                 { in.factorVenta[0], in.factorVenta[1], in.factorVenta[2] }, QStringLiteral("num"));
         f3(QStringLiteral("Valor venta FdC año 10"),          A.valorVentaFdC);
         f3(QStringLiteral("Valor venta local (incr. IPC)"),   A.valorVentaLocal);
-        f3(QStringLiteral("Existencias (10% fact. año 10)"),  A.existencias10);
+        f3(QStringLiteral("Existencias (10% factur.)"),       A.existencias10);
         f3(QStringLiteral("Fondo de comercio pendiente"),     A.fdcPendiente);
         f3(QStringLiteral("Impuestos venta"),                 { in.impuestosVenta[0], in.impuestosVenta[1], in.impuestosVenta[2] });
         f3(QStringLiteral("Deuda pendiente año 10"),          A.deuda);

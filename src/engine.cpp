@@ -450,21 +450,21 @@ void Engine::buildMaps()
         proyRow("Venta Libre",                   Y.ventaLibre),
         proyRow("VENTA TOTAL",                   Y.ventaTotal, "eur", true),
         proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
-        proyRow("Coste Mercancía (Proveedores)", Y.costeMercancia),
+        proyRow("Coste Mercancía",               Y.costeMercancia),
         proyRow("M. Comercial %",                Y.margenComercial, "pct1"),
         proyRow("M. Comercial Bruto",            Y.mComBruto),
         proyRow("Reales Decretos",               Y.realesDecretos),
         proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur", true),
-        proyRow("Alquiler Local Comercial",      Y.alquiler),
-        proyRow("Gastos de Personal + S.S.",     Y.gastosPersonal),
+        proyRow("Alquiler Local",                Y.alquiler),
+        proyRow("Gastos Personal + SS",          Y.gastosPersonal),
         proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
-        proyRow("Cuota Autónomos (RETA)",        Y.cuotaAutonomos),
+        proyRow("Cuota Autónomos",               Y.cuotaAutonomos),
         proyRow("Otros Gastos",                  Y.otrosGastos),
         proyRow("Intereses de Deudas",           Y.intereses),
         proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),
         proyRow("Pago Impuestos",                Y.pagoImpuestos),
         proyRow("LIQUIDEZ DESPUÉS DE IMP.",      Y.liquidez, "eur", true),
-        proyRow("Devolución Capital al Banco",   Y.devCapitalBanco),
+        proyRow("Devolución Banco",              Y.devCapitalBanco),
         proyRow("Devolución Cooperativa",        Y.devCooperativa),
         proyRow("SALARIO NETO ANUAL TITULAR",    Y.salarioNetoAnual, "eur", true),
         proyRow("SALARIO NETO MENSUAL TITULAR",  Y.salarioNetoMensual, "eur", true),
@@ -474,9 +474,9 @@ void Engine::buildMaps()
     const auto& I = m_r.impuestos;
     QVariantList tramosList;
     static const char* tramoLabels[6] = {
-        "Tramo 0 – 12.450 € (19%)", "Tramo 12.450 – 20.200 € (24%)",
-        "Tramo 20.200 – 35.200 € (30%)", "Tramo 35.200 – 60.000 € (37%)",
-        "Tramo 60.000 – 300.000 € (45%)", "Tramo > 300.000 € (47%)" };
+        "0 – 12.450 € (19%)", "12.450 – 20.200 € (24%)",
+        "20.200 – 35.200 € (30%)", "35.200 – 60.000 € (37%)",
+        "60.000 – 300.000 € (45%)", "> 300.000 € (47%)" };
     for (int t = 0; t < 6; ++t)
         tramosList << QVariantMap{
             { "label", QString::fromUtf8(tramoLabels[t]) },

@@ -66,7 +66,7 @@ Flickable {
                 spacing: 12
 
                 Text {
-                    text: "Escenario de crecimiento"
+                    text: "Tipo"
                     font.pixelSize: 13; color: "#3c4a46"
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
