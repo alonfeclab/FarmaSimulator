@@ -14,6 +14,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     component Celda: Text {
         property bool negrita: false
@@ -116,6 +117,8 @@ Flickable {
                 flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                FastWheel { flick: flickDatosPersonal }
 
                 ColumnLayout {
                     id: datosPersonalCol
@@ -236,6 +239,8 @@ Flickable {
                 flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                FastWheel { flick: flickPlantilla }
 
                 ColumnLayout {
                     id: plantillaCol

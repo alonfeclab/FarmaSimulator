@@ -37,7 +37,9 @@ struct Inputs {
     double coeficiente     = 2;         // D13
     double localComercial  = 200000;    // D15
     double existencias     = 100000;    // D16
-    double gastosVarios    = 10455.28;  // D20
+    double notario         = 4000;      // D20a
+    double registro        = 2500;      // D20b
+    double gastosVarios    = 3955.28;   // D20c (resto)
 
     // ---- Financiación: tipos y plazos
     double tipoBanco        = 0.03;     // D27
@@ -48,7 +50,7 @@ struct Inputs {
     int    plazoFamiliar    = 10;       // D33
     double pctFinFarmacia   = 0.8;      // D34
     double pctFinLocal      = 0.7;      // D35 (el Excel usa 0,7 literal en D44)
-    double pctAperturaHipoteca = 0.01;  // % gastos de apertura sobre financiación bancaria (farmacia+local)
+    double pctAperturaHipoteca = 0.01;  // % gastos de apertura sobre financiación bancaria (farmacia+local+hipoteca propiedad)
     double pctFinPropiedades= 0.7;      // D36
     double tipoPropiedades  = 0.03;     // D37
     int    plazoPropiedades = 25;       // D38
@@ -134,7 +136,7 @@ struct FinanciacionResult {
     double impuestoITP=0;   // D20 (v2): 8% del local
     double ajd=0;           // D21 (v2): 1,5% de FdC + existencias
     double impuestos=0;     // D23 (v2): ITP + AJD
-    double gastosAperturaHipoteca=0; // % sobre financiación bancaria (farmacia+local)
+    double gastosAperturaHipoteca=0; // % sobre financiación bancaria (farmacia+local+hipoteca propiedad)
     double finBancariaFarmacia=0, finBancariaLocal=0, totalFinanciacion=0;
     double minimoLiquidez=0;    // Aportación mínima recomendada = totalInversion - (finPropiedades*pctFinPropiedades) - pedidoInicial
     bool   liquidezInvalida=false; // liquidezAportada < minimoLiquidez

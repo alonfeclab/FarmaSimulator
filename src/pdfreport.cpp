@@ -487,6 +487,8 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.filaDatos({ QStringLiteral("Impuesto ITP (8% local)"),           d.eur(F.impuestoITP) });
     t2.filaDatos({ QStringLiteral("AJD (1,5% FdC + existencias)"),      d.eur(F.ajd) });
     t2.filaDatos({ QStringLiteral("Impuestos (ITP + AJD)"),             d.eur(F.impuestos) });
+    t2.filaDatos({ QStringLiteral("Notario"),                           d.eur(in.notario) });
+    t2.filaDatos({ QStringLiteral("Registro"),                          d.eur(in.registro) });
     t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
     t2.filaDatos({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.gastosAperturaHipoteca) });
     t2.filaDatos({ QStringLiteral("TOTAL INVERSIÓN"),                   d.eur(F.totalInversion) }, true);

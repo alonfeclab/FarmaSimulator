@@ -14,6 +14,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     // Fila calculada (solo lectura)
     component CalcRow: RowLayout {

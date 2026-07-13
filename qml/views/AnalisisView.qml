@@ -18,6 +18,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     // Fila de 3 escenarios / 3 columnas, solo lectura
     component Row3: RowLayout {
@@ -75,6 +76,8 @@ Flickable {
                 flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                FastWheel { flick: flickPatrimonio }
 
                 ColumnLayout {
                     id: patrimonioCol
@@ -147,6 +150,8 @@ Flickable {
                 flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                FastWheel { flick: flickLiquidez }
 
                 ColumnLayout {
                     id: liquidezCol

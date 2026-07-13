@@ -86,6 +86,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/components/NumField.qml
         qml/components/SectionTitle.qml
         qml/components/KeyboardAvoider.qml
+        qml/components/FastWheel.qml
         qml/components/Card.qml
         qml/components/ConceptTable.qml
     RESOURCES

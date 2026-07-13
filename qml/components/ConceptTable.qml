@@ -40,6 +40,8 @@ Flickable {
     pressDelay: 150
     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
+    FastWheel { flick: root }
+
     Column {
         id: tabla
 

@@ -173,6 +173,8 @@ Item {
                     ScrollBar.vertical: ScrollBar {}
                     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
+                    FastWheel { flick: tabla }
+
                     delegate: Rectangle {
                         id: celda
                         required property int row

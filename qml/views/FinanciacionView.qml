@@ -16,6 +16,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     component CalcRow: RowLayout {
         property string label
@@ -129,8 +130,10 @@ Flickable {
             CalcRow { label: "TOTAL IMPUESTOS (ITP + AJD)"; value: Engine.financiacion.impuestos; destacada: true }
             CalcRow { label: "Impuesto ITP (8% Local)"; value: Engine.financiacion.impuestoITP; indent: true }
             CalcRow { label: "AJD (1,5% FdC + Existencias)"; value: Engine.financiacion.ajd; indent: true}
+            EditRow { label: "Notario"; k: "notario" }
+            EditRow { label: "Registro"; k: "registro" }
             EditRow { label: "Gastos varios operación"; k: "gastosVarios" }
-            PctRow  { label: "% Gastos apertura hipoteca (s/ financiación bancaria)"; k: "pctAperturaHipoteca" }
+            PctRow  { label: "% Gastos apertura hipoteca (s/ financiación bancaria + hipoteca propiedad)"; k: "pctAperturaHipoteca" }
             CalcRow { label: "Gastos de apertura hipoteca"; value: Engine.financiacion.gastosAperturaHipoteca }
             CalcRow { label: "TOTAL INVERSIÓN"; value: Engine.financiacion.totalInversion; destacada: true }
         }

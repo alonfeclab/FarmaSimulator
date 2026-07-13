@@ -23,6 +23,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     // Estado local, aislado del motor: se inicializa con los valores
     // actuales, pero al editarlo aquí deja de seguir a Engine.inputs.

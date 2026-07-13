@@ -264,19 +264,21 @@ Results compute(const Inputs& in)
         F.impuestos     = F.impuestoITP + F.ajd;                           // D23
         const double totalInversionSinApertura = F.fondoComercio + in.localComercial + in.existencias
                          + F.honorarios + F.iva
-                         + in.gastosVarios + F.impuestos;                   // D24 (sin gastos de apertura)
+                         + in.notario + in.registro + in.gastosVarios + F.impuestos; // D24 (sin gastos de apertura)
         F.finBancariaLocal = in.localComercial * in.pctFinLocal;            // D46 (Excel: D15*0,7 literal)
         const double finBancariaFarmaciaSinApertura = totalInversionSinApertura - in.liquidezAportada
                               - in.pedidoInicial - F.finBancariaLocal
                               - in.finPropiedades * in.pctFinPropiedades;   // D45 (sin gastos de apertura)
         // Los gastos de apertura de hipoteca son un % de la financiación bancaria
-        // (farmacia+local), pero esa misma financiación bancaria cubre esos gastos:
-        // se despeja algebraicamente en vez de iterar.
-        //   X = finBancariaFarmaciaSinApertura + p·(X + finBancariaLocal)
-        //   X·(1-p) = finBancariaFarmaciaSinApertura + p·finBancariaLocal
+        // (farmacia+local) más la hipoteca de la propiedad, pero esa misma
+        // financiación bancaria cubre esos gastos: se despeja algebraicamente
+        // en vez de iterar.
+        //   X = finBancariaFarmaciaSinApertura + p·(X + finBancariaLocal + finHipotecaPropiedad)
+        //   X·(1-p) = finBancariaFarmaciaSinApertura + p·(finBancariaLocal + finHipotecaPropiedad)
         const double p = in.pctAperturaHipoteca;
-        F.finBancariaFarmacia = (finBancariaFarmaciaSinApertura + p * F.finBancariaLocal) / (1 - p);
-        F.gastosAperturaHipoteca = p * (F.finBancariaFarmacia + F.finBancariaLocal);
+        const double finHipotecaPropiedad = in.finPropiedades * in.pctFinPropiedades;
+        F.finBancariaFarmacia = (finBancariaFarmaciaSinApertura + p * (F.finBancariaLocal + finHipotecaPropiedad)) / (1 - p);
+        F.gastosAperturaHipoteca = p * (F.finBancariaFarmacia + F.finBancariaLocal + finHipotecaPropiedad);
         F.totalInversion = totalInversionSinApertura + F.gastosAperturaHipoteca; // D24
         F.totalFinanciacion = in.liquidezAportada + in.aportacionFamiliar
                             + F.finBancariaFarmacia + F.finBancariaLocal

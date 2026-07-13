@@ -143,6 +143,8 @@ void Engine::registerInputs()
     m_dbl["coeficiente"]       = &i.coeficiente;
     m_dbl["localComercial"]    = &i.localComercial;
     m_dbl["existencias"]       = &i.existencias;
+    m_dbl["notario"]           = &i.notario;
+    m_dbl["registro"]          = &i.registro;
     m_dbl["gastosVarios"]      = &i.gastosVarios;
     m_dbl["tipoBanco"]         = &i.tipoBanco;
     m_dbl["tipoCoop"]          = &i.tipoCoop;

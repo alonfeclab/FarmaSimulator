@@ -18,6 +18,7 @@ Flickable {
     ScrollBar.vertical: ScrollBar {}
 
     KeyboardAvoider { target: page }
+    FastWheel { flick: page }
 
     component CalcRow: RowLayout {
         property string label
