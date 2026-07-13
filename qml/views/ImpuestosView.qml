@@ -91,7 +91,7 @@ Flickable {
         Card {
             SectionTitle { text: "AMORTIZACIONES, BASE IMPONIBLE E IRPF POR TRAMOS (ESCALA 2026)"; }
 
-            YearTable {
+            ConceptTable {
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 wLabel: page.wLabel

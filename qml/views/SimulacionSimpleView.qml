@@ -193,7 +193,7 @@ Flickable {
             border.color: "#dde5e1"
             clip: true
 
-            YearTable {
+            ConceptTable {
                 id: tabla
                 anchors.fill: parent
                 anchors.margins: 14

@@ -29,7 +29,7 @@ Item {
             border.color: "#dde5e1"
             clip: true
 
-            YearTable {
+            ConceptTable {
                 id: flick
                 anchors.fill: parent
                 anchors.margins: 14

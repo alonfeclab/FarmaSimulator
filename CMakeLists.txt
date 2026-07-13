@@ -87,7 +87,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/components/SectionTitle.qml
         qml/components/KeyboardAvoider.qml
         qml/components/Card.qml
-        qml/components/YearTable.qml
+        qml/components/ConceptTable.qml
     RESOURCES
         qml/icons/datos_base.svg
         qml/icons/financiacion.svg

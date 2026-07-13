@@ -72,7 +72,7 @@ Flickable {
                 text: "Se calcula automáticamente cada año según la escala oficial de 15 tramos de rendimientos netos (no editable)."
             }
 
-            YearTable {
+            ConceptTable {
                 Layout.fillWidth: true
                 Layout.topMargin: 8
                 wLabel: 230
