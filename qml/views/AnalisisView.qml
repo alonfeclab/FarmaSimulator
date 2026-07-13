@@ -72,6 +72,7 @@ Flickable {
                 contentHeight: patrimonioCol.height
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
@@ -143,6 +144,7 @@ Flickable {
                 contentHeight: liquidezCol.height
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.HorizontalFlick
                 pressDelay: 150
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 

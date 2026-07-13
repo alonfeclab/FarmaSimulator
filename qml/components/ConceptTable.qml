@@ -30,6 +30,12 @@ Flickable {
     contentHeight: tabla.implicitHeight
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+    // Solo hace falta scroll horizontal (la vertical la lleva la página que
+    // contiene esta tabla); si se deja en Auto, la rueda del ratón queda
+    // atrapada aquí en un "rebote" vertical inútil en vez de subir/bajar la
+    // página, lo que en WASM (single-thread) se nota muchísimo más que con
+    // gestos táctiles.
+    flickableDirection: Flickable.HorizontalFlick
     pressDelay: 150
     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 
