@@ -171,10 +171,17 @@ static const std::array<double,10> kIpcHistorico {
     -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
 };
 
-// Evolución simulada del margen comercial (no editable): empieza bajo y
-// crece con altibajos, siempre dentro de [33 %, 36,5 %].
+// Evolución simulada del margen comercial (no editable), escenario
+// "Realista": empieza bajo y crece con altibajos, siempre dentro de
+// [33 %, 36,5 %].
 static const std::array<double,10> kMargenComercialSim {
     0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
+};
+
+// Margen comercial, escenario "Optimista" (no editable): 33 % el año 1,
+// 34 % el año 2 y 35 % del año 3 en adelante.
+static const std::array<double,10> kMargenComercialOptimista {
+    0.330, 0.340, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350
 };
 
 Results compute(const Inputs& in)
@@ -292,6 +299,9 @@ Results compute(const Inputs& in)
         const std::array<double,10> ipcAnual = (in.escenarioCrecimiento >= 0.5)
             ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimista); return a; }()
             : kIpcHistorico;
+        const std::array<double,10>& margenComercialAnual = (in.escenarioCrecimiento >= 0.5)
+            ? kMargenComercialOptimista
+            : kMargenComercialSim;
 
         for (int i = 0; i < 10; ++i) {
             // Año 1 parte de los valores iniciales tal cual (sin aplicar IPC);
@@ -299,13 +309,13 @@ Results compute(const Inputs& in)
             // IPC negativo se trata como 0% (no se aplica deflación en la proyección).
             const double ipc = (i == 0) ? 0.0 : std::max(0.0, ipcAnual[i]);
             P.ipcAplicado[i]     = ipc;
-            P.margenComercial[i] = kMargenComercialSim[i];
+            P.margenComercial[i] = margenComercialAnual[i];
 
             // Ventas (filas 6-7)
             P.ventaReceta[i] = (i == 0 ? in.ventaReceta : P.ventaReceta[i-1]) * (1.0 + ipc);
             P.ventaLibre[i]  = (i == 0 ? in.ventaLibre  : P.ventaLibre[i-1])  * (1.0 + ipc);
             P.ventaTotal[i]  = P.ventaReceta[i] + P.ventaLibre[i];             // fila 8
-            P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - kMargenComercialSim[i]); // fila 9
+            P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - margenComercialAnual[i]); // fila 9
             P.mComBruto[i]      = P.ventaTotal[i] - P.costeMercancia[i];       // fila 10
             P.realesDecretos[i] = (i == 0 ? R.datosBase.realesDecretos : P.realesDecretos[i-1]) * (1.0 + ipc); // fila 11
             P.mComDespuesRD[i]  = P.mComBruto[i] - P.realesDecretos[i];        // fila 12

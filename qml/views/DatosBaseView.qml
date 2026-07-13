@@ -170,6 +170,37 @@ Flickable {
                 color: "#6b7a76"
                 wrapMode: Text.WordWrap
             }
+
+            // Margen comercial fijo del escenario Optimista, aplicado al resto
+            // de la proyección (ver kMargenComercialOptimista en simcore.cpp).
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                visible: escenarioCombo.currentIndex === 1
+                spacing: 4
+
+                Text {
+                    text: "M. Comercial % aplicado"
+                    font.pixelSize: 12
+                    font.bold: true
+                    color: "#14523f"
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "Año 1"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "33 %"; font.pixelSize: 13; font.bold: true; color: "#1e2b28" }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "Año 2"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "34 %"; font.pixelSize: 13; font.bold: true; color: "#1e2b28" }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "35 %"; font.pixelSize: 13; font.bold: true; color: "#1e2b28" }
+                }
+            }
         }
 
         // ---------------- Ventas
