@@ -33,49 +33,63 @@ Rectangle {
         Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#2b6a52" }
         Item { Layout.preferredHeight: 6 }
 
-        Repeater {
-            model: root.hojas
-            delegate: Rectangle {
-                id: navItem
-                required property int index
-                required property var modelData
+        // Lista de pestañas con scroll propio: en móvil, con muchas pestañas,
+        // no debe empujar fuera de la pantalla los botones de abajo (PDF,
+        // restaurar valores); si no caben todas, se hace scroll solo aquí.
+        ScrollView {
+            id: navScroll
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            clip: true
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                objectName: "navItem" + index
-                Layout.fillWidth: true
-                Layout.preferredHeight: root.compact ? 50 : 42
-                radius: 8
-                color: root.currentIndex === index ? "#1a7a5e"
-                     : mouse.containsMouse ? "#1a5a45" : "transparent"
+            ColumnLayout {
+                width: navScroll.availableWidth
+                spacing: 4
 
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 12
-                    spacing: 10
-                    Image {
-                        source: navItem.modelData.icono
-                        sourceSize: Qt.size(18, 18)
-                        Layout.preferredWidth: 18
-                        Layout.preferredHeight: 18
-                    }
-                    Text {
-                        text: navItem.modelData.nombre
-                        color: "white"
-                        font.pixelSize: 14
-                        font.bold: root.currentIndex === navItem.index
+                Repeater {
+                    model: root.hojas
+                    delegate: Rectangle {
+                        id: navItem
+                        required property int index
+                        required property var modelData
+
+                        objectName: "navItem" + index
                         Layout.fillWidth: true
+                        Layout.preferredHeight: root.compact ? 50 : 42
+                        radius: 8
+                        color: root.currentIndex === index ? "#1a7a5e"
+                             : mouse.containsMouse ? "#1a5a45" : "transparent"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            spacing: 10
+                            Image {
+                                source: navItem.modelData.icono
+                                sourceSize: Qt.size(18, 18)
+                                Layout.preferredWidth: 18
+                                Layout.preferredHeight: 18
+                            }
+                            Text {
+                                text: navItem.modelData.nombre
+                                color: "white"
+                                font.pixelSize: 14
+                                font.bold: root.currentIndex === navItem.index
+                                Layout.fillWidth: true
+                            }
+                        }
+                        MouseArea {
+                            id: mouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.navigate(navItem.index)
+                        }
                     }
-                }
-                MouseArea {
-                    id: mouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.navigate(navItem.index)
                 }
             }
         }
-
-        Item { Layout.fillHeight: true }
 
         Button {
             id: btnPdf

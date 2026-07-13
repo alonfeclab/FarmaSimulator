@@ -39,7 +39,8 @@ Flickable {
         // -------- cabecera
         Row {
             Rectangle {
-                width: root.wLabel; height: root.hRow; color: "#14523f"; radius: 4
+                width: root.wLabel; height: root.hRow; color: "#14523f"
+                radius: 4; topRightRadius: 0; bottomRightRadius: 0
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left; anchors.leftMargin: 8
