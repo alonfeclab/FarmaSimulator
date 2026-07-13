@@ -130,6 +130,8 @@ Flickable {
             CalcRow { label: "Impuesto ITP (8% Local)"; value: Engine.financiacion.impuestoITP; indent: true }
             CalcRow { label: "AJD (1,5% FdC + Existencias)"; value: Engine.financiacion.ajd; indent: true}
             EditRow { label: "Gastos varios operación"; k: "gastosVarios" }
+            PctRow  { label: "% Gastos apertura hipoteca (s/ financiación bancaria)"; k: "pctAperturaHipoteca" }
+            CalcRow { label: "Gastos de apertura hipoteca"; value: Engine.financiacion.gastosAperturaHipoteca }
             CalcRow { label: "TOTAL INVERSIÓN"; value: Engine.financiacion.totalInversion; destacada: true }
         }
 
@@ -153,6 +155,7 @@ Flickable {
                 CalcRow  { label: "Financiación bancaria farmacia"; value: Engine.financiacion.finBancariaFarmacia }
                 PctRow   { label: "% Financiación local"; k: "pctFinLocal" }
                 CalcRow  { label: "Financiación bancaria local"; value: Engine.financiacion.finBancariaLocal }
+                CalcRow  { label: "TOTAL"; value: Engine.financiacion.finBancariaFarmacia + Engine.financiacion.finBancariaLocal; destacada: true }
             }
 
             SourceGroup {

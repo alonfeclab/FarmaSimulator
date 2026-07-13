@@ -178,11 +178,16 @@ static const std::array<double,10> kMargenComercialSim {
     0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
 };
 
-// Margen comercial, escenario "Optimista" (no editable): 33 % el año 1,
-// 34 % el año 2 y 35 % del año 3 en adelante.
-static const std::array<double,10> kMargenComercialOptimista {
-    0.330, 0.340, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350, 0.350
-};
+// Margen comercial, escenario "Optimista": editable por el usuario (año 1,
+// año 2, año 3 en adelante — constante desde el año 3).
+static std::array<double,10> margenComercialOptimista(const Inputs& in)
+{
+    std::array<double,10> a;
+    a.fill(in.margenOptimistaAnio3);
+    a[0] = in.margenOptimistaAnio1;
+    a[1] = in.margenOptimistaAnio2;
+    return a;
+}
 
 Results compute(const Inputs& in)
 {
@@ -257,12 +262,22 @@ Results compute(const Inputs& in)
         F.impuestoITP   = 0.08 * in.localComercial;                         // D20
         F.ajd           = 0.015 * (F.fondoComercio + in.existencias);       // D21
         F.impuestos     = F.impuestoITP + F.ajd;                           // D23
-        F.totalInversion = F.fondoComercio + in.localComercial + in.existencias
+        const double totalInversionSinApertura = F.fondoComercio + in.localComercial + in.existencias
                          + F.honorarios + F.iva
-                         + in.gastosVarios + F.impuestos;                   // D24
+                         + in.gastosVarios + F.impuestos;                   // D24 (sin gastos de apertura)
         F.finBancariaLocal = in.localComercial * in.pctFinLocal;            // D46 (Excel: D15*0,7 literal)
-        F.finBancariaFarmacia = F.totalInversion - in.liquidezAportada - in.pedidoInicial
-                              - F.finBancariaLocal - in.finPropiedades * in.pctFinPropiedades; // D45
+        const double finBancariaFarmaciaSinApertura = totalInversionSinApertura - in.liquidezAportada
+                              - in.pedidoInicial - F.finBancariaLocal
+                              - in.finPropiedades * in.pctFinPropiedades;   // D45 (sin gastos de apertura)
+        // Los gastos de apertura de hipoteca son un % de la financiación bancaria
+        // (farmacia+local), pero esa misma financiación bancaria cubre esos gastos:
+        // se despeja algebraicamente en vez de iterar.
+        //   X = finBancariaFarmaciaSinApertura + p·(X + finBancariaLocal)
+        //   X·(1-p) = finBancariaFarmaciaSinApertura + p·finBancariaLocal
+        const double p = in.pctAperturaHipoteca;
+        F.finBancariaFarmacia = (finBancariaFarmaciaSinApertura + p * F.finBancariaLocal) / (1 - p);
+        F.gastosAperturaHipoteca = p * (F.finBancariaFarmacia + F.finBancariaLocal);
+        F.totalInversion = totalInversionSinApertura + F.gastosAperturaHipoteca; // D24
         F.totalFinanciacion = in.liquidezAportada + in.aportacionFamiliar
                             + F.finBancariaFarmacia + F.finBancariaLocal
                             + in.finPropiedades * in.pctFinPropiedades
@@ -299,8 +314,8 @@ Results compute(const Inputs& in)
         const std::array<double,10> ipcAnual = (in.escenarioCrecimiento >= 0.5)
             ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimista); return a; }()
             : kIpcHistorico;
-        const std::array<double,10>& margenComercialAnual = (in.escenarioCrecimiento >= 0.5)
-            ? kMargenComercialOptimista
+        const std::array<double,10> margenComercialAnual = (in.escenarioCrecimiento >= 0.5)
+            ? margenComercialOptimista(in)
             : kMargenComercialSim;
 
         for (int i = 0; i < 10; ++i) {

@@ -136,6 +136,9 @@ void Engine::registerInputs()
     // ---- Financiación: escenario de crecimiento
     m_dbl["escenarioCrecimiento"] = &i.escenarioCrecimiento;
     m_dbl["ipcOptimista"]         = &i.ipcOptimista;
+    m_dbl["margenOptimistaAnio1"] = &i.margenOptimistaAnio1;
+    m_dbl["margenOptimistaAnio2"] = &i.margenOptimistaAnio2;
+    m_dbl["margenOptimistaAnio3"] = &i.margenOptimistaAnio3;
     // ---- Financiación: inversión, tipos, aportaciones
     m_dbl["coeficiente"]       = &i.coeficiente;
     m_dbl["localComercial"]    = &i.localComercial;
@@ -151,6 +154,7 @@ void Engine::registerInputs()
     m_int["plazoPropiedades"]  = &i.plazoPropiedades;
     m_dbl["pctFinFarmacia"]    = &i.pctFinFarmacia;
     m_dbl["pctFinLocal"]       = &i.pctFinLocal;
+    m_dbl["pctAperturaHipoteca"] = &i.pctAperturaHipoteca;
     m_dbl["pctFinPropiedades"] = &i.pctFinPropiedades;
     m_dbl["liquidezAportada"]  = &i.liquidezAportada;
     m_dbl["aportacionFamiliar"]= &i.aportacionFamiliar;
@@ -386,6 +390,7 @@ void Engine::buildMaps()
         { "impuestoITP",          F.impuestoITP },
         { "ajd",                  F.ajd },
         { "impuestos",            F.impuestos },
+        { "gastosAperturaHipoteca", F.gastosAperturaHipoteca },
         { "totalInversion",       F.totalInversion },
         { "finBancariaFarmacia",  F.finBancariaFarmacia },
         { "finBancariaLocal",     F.finBancariaLocal },

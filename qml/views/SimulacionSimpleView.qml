@@ -52,6 +52,9 @@ Flickable {
         alquilerLocal:        local.alquilerLocal,
         escenarioCrecimiento: Engine.inputs.escenarioCrecimiento,
         ipcOptimista:         Engine.inputs.ipcOptimista,
+        margenOptimistaAnio1: Engine.inputs.margenOptimistaAnio1,
+        margenOptimistaAnio2: Engine.inputs.margenOptimistaAnio2,
+        margenOptimistaAnio3: Engine.inputs.margenOptimistaAnio3,
     })
     readonly property var filasEsenciales: page.preview.proyeccion
 
