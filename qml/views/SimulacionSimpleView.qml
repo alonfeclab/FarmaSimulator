@@ -38,15 +38,20 @@ Flickable {
     }
 
     // Proyección "de bolsillo": se recalcula con los valores locales sin
-    // tocar el motor compartido.
+    // tocar el motor compartido. escenarioCrecimiento/ipcOptimista se leen
+    // aquí (aunque simularSimple los toma de m_in, no de este mapa) solo
+    // para que el binding dependa de Engine.inputs y se reevalúe cuando el
+    // escenario cambie en Datos Base.
     readonly property var preview: Engine.simularSimple({
-        ventaReceta:      local.ventaReceta,
-        ventaLibre:       local.ventaLibre,
-        existencias:      local.existencias,
-        liquidezAportada: local.liquidezAportada,
-        finPropiedades:   local.finPropiedades,
-        pedidoInicial:    local.pedidoInicial,
-        alquilerLocal:    local.alquilerLocal,
+        ventaReceta:          local.ventaReceta,
+        ventaLibre:           local.ventaLibre,
+        existencias:          local.existencias,
+        liquidezAportada:     local.liquidezAportada,
+        finPropiedades:       local.finPropiedades,
+        pedidoInicial:        local.pedidoInicial,
+        alquilerLocal:        local.alquilerLocal,
+        escenarioCrecimiento: Engine.inputs.escenarioCrecimiento,
+        ipcOptimista:         Engine.inputs.ipcOptimista,
     })
     readonly property var filasEsenciales: page.preview.proyeccion
 
