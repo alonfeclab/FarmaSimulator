@@ -79,6 +79,8 @@ Flickable {
                 wCell: 100
                 hRow: 28
                 fontSize: 12
+                // La página (Flickable) ya lleva el scroll vertical.
+                flickableDirection: Flickable.HorizontalFlick
                 model: {
                     function rowByLabel(label) {
                         for (const r of Engine.proyeccion)

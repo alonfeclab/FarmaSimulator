@@ -44,8 +44,9 @@ public:
     // devuelve la ruta. WASM: lo descarga el navegador. Vacío si falla.
     Q_INVOKABLE QString exportarPdf();
 
-    // Genera un PDF solo con la tabla comparativa de escenarios (año dado),
-    // siempre con la vista completa (incluye el grupo "Financiación").
+    // Genera un PDF solo con la tabla comparativa de escenarios, siempre con
+    // la vista completa (incluye el grupo "Financiación"). Si 'anio' es -1,
+    // incluye los 10 años, uno por página; si no, solo el año dado (0-9).
     // Mismo comportamiento de guardado/descarga que exportarPdf().
     Q_INVOKABLE QString exportarPdfComparacion(int anio);
 

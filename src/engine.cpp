@@ -280,16 +280,13 @@ QString Engine::exportarPdf()
     return guardarPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"));
 }
 
-QString Engine::exportarPdfComparacion(int anio)
+// Igual que ComparacionView.qml (filasTabla), pero siempre en "vista
+// completa": el grupo "Financiación" se intercala después de "VENTA TOTAL"
+// sin depender del interruptor de la interfaz.
+static QVariantList filasComparacionCompleta(const Engine& engine, int anio)
 {
-    if (m_escenariosComparacion.isEmpty() || anio < 0)
-        return {};
-
-    // Igual que ComparacionView.qml (filasTabla), pero siempre en "vista
-    // completa": el grupo "Financiación" se intercala después de "VENTA
-    // TOTAL" sin depender del interruptor de la interfaz.
-    const QVariantList filas = comparacionAnio(anio);
-    const QVariantList filasFin = comparacionFinanciacion();
+    const QVariantList filas = engine.comparacionAnio(anio);
+    const QVariantList filasFin = engine.comparacionFinanciacion();
 
     QVariantList grupo;
     grupo << QVariantMap{ { "label", QStringLiteral("FINANCIACIÓN") }, { "separator", true } };
@@ -307,17 +304,29 @@ QString Engine::exportarPdfComparacion(int anio)
             break;
         }
     }
-    const QVariantList filasTabla = idx < 0
-        ? filas + grupo
-        : filas.mid(0, idx + 1) + grupo + filas.mid(idx + 1);
+    return idx < 0 ? filas + grupo : filas.mid(0, idx + 1) + grupo + filas.mid(idx + 1);
+}
+
+QString Engine::exportarPdfComparacion(int anio)
+{
+    if (m_escenariosComparacion.isEmpty())
+        return {};
 
     QStringList nombres;
     for (const QVariant& ev : m_escenariosComparacion)
         nombres << ev.toMap().value(QStringLiteral("nombre")).toString();
 
+    QVariantList paginas;
+    if (anio < 0) {
+        for (int a = 0; a < 10; ++a)
+            paginas << QVariantMap{ { "anio", a + 1 }, { "filas", filasComparacionCompleta(*this, a) } };
+    } else {
+        paginas << QVariantMap{ { "anio", anio + 1 }, { "filas", filasComparacionCompleta(*this, anio) } };
+    }
+
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);
-    if (!pdf::escribirComparacion(&buf, filasTabla, nombres, anio + 1))
+    if (!pdf::escribirComparacion(&buf, paginas, nombres))
         return {};
     buf.close();
 

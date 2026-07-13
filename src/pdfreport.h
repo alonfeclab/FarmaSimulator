@@ -15,10 +15,10 @@ namespace pdf {
 bool escribirInforme(QIODevice* dev, const sim::Inputs& in, const sim::Results& r);
 
 // Escribe solo la tabla comparativa de escenarios (hoja "Comparación") en
-// 'dev', para el año indicado (1-10). 'filas' ya incluye, si procede, el
-// grupo "Financiación" intercalado (ver Engine::exportarPdfComparacion).
-// Devuelve false si falla.
-bool escribirComparacion(QIODevice* dev, const QVariantList& filas,
-                          const QStringList& nombresEscenarios, int anio);
+// 'dev': una página por cada entrada de 'paginas' (QVariantMap con "anio"
+// (1-10) y "filas", esta última ya con el grupo "Financiación" intercalado
+// si procede — ver Engine::exportarPdfComparacion). Devuelve false si falla.
+bool escribirComparacion(QIODevice* dev, const QVariantList& paginas,
+                          const QStringList& nombresEscenarios);
 
 } // namespace pdf

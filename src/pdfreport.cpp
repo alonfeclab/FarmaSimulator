@@ -786,7 +786,9 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
 }
 
 // ---------------------------------------------------------------- comparación
-void hojaComparacion(Doc& d, const QVariantList& filas, const QStringList& nombres, int anio)
+// Dibuja una página (tabla comparativa de un año). Se llama una vez por cada
+// año pedido, cada una en su propia página (todas en apaisado).
+void paginaComparacion(Doc& d, const QVariantList& filas, const QStringList& nombres, int anio)
 {
     d.paginaNueva(QPageLayout::Landscape, QStringLiteral("Comparación de escenarios"));
     if (d.numPag == 1) {   // sin portada previa: esta página sí lleva cabecera/pie
@@ -846,11 +848,15 @@ bool escribirInforme(QIODevice* dev, const sim::Inputs& in, const sim::Results& 
     return d.p.end();
 }
 
-bool escribirComparacion(QIODevice* dev, const QVariantList& filas,
-                          const QStringList& nombresEscenarios, int anio)
+bool escribirComparacion(QIODevice* dev, const QVariantList& paginas,
+                          const QStringList& nombresEscenarios)
 {
     Doc d(dev);
-    hojaComparacion(d, filas, nombresEscenarios, anio);
+    for (const QVariant& pv : paginas) {
+        const QVariantMap pagina = pv.toMap();
+        paginaComparacion(d, pagina.value(QStringLiteral("filas")).toList(), nombresEscenarios,
+                           pagina.value(QStringLiteral("anio")).toInt());
+    }
     return d.p.end();
 }
 

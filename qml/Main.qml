@@ -58,6 +58,11 @@ ApplicationWindow {
                 }
                 background: Item {}
                 onClicked: drawer.open()
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse.accepted = false
+                }
             }
             RowLayout {
                 Layout.fillWidth: true

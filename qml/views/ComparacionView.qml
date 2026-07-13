@@ -100,11 +100,13 @@ Item {
             Layout.fillHeight: true
             spacing: 12
 
-            RowLayout {
+            Flow {
+                Layout.fillWidth: true
                 spacing: 12
 
                 Switch {
                     id: switchVistaCompleta
+                    height: 40
                     text: "Vista completa"
                     checked: false
 
@@ -135,89 +137,91 @@ Item {
                     }
                 }
 
-                Item { Layout.preferredWidth: 12 }
+                RowLayout {
+                    spacing: 8
 
-                Text { text: "Año"; font.pixelSize: 13; color: "#3c4a46" }
-                ComboBox {
-                    id: anioCombo
-                    implicitWidth: 150
-                    implicitHeight: 40
-                    model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => "Año " + n)
-
-                    background: Rectangle {
-                        radius: 5
-                        color: "#fffbe8"
-                        border.color: anioCombo.activeFocus || anioCombo.popup.visible
-                                      ? "#1a7a5e" : "#e0d6ac"
-                        border.width: 1
-                    }
-
-                    contentItem: Text {
-                        text: anioCombo.displayText
-                        font.pixelSize: 14
-                        color: "#1e2b28"
-                        leftPadding: 10
-                        rightPadding: anioCombo.indicator.width + 8
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    indicator: Text {
-                        x: anioCombo.width - width - 10
-                        y: (anioCombo.height - height) / 2
-                        text: "▾"
-                        font.pixelSize: 12
-                        color: "#14523f"
-                    }
-
-                    popup: Popup {
-                        y: anioCombo.height
-                        width: anioCombo.width
-                        implicitHeight: listView.contentHeight
-                        padding: 1
-
-                        contentItem: ListView {
-                            id: listView
-                            clip: true
-                            implicitHeight: contentHeight
-                            model: anioCombo.popup.visible ? anioCombo.delegateModel : null
-                            currentIndex: anioCombo.highlightedIndex
-                            ScrollIndicator.vertical: ScrollIndicator {}
-                        }
+                    Text { text: "Año"; font.pixelSize: 13; color: "#3c4a46" }
+                    ComboBox {
+                        id: anioCombo
+                        implicitWidth: 150
+                        implicitHeight: 40
+                        model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => "Año " + n)
 
                         background: Rectangle {
                             radius: 5
                             color: "#fffbe8"
-                            border.color: "#e0d6ac"
+                            border.color: anioCombo.activeFocus || anioCombo.popup.visible
+                                          ? "#1a7a5e" : "#e0d6ac"
                             border.width: 1
                         }
-                    }
-
-                    delegate: ItemDelegate {
-                        id: comboDelegate
-                        required property string modelData
-                        required property int index
-                        width: anioCombo.width
-                        highlighted: anioCombo.highlightedIndex === index
 
                         contentItem: Text {
-                            text: comboDelegate.modelData
+                            text: anioCombo.displayText
                             font.pixelSize: 14
                             color: "#1e2b28"
                             leftPadding: 10
+                            rightPadding: anioCombo.indicator.width + 8
                             verticalAlignment: Text.AlignVCenter
                         }
 
-                        background: Rectangle {
-                            color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                        indicator: Text {
+                            x: anioCombo.width - width - 10
+                            y: (anioCombo.height - height) / 2
+                            text: "▾"
+                            font.pixelSize: 12
+                            color: "#14523f"
+                        }
+
+                        popup: Popup {
+                            y: anioCombo.height
+                            width: anioCombo.width
+                            implicitHeight: listView.contentHeight
+                            padding: 1
+
+                            contentItem: ListView {
+                                id: listView
+                                clip: true
+                                implicitHeight: contentHeight
+                                model: anioCombo.popup.visible ? anioCombo.delegateModel : null
+                                currentIndex: anioCombo.highlightedIndex
+                                ScrollIndicator.vertical: ScrollIndicator {}
+                            }
+
+                            background: Rectangle {
+                                radius: 5
+                                color: "#fffbe8"
+                                border.color: "#e0d6ac"
+                                border.width: 1
+                            }
+                        }
+
+                        delegate: ItemDelegate {
+                            id: comboDelegate
+                            required property string modelData
+                            required property int index
+                            width: anioCombo.width
+                            highlighted: anioCombo.highlightedIndex === index
+
+                            contentItem: Text {
+                                text: comboDelegate.modelData
+                                font.pixelSize: 14
+                                color: "#1e2b28"
+                                leftPadding: 10
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            background: Rectangle {
+                                color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                            }
                         }
                     }
                 }
 
-                Item { Layout.fillWidth: true }
-
                 Text {
                     id: avisoPdfComparacion
                     visible: false
+                    height: 40
+                    verticalAlignment: Text.AlignVCenter
                     color: "#14523f"
                     font.pixelSize: 12
 
@@ -235,16 +239,11 @@ Item {
 
                 Button {
                     id: btnPdfComparacion
-                    Layout.preferredHeight: 40
+                    height: 40
                     text: "Exportar tabla a PDF"
                     font.pixelSize: 13
                     font.bold: true
-                    onClicked: {
-                        const destino = Engine.exportarPdfComparacion(anioCombo.currentIndex)
-                        avisoPdfComparacion.mostrar(destino.length > 0
-                            ? "PDF guardado en: " + destino
-                            : "No se pudo crear el PDF")
-                    }
+                    onClicked: dlgExportarPdf.open()
                     background: Rectangle {
                         radius: 8
                         color: btnPdfComparacion.down ? "#0f5a43" : "#1a7a5e"
@@ -258,6 +257,11 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         leftPadding: 12
                         rightPadding: 12
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: mouse.accepted = false
                     }
                 }
             }
@@ -282,6 +286,127 @@ Item {
                     model: page.filasTabla
                     onCloseColumn: (index) => Engine.quitarEscenarioComparacion(index)
                     ScrollBar.vertical: ScrollBar {}
+                }
+            }
+        }
+    }
+
+    // ---------------- messagebox: elegir año seleccionado o todos los años
+    Popup {
+        id: dlgExportarPdf
+        anchors.centerIn: parent
+        width: 340
+        modal: true
+        focus: true
+        padding: 20
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            radius: 12
+            color: "white"
+            border.color: "#dde5e1"
+        }
+
+        function exportar(anio) {
+            const destino = Engine.exportarPdfComparacion(anio)
+            avisoPdfComparacion.mostrar(destino.length > 0
+                ? "PDF guardado en: " + destino
+                : "No se pudo crear el PDF")
+            dlgExportarPdf.close()
+        }
+
+        contentItem: ColumnLayout {
+            width: dlgExportarPdf.availableWidth
+            spacing: 14
+
+            Text {
+                text: "Exportar tabla a PDF"
+                font.pixelSize: 15
+                font.bold: true
+                color: "#14523f"
+            }
+            Text {
+                text: "¿Quieres exportar solo el año seleccionado o los 10 años (uno por página)?"
+                font.pixelSize: 13
+                color: "#3c4a46"
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: btnAnioSeleccionado
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                text: "Solo Año " + (anioCombo.currentIndex + 1)
+                font.pixelSize: 13
+                font.bold: true
+                onClicked: dlgExportarPdf.exportar(anioCombo.currentIndex)
+                background: Rectangle {
+                    radius: 8
+                    color: btnAnioSeleccionado.down ? "#0f5a43" : "#1a7a5e"
+                    border.color: "#2b8a6a"
+                }
+                contentItem: Text {
+                    text: btnAnioSeleccionado.text
+                    color: "#ffe9a8"
+                    font: btnAnioSeleccionado.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse.accepted = false
+                }
+            }
+
+            Button {
+                id: btnTodosAnios
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                text: "Todos los años (10 páginas)"
+                font.pixelSize: 13
+                font.bold: true
+                onClicked: dlgExportarPdf.exportar(-1)
+                background: Rectangle {
+                    radius: 8
+                    color: btnTodosAnios.down ? "#e0d6ac" : "#fffbe8"
+                    border.color: "#e0d6ac"
+                }
+                contentItem: Text {
+                    text: btnTodosAnios.text
+                    color: "#14523f"
+                    font: btnTodosAnios.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse.accepted = false
+                }
+            }
+
+            Button {
+                id: btnCancelarExportar
+                Layout.fillWidth: true
+                Layout.preferredHeight: 34
+                text: "Cancelar"
+                font.pixelSize: 12
+                flat: true
+                onClicked: dlgExportarPdf.close()
+                background: Rectangle { color: "transparent" }
+                contentItem: Text {
+                    text: btnCancelarExportar.text
+                    color: "#6b7a76"
+                    font: btnCancelarExportar.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: mouse.accepted = false
                 }
             }
         }

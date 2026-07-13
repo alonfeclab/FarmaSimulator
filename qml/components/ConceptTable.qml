@@ -30,12 +30,13 @@ Flickable {
     contentHeight: tabla.implicitHeight
     clip: true
     boundsBehavior: Flickable.StopAtBounds
-    // Solo hace falta scroll horizontal (la vertical la lleva la página que
-    // contiene esta tabla); si se deja en Auto, la rueda del ratón queda
-    // atrapada aquí en un "rebote" vertical inútil en vez de subir/bajar la
-    // página, lo que en WASM (single-thread) se nota muchísimo más que con
-    // gestos táctiles.
-    flickableDirection: Flickable.HorizontalFlick
+    // Por defecto se permite el scroll en ambas direcciones: en las hojas
+    // donde la tabla ocupa el espacio restante de la página (Proyección,
+    // Comparación) es ella misma quien debe llevar el scroll vertical. En
+    // las hojas donde la tabla vive dentro de una página que ya es
+    // Flickable (Impuestos, Personal, Simulación simple), la vista fija
+    // flickableDirection a HorizontalFlick para no capturar la rueda del
+    // ratón en un "rebote" vertical inútil (ver ese fix de WASM).
     pressDelay: 150
     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
 

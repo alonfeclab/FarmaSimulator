@@ -209,6 +209,8 @@ Flickable {
                 wCell: page.wCell
                 hRow: page.hRow
                 numYears: page.numAnios
+                // La página (Flickable) ya lleva el scroll vertical.
+                flickableDirection: Flickable.HorizontalFlick
                 model: page.filasEsenciales
             }
         }

@@ -249,6 +249,11 @@ Flickable {
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onPressed: mouse.accepted = false
+            }
         }
         Text {
             id: avisoComparar
