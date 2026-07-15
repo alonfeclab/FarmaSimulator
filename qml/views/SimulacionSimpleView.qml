@@ -165,7 +165,7 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: "Simulación aislada: parte de los valores actuales de las demás hojas, pero lo " +
-                  "que cambies aquí no se guarda ni afecta a Datos Base, Financiación ni al resto " +
+                  "que cambies aquí no se guarda ni afecta a Datos base, Financiación ni al resto " +
                   "de la app."
             font.pixelSize: 12
             color: "#6b7a76"
@@ -174,10 +174,10 @@ Flickable {
 
         // ---------------- Valores básicos
         Card {
-            SectionTitle { text: "VALORES BÁSICOS" }
+            SectionTitle { text: "Valores básicos" }
             EditRow { label: "Venta receta"; value: local.ventaReceta; onCommitted: (v) => local.ventaReceta = v }
             EditRow { label: "Venta libre"; value: local.ventaLibre; onCommitted: (v) => local.ventaLibre = v }
-            CalcRow { label: "VENTA TOTAL"; value: page.preview.ventaTotal; destacada: true }
+            CalcRow { label: "Venta total"; value: page.preview.ventaTotal; destacada: true }
             EditRow { label: "Existencias"; value: local.existencias; onCommitted: (v) => local.existencias = v }
             EditRow {
                 label: "Aportación liquidez";

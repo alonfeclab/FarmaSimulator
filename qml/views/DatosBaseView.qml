@@ -60,7 +60,7 @@ Flickable {
 
         // ---------------- Escenario de crecimiento
         Card {
-            SectionTitle { text: "ESCENARIO DE CRECIMIENTO" }
+            SectionTitle { text: "Escenario de crecimiento" }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -206,23 +206,23 @@ Flickable {
 
         // ---------------- Ventas
         Card {
-            SectionTitle { text: "VENTAS" }
-            EditRow { label: "VENTA RECETA";  k: "ventaReceta" }
-            EditRow { label: "VENTA LIBRE";   k: "ventaLibre" }
-            CalcRow { label: "VENTA TOTAL";   value: Engine.datosBase.ventaTotal; destacada: true }
+            SectionTitle { text: "Ventas" }
+            EditRow { label: "Venta receta";  k: "ventaReceta" }
+            EditRow { label: "Venta libre";   k: "ventaLibre" }
+            CalcRow { label: "Venta total";   value: Engine.datosBase.ventaTotal; destacada: true }
         }
 
         // ---------------- Otros gastos
         Card {
-            SectionTitle { text: "OTROS GASTOS" }
-            EditRow { label: "ALQUILER LOCAL"; k: "alquilerLocal" }
-            EditRow { label: "SUMINISTROS"; k: "suministros" }
-            EditRow { label: "GASTOS ASESORÍA"; k: "asesoria" }
-            EditRow { label: "MANTENIMIENTO INFORMÁTICO"; k: "mantenimiento" }
-            EditRow { label: "ROBOT"; k: "robot" }
-            EditRow { label: "SEGUROS"; k: "seguros" }
-            EditRow { label: "OTROS GASTOS"; k: "otrosGastos" }
-            CalcRow { label: "TOTAL OTROS GASTOS"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
+            SectionTitle { text: "Otros gastos" }
+            EditRow { label: "Alquiler local"; k: "alquilerLocal" }
+            EditRow { label: "Suministros"; k: "suministros" }
+            EditRow { label: "Gastos asesoría"; k: "asesoria" }
+            EditRow { label: "Mantenimiento informático"; k: "mantenimiento" }
+            EditRow { label: "Robot"; k: "robot" }
+            EditRow { label: "Seguros"; k: "seguros" }
+            EditRow { label: "Otros gastos"; k: "otrosGastos" }
+            CalcRow { label: "Total otros gastos"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
         }
 
         // ---------------- Comparación de escenarios

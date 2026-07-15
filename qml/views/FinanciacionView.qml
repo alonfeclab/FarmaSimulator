@@ -116,31 +116,31 @@ Flickable {
 
         // ---------------- Inversión operación
         Card {
-            SectionTitle { text: "INVERSIÓN OPERACIÓN" }
+            SectionTitle { text: "Inversión operación" }
             RowLayout {
                 Layout.fillWidth: true
                 Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 NumField { k: "coeficiente"; decimals: 1 }
             }
-            CalcRow { label: "Fondo de Comercio"; value: Engine.financiacion.fondoComercio }
-            EditRow { label: "Local Comercial"; k: "localComercial" }
+            CalcRow { label: "Fondo de comercio"; value: Engine.financiacion.fondoComercio }
+            EditRow { label: "Local comercial"; k: "localComercial" }
             EditRow { label: "Existencias"; k: "existencias" }
-            CalcRow { label: "Honorarios (5%)"; value: Engine.financiacion.honorarios }
-            CalcRow { label: "IVA (21%)"; value: Engine.financiacion.iva }
-            CalcRow { label: "TOTAL IMPUESTOS"; value: Engine.financiacion.impuestos; destacada: true }
-            CalcRow { label: "ITP (8%)"; value: Engine.financiacion.impuestoITP; indent: true }
-            CalcRow { label: "AJD (1,5%)"; value: Engine.financiacion.ajd; indent: true}
+            CalcRow { label: "Honorarios (" + Fmt.pct(Engine.inputs.honorariosPct) + ")"; value: Engine.financiacion.honorarios }
+            CalcRow { label: "IVA (" + Fmt.pct(Engine.inputs.ivaPct) + ")"; value: Engine.financiacion.iva }
+            CalcRow { label: "Total impuestos"; value: Engine.financiacion.impuestos; destacada: true }
+            CalcRow { label: "ITP (" + Fmt.pct(Engine.inputs.itpPct) + ")"; value: Engine.financiacion.impuestoITP; indent: true }
+            CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.financiacion.ajd; indent: true}
             EditRow { label: "Notario"; k: "notario" }
             EditRow { label: "Registro"; k: "registro" }
             EditRow { label: "Gastos varios operación"; k: "gastosVarios" }
             PctRow  { label: "% Apertura hipoteca"; k: "pctAperturaHipoteca" }
             CalcRow { label: "Gastos de apertura hipoteca"; value: Engine.financiacion.gastosAperturaHipoteca }
-            CalcRow { label: "TOTAL INVERSIÓN"; value: Engine.financiacion.totalInversion; destacada: true }
+            CalcRow { label: "Total inversión"; value: Engine.financiacion.totalInversion; destacada: true }
         }
 
         // ---------------- Financiación (tipo, plazo e importes agrupados por fuente)
         Card {
-            SectionTitle { text: "FINANCIACIÓN" }
+            SectionTitle { text: "Financiación" }
 
             EditRow {
                 label: "Liquidez aportada"
@@ -151,39 +151,39 @@ Flickable {
             }
 
             SourceGroup {
-                title: "BANCO"
+                title: "Banco"
                 PctRow   { label: "Tipo interés"; k: "tipoBanco" }
                 PlazoRow { label: "Plazo"; k: "plazoBanco" }
                 PctRow   { label: "% Financiación farmacia"; k: "pctFinFarmacia" }
                 CalcRow  { label: "Financiación farmacia"; value: Engine.financiacion.finBancariaFarmacia }
                 PctRow   { label: "% Financiación local"; k: "pctFinLocal" }
                 CalcRow  { label: "Financiación local"; value: Engine.financiacion.finBancariaLocal }
-                CalcRow  { label: "TOTAL"; value: Engine.financiacion.finBancariaFarmacia + Engine.financiacion.finBancariaLocal; destacada: true }
+                CalcRow  { label: "Total"; value: Engine.financiacion.finBancariaFarmacia + Engine.financiacion.finBancariaLocal; destacada: true }
             }
 
             SourceGroup {
-                title: "COOPERATIVA"
+                title: "Cooperativa"
                 PctRow   { label: "Tipo interés"; k: "tipoCoop" }
                 PlazoRow { label: "Plazo"; k: "plazoCoop" }
                 EditRow  { label: "Pedido inicial"; k: "pedidoInicial" }
             }
 
             SourceGroup {
-                title: "FAMILIAR"
+                title: "Familiar"
                 PctRow   { label: "Tipo interés"; k: "tipoFamiliar" }
                 PlazoRow { label: "Plazo"; k: "plazoFamiliar" }
                 EditRow  { label: "Aportación familiar"; k: "aportacionFamiliar" }
             }
 
             SourceGroup {
-                title: "PROPIEDADES"
+                title: "Propiedades"
                 PctRow   { label: "Tipo interés"; k: "tipoPropiedades" }
                 PlazoRow { label: "Plazo"; k: "plazoPropiedades" }
                 PctRow   { label: "% Financiación"; k: "pctFinPropiedades" }
                 EditRow  { label: "Valor propiedades"; k: "finPropiedades" }
             }
 
-            CalcRow { label: "TOTAL FINANCIACIÓN"; value: Engine.financiacion.totalFinanciacion; destacada: true }
+            CalcRow { label: "Total financiación"; value: Engine.financiacion.totalFinanciacion; destacada: true }
         }
 
         Item { Layout.preferredHeight: 8 }

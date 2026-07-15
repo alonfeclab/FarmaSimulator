@@ -57,7 +57,7 @@ Flickable {
 
         // ---------------- Paso 1: parámetros y base amortizable
         Card {
-            SectionTitle { text: "PARÁMETROS Y BASE AMORTIZABLE" }
+            SectionTitle { text: "Parámetros y base amortizable" }
 
             GridLayout {
                 columns: width >= 2 * (page.wLabel + page.wCell) + columnSpacing ? 2 : 1
@@ -71,8 +71,8 @@ Flickable {
                     Layout.alignment: Qt.AlignTop
                     CalcRow { label: "Fondo de comercio farmacia"; value: Engine.impuestos.fdc }
                     CalcRow { label: "Honorarios"; value: Engine.impuestos.honorarios }
-                    CalcRow { label: "AJD (1,5%)"; value: Engine.impuestos.ajd }
-                    CalcRow { label: "BASE AMORTIZABLE FARMACIA"; value: Engine.impuestos.baseAmortizable; destacada: true }
+                    CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.impuestos.ajd }
+                    CalcRow { label: "Base amortizable farmacia"; value: Engine.impuestos.baseAmortizable; destacada: true }
                     CalcRow { label: "Coste local comercial"; value: Engine.impuestos.costeLocal }
                 }
                 ColumnLayout {
@@ -83,14 +83,14 @@ Flickable {
                     CalcRow { label: "% amort. farmacia mín."; value: Engine.inputs.impAmortMinPct; fmt: "pct1" }
                     CalcRow { label: "% amort. farmacia máx."; value: Engine.inputs.impAmortMaxPct; fmt: "pct1" }
                     CalcRow { label: "Mínimo personal exento (IRPF)"; value: Engine.inputs.minimoPersonal }
-                    CalcRow { label: "Deducción mín. personal (19%)"; value: Engine.impuestos.deduccionMinimo }
+                    CalcRow { label: "Deducción mín. personal (" + Fmt.pct(Engine.inputs.irpfTipo0) + ")"; value: Engine.impuestos.deduccionMinimo }
                 }
             }
         }
 
         // ---------------- Pasos 2 y 3: tabla a 10 años
         Card {
-            SectionTitle { text: "AMORTIZACIONES E IRPF POR TRAMOS"; }
+            SectionTitle { text: "Amortizaciones e IRPF por tramos"; }
 
             ConceptTable {
                 Layout.fillWidth: true
@@ -117,12 +117,12 @@ Flickable {
                         { label: "% amort. farmacia ajustado", values: I.pctAjustado, fmt: "pct2", bold: false },
                         { label: "Amortización FdC farmacia", values: I.amortFdC, fmt: "eur", bold: false },
                         { label: "Suma amortización farmacia", values: cumSum(I.amortFdC), fmt: "eur", bold: false },
-                        { label: "BASE IMPONIBLE", values: I.baseImponible, fmt: "eur", bold: true }
+                        { label: "Base imponible", values: I.baseImponible, fmt: "eur", bold: true }
                     ]
                     for (const t of I.tramos)
                         filas.push({ label: t.label, values: t.values, fmt: "eur", bold: false })
                     filas.push({ label: "Cuota escala (suma de tramos)", values: I.cuotaEscala, fmt: "eur", bold: true })
-                    filas.push({ label: "PAGO IMPUESTOS", values: I.pago, fmt: "eur", bold: true })
+                    filas.push({ label: "Pago impuestos", values: I.pago, fmt: "eur", bold: true })
                     return filas
                 }
             }
@@ -134,7 +134,7 @@ Flickable {
                 color: "#6b7a76"
                 text: "El % de amortización de la farmacia se ajusta cada año (entre el mínimo y el máximo) para "
                     + "dejar la base imponible en 0 mientras sea posible. El pago alimenta la fila "
-                    + "\"Pago Impuestos\" de la Proyección a 10 años."
+                    + "\"Pago impuestos\" de la Proyección a 10 años."
             }
         }
 

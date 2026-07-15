@@ -90,26 +90,11 @@ static AmortResult amortizar(double principal, double tasaAnual, int plazoAnios,
     return a;
 }
 
-// Escala de deducciones "Reales Decretos" (RD 823/2008, art. 2.5): tramos
-// sobre la facturación MENSUAL de recetas al SNS (PVP+IVA).
-struct TramoRD { double desde, base, pct; };
-static const std::array<TramoRD,9> kTramosRD {{
-    {      0.00,     0.00, 0.000 },
-    {  37500.00,     0.00, 0.078 },
-    {  45000.00,   585.00, 0.091 },
-    {  58345.61,  1799.45, 0.114 },
-    { 120206.01,  8851.53, 0.136 },
-    { 208075.90, 20801.83, 0.157 },
-    { 295242.83, 34487.04, 0.172 },
-    { 382409.76, 49479.75, 0.182 },
-    { 600000.00, 89081.17, 0.200 },
-}};
-
-double calcularRealesDecretos(double ventaRecetaAnual)
+double calcularRealesDecretos(double ventaRecetaAnual, const std::array<TramoRD,9>& tabla)
 {
     const double mensual = ventaRecetaAnual / 12.0;
-    const TramoRD* tramo = &kTramosRD[0];
-    for (const auto& t : kTramosRD) {
+    const TramoRD* tramo = &tabla[0];
+    for (const auto& t : tabla) {
         if (mensual < t.desde) break;
         tramo = &t;
     }
@@ -117,66 +102,16 @@ double calcularRealesDecretos(double ventaRecetaAnual)
     return deduccionMensual * 12.0;
 }
 
-// Escala RETA (autónomos) 2026 = 2025, congelada (Orden PJC/297/2026, BOE
-// 31-mar-2026): 15 tramos por rendimientos netos mensuales, cuota mínima
-// mensual de cada tramo (base mínima de cotización + MEI 0,9%).
-struct TramoRETA { double desde, cuotaMensual; };
-static const std::array<TramoRETA,15> kTramosRETA {{
-    {      0.00, 205.88 },
-    {   670.00, 226.47 },
-    {   900.00, 267.64 },
-    {  1166.70, 299.64 },
-    {  1300.00, 302.64 },
-    {  1500.00, 302.64 },
-    {  1700.00, 319.12 },
-    {  1850.00, 324.26 },
-    {  2030.00, 329.41 },
-    {  2330.00, 349.98 },
-    {  2760.00, 380.85 },
-    {  3190.00, 401.43 },
-    {  3620.00, 432.29 },
-    {  4050.00, 514.61 },
-    {  6000.00, 607.31 },
-}};
-
-// Tarifa plana para alta inicial en el RETA (vigente desde 2023, 2026 =
-// 2025): 80 €/mes fijos + MEI, con independencia del tramo de rendimientos,
-// durante los primeros 12 meses de actividad.
-static constexpr double kTarifaPlanaMensual = 88.64;
-
-double calcularCuotaAutonomos(double beneficioAnual)
+double calcularCuotaAutonomos(double beneficioAnual, const std::array<TramoRETA,15>& tabla)
 {
     const double mensual = std::max(0.0, beneficioAnual) / 12.0;
-    const TramoRETA* tramo = &kTramosRETA[0];
-    for (const auto& t : kTramosRETA) {
+    const TramoRETA* tramo = &tabla[0];
+    for (const auto& t : tabla) {
         if (mensual < t.desde) break;
         tramo = &t;
     }
     return tramo->cuotaMensual * 12.0;
 }
-
-// Escala general IRPF 2026 (hoja Impuestos, filas 26-31)
-const std::array<TramoIRPF,6> kTramosIRPF {{
-    {      0,     12450, 0.19 },
-    {  12450,     20200, 0.24 },
-    {  20200,     35200, 0.30 },
-    {  35200,     60000, 0.37 },
-    {  60000,    300000, 0.45 },
-    { 300000, 999999999, 0.47 },
-}};
-
-// IPC histórico de España (INE, variación media anual), últimos 10 años
-// disponibles — escenario "Realista". No editable por el usuario.
-static const std::array<double,10> kIpcHistorico {
-    -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
-};
-
-// Evolución simulada del margen comercial (no editable), escenario
-// "Realista": empieza bajo y crece con altibajos, siempre dentro de
-// [33 %, 36,5 %].
-static const std::array<double,10> kMargenComercialSim {
-    0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
-};
 
 // Margen comercial, escenario "Optimista": editable por el usuario (año 1,
 // año 2, año 3 en adelante — constante desde el año 3).
@@ -243,7 +178,7 @@ Results compute(const Inputs& in)
         D.ventaTotal     = in.ventaReceta + in.ventaLibre;       // D12
         D.mComBruto      = D.ventaTotal * in.margenPct;          // D14
         D.costeMercancia = D.ventaTotal - D.mComBruto;           // D13
-        D.realesDecretos = calcularRealesDecretos(in.ventaReceta); // D16
+        D.realesDecretos = calcularRealesDecretos(in.ventaReceta, in.tramosRD); // D16
         D.mComDespuesRD  = D.mComBruto - D.realesDecretos;       // D17
         D.gastosPersonal  = R.personal.totBrutoReal;             // D18 = 'Personal '!E17
         D.seguridadSocial = R.personal.totSS;                    // D19 = 'Personal '!F17
@@ -257,10 +192,10 @@ Results compute(const Inputs& in)
     {
         auto& F = R.financiacion;
         F.fondoComercio = (in.ventaReceta + in.ventaLibre) * in.coeficiente; // D14
-        F.honorarios    = (F.fondoComercio + in.localComercial) * 0.05;     // D18
-        F.iva           = F.honorarios * 0.21;                              // D19
-        F.impuestoITP   = 0.08 * in.localComercial;                         // D20
-        F.ajd           = 0.015 * (F.fondoComercio + in.existencias);       // D21
+        F.honorarios    = (F.fondoComercio + in.localComercial) * in.honorariosPct; // D18
+        F.iva           = F.honorarios * in.ivaPct;                          // D19
+        F.impuestoITP   = in.itpPct * in.localComercial;                    // D20
+        F.ajd           = in.ajdPct * (F.fondoComercio + in.existencias);   // D21
         F.impuestos     = F.impuestoITP + F.ajd;                           // D23
         const double totalInversionSinApertura = F.fondoComercio + in.localComercial + in.existencias
                          + F.honorarios + F.iva
@@ -315,10 +250,10 @@ Results compute(const Inputs& in)
         // últimos 10 años; Optimista usa el IPC constante fijado por el usuario.
         const std::array<double,10> ipcAnual = (in.escenarioCrecimiento >= 0.5)
             ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimista); return a; }()
-            : kIpcHistorico;
+            : in.ipcHistorico;
         const std::array<double,10> margenComercialAnual = (in.escenarioCrecimiento >= 0.5)
             ? margenComercialOptimista(in)
-            : kMargenComercialSim;
+            : in.margenComercialSim;
 
         for (int i = 0; i < 10; ++i) {
             // Año 1 parte de los valores iniciales tal cual (sin aplicar IPC);
@@ -352,8 +287,8 @@ Results compute(const Inputs& in)
             // en adelante se ubica el tramo según el beneficio proyectado del
             // año anterior (antes de la propia cuota).
             P.cuotaAutonomos[i] = (i == 0)
-                ? kTarifaPlanaMensual * 12.0
-                : calcularCuotaAutonomos(beneficioPreCuota);
+                ? in.tarifaPlanaMensual * 12.0
+                : calcularCuotaAutonomos(beneficioPreCuota, in.tramosRETA);
             P.beneficio[i] = beneficioPreCuota - P.cuotaAutonomos[i];          // fila 17
         }
 
@@ -369,10 +304,10 @@ Results compute(const Inputs& in)
             const auto& F = R.financiacion;
             I.fdc             = F.fondoComercio;                               // B6
             I.honorarios      = F.honorarios;                                  // B7
-            I.ajd             = 0.015 * (F.fondoComercio + in.existencias);    // B8
+            I.ajd             = in.ajdPct * (F.fondoComercio + in.existencias); // B8
             I.baseAmortizable = I.fdc + I.honorarios + I.ajd;                  // B9
             I.costeLocal      = in.localComercial;                             // B10
-            I.deduccionMinimo = in.minimoPersonal * kTramosIRPF[0].tipo;       // B33 = B14*O26
+            I.deduccionMinimo = in.minimoPersonal * in.tramosIRPF[0].tipo;     // B33 = B14*O26
             for (int i = 0; i < 10; ++i) {
                 I.beneficio[i]  = P.beneficio[i];                              // fila 18
                 I.amortLocal[i] = I.costeLocal * in.impAmortLocalPct;          // fila 19
@@ -384,7 +319,7 @@ Results compute(const Inputs& in)
                     I.beneficio[i] - I.amortLocal[i] - I.amortFdC[i]);         // fila 22
                 I.cuotaEscala[i] = 0;
                 for (int t = 0; t < 6; ++t) {                                  // filas 26-31
-                    const auto& tr = kTramosIRPF[t];
+                    const auto& tr = in.tramosIRPF[t];
                     I.tramos[t][i] = std::max(0.0,
                         std::min(I.baseImponible[i], tr.hasta) - tr.desde) * tr.tipo;
                     I.cuotaEscala[i] += I.tramos[t][i];                        // fila 32
@@ -428,7 +363,7 @@ Results compute(const Inputs& in)
             A.inversionInicial[s] = in.liquidezAportada;                        // fila 7
             A.valorVentaFdC[s]    = P.ventaTotal[9] * in.factorVenta[s];        // fila 9
             A.valorVentaLocal[s]  = in.localComercial * factorIpc10;            // fila 10
-            A.existencias10[s]    = P.ventaTotal[9] * 0.1;                      // fila 11
+            A.existencias10[s]    = P.ventaTotal[9] * in.pctExistencias10;      // fila 11
             A.fdcPendiente[s]     = R.impuestos.fdc - amortFdCAcum10;          // fila 12
             A.deuda[s]            = -(saldoBanco120 + saldoCoop120 + saldoProp120); // fila 14
             A.patrimonioBruto[s]  = A.valorVentaFdC[s] + A.valorVentaLocal[s]

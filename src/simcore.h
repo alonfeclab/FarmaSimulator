@@ -7,6 +7,12 @@
 
 namespace sim {
 
+// Tramos de escalas oficiales (IRPF, Reales Decretos, RETA): valores por
+// defecto editables desde la hoja "Configuración" (forman parte de Inputs).
+struct TramoIRPF { double desde, hasta, tipo; };
+struct TramoRD   { double desde, base, pct; };
+struct TramoRETA { double desde, cuotaMensual; };
+
 // ---------------------------------------------------------------- Entradas
 struct Inputs {
     // ---- Datos Base (celdas editables)
@@ -22,7 +28,7 @@ struct Inputs {
     double otrosGastos      = 15000;    // D28
 
     // ---- Financiación: escenario de crecimiento
-    // 0 = Realista (IPC histórico de los últimos 10 años, no editable)
+    // 0 = Realista (usa la serie ipcHistorico, editable en Configuración)
     // 1 = Optimista (IPC constante introducido por el usuario)
     double escenarioCrecimiento = 0;
     double ipcOptimista         = 0.025;
@@ -40,6 +46,15 @@ struct Inputs {
     double notario         = 4000;      // D20a
     double registro        = 2500;      // D20b
     double gastosVarios    = 3955.28;   // D20c (resto)
+
+    // ---- Financiación: porcentajes fijos de la compraventa (editables desde
+    // Configuración): honorarios de gestoría/notaría sobre FdC+local, IVA
+    // sobre esos honorarios, ITP sobre el local comercial y AJD sobre
+    // FdC+existencias (este último también se usa en la hoja Impuestos).
+    double honorariosPct = 0.05;        // D18
+    double ivaPct        = 0.21;        // D19
+    double itpPct        = 0.08;        // D20
+    double ajdPct        = 0.015;       // D21 y B8 (Impuestos)
 
     // ---- Financiación: tipos y plazos
     double tipoBanco        = 0.03;     // D27
@@ -89,10 +104,75 @@ struct Inputs {
     double fdcInicialSim = 2000000;     // B28
     double pctMaxFdC     = 0.075;       // B29
     double pctAmortLocal = 0.04;        // B31
+    double pctExistencias10 = 0.1;      // fila 11: existencias estimadas a 10 años, % de la venta total del año 10
 
     // Fecha inicio préstamos (F5): 01/2027
     int inicioAnio = 2027;
     int inicioMes  = 1;
+
+    // ---- Configuración: escalas y series oficiales (editables por el
+    // usuario desde la hoja "Configuración"; estos son los valores vigentes).
+
+    // Escala general IRPF 2026 (hoja Impuestos, filas 26-31)
+    std::array<TramoIRPF,6> tramosIRPF {{
+        {      0,     12450, 0.19 },
+        {  12450,     20200, 0.24 },
+        {  20200,     35200, 0.30 },
+        {  35200,     60000, 0.37 },
+        {  60000,    300000, 0.45 },
+        { 300000, 999999999, 0.47 },
+    }};
+
+    // Escala de deducciones "Reales Decretos" (RD 823/2008, art. 2.5): tramos
+    // sobre la facturación MENSUAL de recetas al SNS (PVP+IVA).
+    std::array<TramoRD,9> tramosRD {{
+        {      0.00,     0.00, 0.000 },
+        {  37500.00,     0.00, 0.078 },
+        {  45000.00,   585.00, 0.091 },
+        {  58345.61,  1799.45, 0.114 },
+        { 120206.01,  8851.53, 0.136 },
+        { 208075.90, 20801.83, 0.157 },
+        { 295242.83, 34487.04, 0.172 },
+        { 382409.76, 49479.75, 0.182 },
+        { 600000.00, 89081.17, 0.200 },
+    }};
+
+    // Escala RETA (autónomos) 2026 = 2025, congelada (Orden PJC/297/2026, BOE
+    // 31-mar-2026): 15 tramos por rendimientos netos mensuales, cuota mínima
+    // mensual de cada tramo (base mínima de cotización + MEI 0,9%).
+    std::array<TramoRETA,15> tramosRETA {{
+        {      0.00, 205.88 },
+        {   670.00, 226.47 },
+        {   900.00, 267.64 },
+        {  1166.70, 299.64 },
+        {  1300.00, 302.64 },
+        {  1500.00, 302.64 },
+        {  1700.00, 319.12 },
+        {  1850.00, 324.26 },
+        {  2030.00, 329.41 },
+        {  2330.00, 349.98 },
+        {  2760.00, 380.85 },
+        {  3190.00, 401.43 },
+        {  3620.00, 432.29 },
+        {  4050.00, 514.61 },
+        {  6000.00, 607.31 },
+    }};
+
+    // Tarifa plana para alta inicial en el RETA (vigente desde 2023, 2026 =
+    // 2025): 80 €/mes fijos + MEI, con independencia del tramo de
+    // rendimientos, durante los primeros 12 meses de actividad.
+    double tarifaPlanaMensual = 88.64;
+
+    // IPC histórico de España (INE, variación media anual), últimos 10 años
+    // disponibles — escenario "Realista".
+    std::array<double,10> ipcHistorico {
+        -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
+    };
+
+    // Evolución simulada del margen comercial, escenario "Realista".
+    std::array<double,10> margenComercialSim {
+        0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
+    };
 };
 
 // ---------------------------------------------------------------- Salidas
@@ -142,9 +222,6 @@ struct FinanciacionResult {
     bool   liquidezInvalida=false; // liquidezAportada < minimoLiquidez
 };
 
-// Hoja "Impuestos" (IRPF por tramos, escala general 2026) — nueva en v2
-struct TramoIRPF { double desde, hasta, tipo; };
-
 struct ImpuestosResult {
     // Paso 1: base amortizable
     double fdc=0;            // B6
@@ -163,9 +240,6 @@ struct ImpuestosResult {
         pago{};                              // fila 34 (PAGO IMPUESTOS)
     std::array<std::array<double,10>,6> tramos{}; // filas 26-31
 };
-
-// Escala general IRPF 2026 (filas 26-31 de la hoja Impuestos)
-extern const std::array<TramoIRPF,6> kTramosIRPF;
 
 struct ProyeccionResult {           // 10 valores = años 1..10
     std::array<double,10> ventaReceta{}, ventaLibre{}, ventaTotal{},
@@ -204,14 +278,14 @@ struct Results {
 // Deducción "Reales Decretos" (RD 823/2008 art. 2.5): escala progresiva por
 // tramos sobre la facturación MENSUAL de recetas (PVP+IVA) al SNS. Se aplica
 // a la media mensual de la venta de receta anual y se anualiza (x12).
-double calcularRealesDecretos(double ventaRecetaAnual);
+double calcularRealesDecretos(double ventaRecetaAnual, const std::array<TramoRD,9>& tabla);
 
 // Cuota RETA (autónomos) anual según la escala real de 15 tramos de
 // rendimientos netos (Seguridad Social, tabla 2026 = 2025, congelada).
 // beneficioAnual es el beneficio de la farmacia antes de esta cuota; se
 // promedia a mensual para ubicar el tramo, y se aplica la cuota mínima
 // mensual de ese tramo (incluye el 0,9% del MEI).
-double calcularCuotaAutonomos(double beneficioAnual);
+double calcularCuotaAutonomos(double beneficioAnual, const std::array<TramoRETA,15>& tabla);
 
 // PMT de Excel: cuota constante (negativa) de un préstamo.
 double pmt(double tasaMensual, int numPagos, double principal);

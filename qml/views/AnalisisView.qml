@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import FarmaciaSim
 
-// Hoja "Análisis Inversión": patrimonio, liquidez y amortización del FdC.
+// Hoja "Análisis inversión": patrimonio, liquidez y amortización del FdC.
 Flickable {
     id: page
 
@@ -54,7 +54,7 @@ Flickable {
         spacing: 14
 
         Text {
-            text: "Análisis Inversión"
+            text: "Análisis inversión"
             font.pixelSize: 22;
             font.bold: true;
             color: "#14523f"
@@ -63,7 +63,7 @@ Flickable {
 
         // ---------------- Valor patrimonio año 10
         Card {
-            SectionTitle { text: "VALOR PATRIMONIO AÑO 10" }
+            SectionTitle { text: "Valor patrimonio año 10" }
 
             Flickable {
                 id: flickPatrimonio
@@ -88,7 +88,7 @@ Flickable {
                         Layout.fillWidth: true
                         Item { Layout.preferredWidth: page.wLabelEscenarios }
                         Repeater {
-                            model: ["PESIMISTA", "NEUTRAL", "OPTIMISTA"]
+                            model: ["Pesimista", "Neutral", "Optimista"]
                             Text {
                                 required property string modelData
                                 Layout.preferredWidth: page.wCell
@@ -108,7 +108,7 @@ Flickable {
                     }
                     Row3 { label: "Valor venta FdC año 10"; vals: Engine.analisis.valorVentaFdC }
                     Row3 { label: "Valor venta local (incr. IPC)"; vals: Engine.analisis.valorVentaLocal }
-                    Row3 { label: "Existencias (10% factur.)"; vals: Engine.analisis.existencias10 }
+                    Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.pctExistencias10) + " factur.)"; vals: Engine.analisis.existencias10 }
                     Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analisis.fdcPendiente }
                     RowLayout {
                         Layout.fillWidth: true
@@ -118,10 +118,10 @@ Flickable {
                         MoneyField { k: "impuestosVenta2"; Layout.preferredWidth: page.wCell }
                     }
                     Row3 { label: "Deuda pendiente año 10"; vals: Engine.analisis.deuda }
-                    Row3 { label: "PATRIMONIO BRUTO año 10"; vals: Engine.analisis.patrimonioBruto; destacada: true }
-                    Row3 { label: "PATRIMONIO NETO año 10"; vals: Engine.analisis.patrimonioNeto; destacada: true }
-                    Row3 { label: "CAGR PATRIMONIO"; vals: Engine.analisis.cagr; fmt: "pct2"; destacada: true }
-                    Row3 { label: "TIR INVERSIÓN TOTAL"; vals: Engine.analisis.tir; fmt: "pct2"; destacada: true }
+                    Row3 { label: "Patrimonio bruto año 10"; vals: Engine.analisis.patrimonioBruto; destacada: true }
+                    Row3 { label: "Patrimonio neto año 10"; vals: Engine.analisis.patrimonioNeto; destacada: true }
+                    Row3 { label: "CAGR patrimonio"; vals: Engine.analisis.cagr; fmt: "pct2"; destacada: true }
+                    Row3 { label: "TIR inversión total"; vals: Engine.analisis.tir; fmt: "pct2"; destacada: true }
                 }
             }
 
@@ -138,7 +138,7 @@ Flickable {
 
         // ---------------- Liquidez mensual
         Card {
-            SectionTitle { text: "LIQUIDEZ MENSUAL" }
+            SectionTitle { text: "Liquidez mensual" }
             Flickable {
                 id: flickLiquidez
                 Layout.fillWidth: true
@@ -174,7 +174,7 @@ Flickable {
                     Row3 { label: "Liquidez mensual"; vals: Engine.analisis.liqMensual }
                     Row3 { label: "Devolución capital"; vals: Engine.analisis.devCapitalMensual }
                     Row3 { label: "Intereses"; vals: Engine.analisis.interesesMensual }
-                    Row3 { label: "NETO TITULAR"; vals: Engine.analisis.netoTitular; destacada: true }
+                    Row3 { label: "Neto titular"; vals: Engine.analisis.netoTitular; destacada: true }
                 }
             }
         }

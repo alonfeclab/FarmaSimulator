@@ -101,6 +101,7 @@ Rectangle {
             id: btnPdf
             Layout.fillWidth: true
             Layout.preferredHeight: 44
+            Layout.topMargin: 46
             text: "Exportar informe PDF"
             font.pixelSize: 12
             font.bold: true

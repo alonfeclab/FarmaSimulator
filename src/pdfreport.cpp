@@ -276,7 +276,7 @@ struct Tabla {
         ++fila;
     }
 
-    // Fila separadora a todo lo ancho (p.ej. el título "FINANCIACIÓN").
+    // Fila separadora a todo lo ancho (p.ej. el título "Financiación").
     void filaSeparador(const QString& etiqueta)
     {
         if (d.y + hFila > d.yFin()) {
@@ -379,7 +379,7 @@ void portada(Doc& d, const sim::Inputs& in, const sim::Results& r)
     yy += 26;
     d.p.setPen(kVerde);
     d.p.setFont(d.f(10, true));
-    d.p.drawText(QPointF(x0, yy), QStringLiteral("CONTENIDO"));
+    d.p.drawText(QPointF(x0, yy), QStringLiteral("Contenido"));
     yy += 8;
     const char* indice[] = {
         "1.  Datos base — PyG estimada del estudio",
@@ -414,7 +414,7 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     Tabla t = kv(d);
     t.filaDatos({ QStringLiteral("Venta receta"),               d.eur(in.ventaReceta) });
     t.filaDatos({ QStringLiteral("Venta libre"),                d.eur(in.ventaLibre) });
-    t.filaDatos({ QStringLiteral("VENTA TOTAL"),                d.eur(D.ventaTotal) }, true);
+    t.filaDatos({ QStringLiteral("Venta total"),                d.eur(D.ventaTotal) }, true);
 
     d.tituloSeccion(QStringLiteral("Margen comercial"));
     Tabla t1b = kv(d);
@@ -422,14 +422,14 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t1b.filaDatos({ QStringLiteral("M. comercial bruto"),       d.eur(D.mComBruto) });
     t1b.filaDatos({ QStringLiteral("M. comercial bruto %"),     d.pct(in.margenPct) });
     t1b.filaDatos({ QStringLiteral("Reales decretos"),          d.eur(D.realesDecretos) });
-    t1b.filaDatos({ QStringLiteral("M. COMERCIAL DESPUÉS RDs"), d.eur(D.mComDespuesRD) }, true);
+    t1b.filaDatos({ QStringLiteral("M. comercial después RDs"), d.eur(D.mComDespuesRD) }, true);
 
     d.tituloSeccion(QStringLiteral("Gastos de personal"));
     Tabla t2 = kv(d);
     t2.filaDatos({ QStringLiteral("Gastos de personal"), d.eur(D.gastosPersonal) });
-    t2.filaDatos({ QStringLiteral("Seguridad Social"),   d.eur(D.seguridadSocial) });
+    t2.filaDatos({ QStringLiteral("Seguridad social"),   d.eur(D.seguridadSocial) });
     t2.filaDatos({ QStringLiteral("Cuota autónomos (RETA, año 1)"),      d.eur(r.proyeccion.cuotaAutonomos[0]) });
-    t2.filaDatos({ QStringLiteral("TOTAL GASTOS PERSONAL"),              d.eur(D.totalGastosPersonal) }, true);
+    t2.filaDatos({ QStringLiteral("Total gastos personal"),              d.eur(D.totalGastosPersonal) }, true);
 
     d.tituloSeccion(QStringLiteral("Otros gastos"));
     Tabla t3 = kv(d);
@@ -440,7 +440,7 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t3.filaDatos({ QStringLiteral("Robot"),                      d.eur(in.robot) });
     t3.filaDatos({ QStringLiteral("Seguros"),                    d.eur(in.seguros) });
     t3.filaDatos({ QStringLiteral("Otros gastos"),               d.eur(in.otrosGastos) });
-    t3.filaDatos({ QStringLiteral("TOTAL OTROS GASTOS"),         d.eur(D.totalOtrosGastos) }, true);
+    t3.filaDatos({ QStringLiteral("Total otros gastos"),         d.eur(D.totalOtrosGastos) }, true);
 
     // Resultado final destacado (banda verde).
     d.asegurar(64);
@@ -451,7 +451,7 @@ void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
     d.p.setPen(Qt::white);
     d.p.setFont(d.f(11, true));
     d.p.drawText(QRectF(d.xIzq() + 18, d.y, 400, 44), Qt::AlignLeft | Qt::AlignVCenter,
-                 QStringLiteral("Bº ANTES DE IMPUESTOS Y AMORTIZACIONES"));
+                 QStringLiteral("Bº antes de impuestos y amortizaciones"));
     d.p.setPen(kAmarillo);
     d.p.setFont(d.f(15, true));
     d.p.drawText(QRectF(d.xIzq(), d.y, d.ancho() - 2 * kMargen - 18, 44),
@@ -482,16 +482,16 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.filaDatos({ QStringLiteral("Fondo de comercio"),                 d.eur(F.fondoComercio) });
     t2.filaDatos({ QStringLiteral("Local comercial"),                   d.eur(in.localComercial) });
     t2.filaDatos({ QStringLiteral("Existencias"),                       d.eur(in.existencias) });
-    t2.filaDatos({ QStringLiteral("Honorarios (5%)"),                   d.eur(F.honorarios) });
-    t2.filaDatos({ QStringLiteral("IVA (21%)"),                         d.eur(F.iva) });
-    t2.filaDatos({ QStringLiteral("ITP (8%)"),                          d.eur(F.impuestoITP) });
-    t2.filaDatos({ QStringLiteral("AJD (1,5%)"),                        d.eur(F.ajd) });
+    t2.filaDatos({ QStringLiteral("Honorarios (%1)").arg(d.pct(in.honorariosPct)), d.eur(F.honorarios) });
+    t2.filaDatos({ QStringLiteral("IVA (%1)").arg(d.pct(in.ivaPct)),               d.eur(F.iva) });
+    t2.filaDatos({ QStringLiteral("ITP (%1)").arg(d.pct(in.itpPct)),               d.eur(F.impuestoITP) });
+    t2.filaDatos({ QStringLiteral("AJD (%1)").arg(d.pct(in.ajdPct)),               d.eur(F.ajd) });
     t2.filaDatos({ QStringLiteral("Impuestos"),                         d.eur(F.impuestos) });
     t2.filaDatos({ QStringLiteral("Notario"),                           d.eur(in.notario) });
     t2.filaDatos({ QStringLiteral("Registro"),                          d.eur(in.registro) });
     t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
     t2.filaDatos({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.gastosAperturaHipoteca) });
-    t2.filaDatos({ QStringLiteral("TOTAL INVERSIÓN"),                   d.eur(F.totalInversion) }, true);
+    t2.filaDatos({ QStringLiteral("Total inversión"),                   d.eur(F.totalInversion) }, true);
 
     d.tituloSeccion(QStringLiteral("Tipos y plazos"));
     {
@@ -518,11 +518,11 @@ void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t3.filaDatos({ QStringLiteral("Aportación familiar"),               d.eur(in.aportacionFamiliar) });
     t3.filaDatos({ QStringLiteral("Financiación bancaria farmacia"),    d.eur(F.finBancariaFarmacia) });
     t3.filaDatos({ QStringLiteral("Financiación bancaria local"),       d.eur(F.finBancariaLocal) });
-    t3.filaDatos({ QStringLiteral("TOTAL BANCO"),                       d.eur(F.finBancariaFarmacia + F.finBancariaLocal) }, true);
+    t3.filaDatos({ QStringLiteral("Total banco"),                       d.eur(F.finBancariaFarmacia + F.finBancariaLocal) }, true);
     t3.filaDatos({ QStringLiteral("Financiación propiedades"),          d.eur(in.finPropiedades) });
     t3.filaDatos({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.excesoAportacion) });
     t3.filaDatos({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.pedidoInicial) });
-    t3.filaDatos({ QStringLiteral("TOTAL FINANCIACIÓN"),                d.eur(F.totalFinanciacion) }, true);
+    t3.filaDatos({ QStringLiteral("Total financiación"),                d.eur(F.totalFinanciacion) }, true);
 
     d.nota(QStringLiteral("Inicio de los préstamos: %1/%2.")
                .arg(in.inicioMes, 2, 10, QLatin1Char('0')).arg(in.inicioAnio));
@@ -549,23 +549,23 @@ void hojaProyeccion(Doc& d, const sim::Results& r)
     const Fila filas[] = {
         { QStringLiteral("Venta receta"),                     Y.ventaReceta,      true,  false },
         { QStringLiteral("Venta libre"),                      Y.ventaLibre,       true,  false },
-        { QStringLiteral("VENTA TOTAL"),                      Y.ventaTotal,       true,  true  },
+        { QStringLiteral("Venta total"),                      Y.ventaTotal,       true,  true  },
         { QStringLiteral("Coste mercancía"),                  Y.costeMercancia,   true,  false },
         { QStringLiteral("M. comercial bruto"),               Y.mComBruto,        true,  false },
         { QStringLiteral("Reales decretos"),                  Y.realesDecretos,   true,  false },
-        { QStringLiteral("M. COMERCIAL DESPUÉS DE RDs"),      Y.mComDespuesRD,    true,  true  },
+        { QStringLiteral("M. comercial después de RDs"),      Y.mComDespuesRD,    true,  true  },
         { QStringLiteral("Alquiler local"),                   Y.alquiler,         true,  false },
         { QStringLiteral("Gastos personal + SS"),             Y.gastosPersonal,   true,  false },
         { QStringLiteral("Cuota autónomos"),                  Y.cuotaAutonomos,   true,  false },
         { QStringLiteral("Otros gastos"),                     Y.otrosGastos,      true,  false },
         { QStringLiteral("Intereses de deudas"),              Y.intereses,        true,  false },
-        { QStringLiteral("BENEFICIO FARMACIA"),               Y.beneficio,        true,  true  },
+        { QStringLiteral("Beneficio farmacia"),               Y.beneficio,        true,  true  },
         { QStringLiteral("Pago impuestos"),                   Y.pagoImpuestos,    true,  false },
-        { QStringLiteral("LIQUIDEZ DESPUÉS DE IMPUESTOS"),    Y.liquidez,         true,  true  },
+        { QStringLiteral("Liquidez después de impuestos"),    Y.liquidez,         true,  true  },
         { QStringLiteral("Devolución banco"),                 Y.devCapitalBanco,  true,  false },
         { QStringLiteral("Devolución cooperativa"),           Y.devCooperativa,   true,  false },
-        { QStringLiteral("SALARIO NETO ANUAL TITULAR"),       Y.salarioNetoAnual, true,  true  },
-        { QStringLiteral("SALARIO NETO MENSUAL TITULAR"),     Y.salarioNetoMensual, true, true },
+        { QStringLiteral("Salario neto anual titular"),       Y.salarioNetoAnual, true,  true  },
+        { QStringLiteral("Salario neto mensual titular"),     Y.salarioNetoMensual, true, true },
         { QStringLiteral("% gasto personal s/ facturación"),  Y.pctGastoPersonal, false, false },
     };
 
@@ -578,8 +578,24 @@ void hojaProyeccion(Doc& d, const sim::Results& r)
     }
 }
 
+// Etiqueta de un tramo de la escala IRPF (p. ej. "12.450 – 20.200 € (24%)" o,
+// para el último tramo, "> 300.000 € (47%)"), generada a partir del tramo
+// real (editable desde la hoja Configuración) en vez de un texto fijo.
+QString labelTramoIRPF(const sim::TramoIRPF& t, bool esUltimo)
+{
+    static const QLocale loc(QLocale::Spanish, QLocale::Spain);
+    const double pct100 = t.tipo * 100.0;
+    const int decPct = (std::abs(pct100 - std::round(pct100)) < 1e-6) ? 0 : 1;
+    const QString pctStr = loc.toString(pct100, 'f', decPct) + QStringLiteral("%");
+    if (esUltimo)
+        return QStringLiteral("> ") + loc.toString(t.desde, 'f', 0)
+             + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
+    return loc.toString(t.desde, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.hasta, 'f', 0)
+         + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
+}
+
 // ---------------------------------------------------------------- impuestos
-void hojaImpuestos(Doc& d, const sim::Results& r)
+void hojaImpuestos(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
     d.paginaNueva(QPageLayout::Landscape, QStringLiteral("4 · Impuestos (IRPF)"));
     d.tituloHoja(QStringLiteral("4. Impuestos — IRPF por tramos (escala 2026)"));
@@ -591,9 +607,9 @@ void hojaImpuestos(Doc& d, const sim::Results& r)
     t0.filaDatos({ QStringLiteral("Fondo de comercio"),        d.eur(I.fdc) });
     t0.filaDatos({ QStringLiteral("Honorarios"),               d.eur(I.honorarios) });
     t0.filaDatos({ QStringLiteral("AJD"),                      d.eur(I.ajd) });
-    t0.filaDatos({ QStringLiteral("BASE AMORTIZABLE"),         d.eur(I.baseAmortizable) }, true);
+    t0.filaDatos({ QStringLiteral("Base amortizable"),         d.eur(I.baseAmortizable) }, true);
     t0.filaDatos({ QStringLiteral("Coste del local"),          d.eur(I.costeLocal) });
-    t0.filaDatos({ QStringLiteral("Deducción mínimo personal (19%)"), d.eur(I.deduccionMinimo) });
+    t0.filaDatos({ QStringLiteral("Deducción mínimo personal (%1)").arg(d.pct(in.tramosIRPF[0].tipo)), d.eur(I.deduccionMinimo) });
 
     d.tituloSeccion(QStringLiteral("Cálculo del IRPF (10 años)"));
     struct Fila { QString label; const std::array<double,10>& v; QString fmt; bool bold; };
@@ -602,9 +618,9 @@ void hojaImpuestos(Doc& d, const sim::Results& r)
         { QStringLiteral("Amortización local"),        I.amortLocal,    QStringLiteral("eur"),  false },
         { QStringLiteral("% amort. FdC ajustado"),     I.pctAjustado,   QStringLiteral("pct2"), false },
         { QStringLiteral("Amortización FdC"),          I.amortFdC,      QStringLiteral("eur"),  false },
-        { QStringLiteral("BASE IMPONIBLE"),            I.baseImponible, QStringLiteral("eur"),  true  },
+        { QStringLiteral("Base imponible"),            I.baseImponible, QStringLiteral("eur"),  true  },
         { QStringLiteral("Cuota según escala"),        I.cuotaEscala,   QStringLiteral("eur"),  false },
-        { QStringLiteral("PAGO IMPUESTOS"),            I.pago,          QStringLiteral("eur"),  true  },
+        { QStringLiteral("Pago impuestos"),            I.pago,          QStringLiteral("eur"),  true  },
     };
     Tabla t(d, colsAnios(d), true, 19, 7.6);
     for (const auto& fl : filas) {
@@ -615,13 +631,9 @@ void hojaImpuestos(Doc& d, const sim::Results& r)
     }
 
     d.tituloSeccion(QStringLiteral("Desglose por tramos de la escala"));
-    static const char* tramoLabels[6] = {
-        "0 – 12.450 € (19%)",      "12.450 – 20.200 € (24%)",
-        "20.200 – 35.200 € (30%)", "35.200 – 60.000 € (37%)",
-        "60.000 – 300.000 € (45%)","> 300.000 € (47%)" };
     Tabla t2(d, colsAnios(d), true, 19, 7.6);
     for (int k = 0; k < 6; ++k) {
-        QStringList celdas{ QString::fromUtf8(tramoLabels[k]) };
+        QStringList celdas{ labelTramoIRPF(in.tramosIRPF[k], k == 5) };
         for (double v : I.tramos[k])
             celdas << d.eur(v);
         t2.filaDatos(celdas);
@@ -656,14 +668,14 @@ void hojaAnalisis(Doc& d, const sim::Inputs& in, const sim::Results& r)
         f3(QStringLiteral("Factor de venta"),                 { in.factorVenta[0], in.factorVenta[1], in.factorVenta[2] }, QStringLiteral("num"));
         f3(QStringLiteral("Valor venta FdC año 10"),          A.valorVentaFdC);
         f3(QStringLiteral("Valor venta local (incr. IPC)"),   A.valorVentaLocal);
-        f3(QStringLiteral("Existencias (10% factur.)"),       A.existencias10);
+        f3(QStringLiteral("Existencias (%1 factur.)").arg(d.pct(in.pctExistencias10)), A.existencias10);
         f3(QStringLiteral("Fondo de comercio pendiente"),     A.fdcPendiente);
         f3(QStringLiteral("Impuestos venta"),                 { in.impuestosVenta[0], in.impuestosVenta[1], in.impuestosVenta[2] });
         f3(QStringLiteral("Deuda pendiente año 10"),          A.deuda);
-        f3(QStringLiteral("PATRIMONIO BRUTO AÑO 10"),         A.patrimonioBruto, QStringLiteral("eur"), true);
-        f3(QStringLiteral("PATRIMONIO NETO AÑO 10"),          A.patrimonioNeto,  QStringLiteral("eur"), true);
-        f3(QStringLiteral("CAGR PATRIMONIO"),                 A.cagr, QStringLiteral("pct2"), true);
-        f3(QStringLiteral("TIR INVERSIÓN TOTAL"),             A.tir,  QStringLiteral("pct2"), true);
+        f3(QStringLiteral("Patrimonio bruto año 10"),         A.patrimonioBruto, QStringLiteral("eur"), true);
+        f3(QStringLiteral("Patrimonio neto año 10"),          A.patrimonioNeto,  QStringLiteral("eur"), true);
+        f3(QStringLiteral("CAGR patrimonio"),                 A.cagr, QStringLiteral("pct2"), true);
+        f3(QStringLiteral("TIR inversión total"),             A.tir,  QStringLiteral("pct2"), true);
     }
     d.nota(QStringLiteral("CAGR: revalorización del capital al vender la farmacia a los 10 años, sin contar el salario. "
                           "TIR: retorno total, incluye el salario neto cobrado cada año más el valor de venta."));
@@ -682,7 +694,7 @@ void hojaAnalisis(Doc& d, const sim::Inputs& in, const sim::Results& r)
         f3(QStringLiteral("Liquidez mensual"),     A.liqMensual);
         f3(QStringLiteral("Devolución de capital"),A.devCapitalMensual);
         f3(QStringLiteral("Intereses"),            A.interesesMensual);
-        f3(QStringLiteral("NETO TITULAR"),         A.netoTitular, true);
+        f3(QStringLiteral("Neto titular"),         A.netoTitular, true);
     }
 
     d.tituloSeccion(QStringLiteral("Simulación amortización del fondo de comercio"));
@@ -693,7 +705,7 @@ void hojaAnalisis(Doc& d, const sim::Inputs& in, const sim::Results& r)
             { QStringLiteral("% amort. FdC (óptimo)"),    A.pctAmortFdC,     QStringLiteral("pct2"), false },
             { QStringLiteral("Amort. fondo de comercio"), A.amortFdC,        QStringLiteral("eur"),  false },
             { QStringLiteral("Amort. local comercial"),   A.amortLocal,      QStringLiteral("eur"),  false },
-            { QStringLiteral("BASE IMPONIBLE"),           A.baseImponible,   QStringLiteral("eur"),  true  },
+            { QStringLiteral("Base imponible"),           A.baseImponible,   QStringLiteral("eur"),  true  },
             { QStringLiteral("FdC pendiente"),            A.fdcPendienteSim, QStringLiteral("eur"),  false },
         };
         Tabla t(d, colsAnios(d), true, 19, 7.6);
@@ -735,7 +747,7 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
                           d.num(fila.jornada, 2), d.pct(fila.pctSS, 0),
                           d.eur(fila.costeSS), d.eur(fila.salReal), d.eur(fila.costeTotal) });
         }
-        t.filaDatos({ QStringLiteral("TOTAL"), QString(), QString(), QString(),
+        t.filaDatos({ QStringLiteral("Total"), QString(), QString(), QString(),
                       d.eur(P.totCosteSS), d.eur(P.totSalReal), d.eur(P.totCoste) }, true);
     }
 
@@ -763,7 +775,7 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
                           d.num(fila.personas, 0), d.eur(fila.brutoReal),
                           d.eur(fila.costeSS), d.eur(fila.costePersona), d.eur(fila.costeTotal) });
         }
-        t.filaDatos({ QStringLiteral("TOTAL"), QString(), d.num(P.totPersonas, 0),
+        t.filaDatos({ QStringLiteral("Total"), QString(), d.num(P.totPersonas, 0),
                       d.eur(P.totBrutoReal), d.eur(P.totSS), QString(),
                       d.eur(P.totPlantilla) }, true);
     }
@@ -843,7 +855,7 @@ bool escribirInforme(QIODevice* dev, const sim::Inputs& in, const sim::Results& 
     hojaDatosBase(d, in, r);
     hojaFinanciacion(d, in, r);
     hojaProyeccion(d, r);
-    hojaImpuestos(d, r);
+    hojaImpuestos(d, in, r);
     hojaAnalisis(d, in, r);
     hojaPersonal(d, in, r);
 

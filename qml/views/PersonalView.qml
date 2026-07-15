@@ -52,7 +52,7 @@ Flickable {
 
         // ---------------- Cuota de autónomo
         Card {
-            SectionTitle { text: "CUOTA DE AUTÓNOMO (RETA)" }
+            SectionTitle { text: "Cuota de autónomo (RETA)" }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
@@ -89,14 +89,14 @@ Flickable {
                             if (r.label === label) return r.values
                         return []
                     }
-                    const cuota = rowByLabel("Cuota Autónomos")
-                    const beneficio = rowByLabel("BENEFICIO FARMACIA")
+                    const cuota = rowByLabel("Cuota autónomos")
+                    const beneficio = rowByLabel("Beneficio farmacia")
                     const beneficioPreCuota = beneficio.map((v, i) => v + cuota[i])
                     const cuotaMensual = cuota.map(v => v / 12.0)
                     return [
                         { label: "Beneficio de referencia", values: beneficioPreCuota, fmt: "eur", bold: false },
                         { label: "Rendimiento neto mensual (tramo)", values: beneficioPreCuota.map(v => v / 12.0), fmt: "eur", bold: false },
-                        { label: "CUOTA AUTÓNOMOS ANUAL", values: cuota, fmt: "eur", bold: true },
+                        { label: "Cuota autónomos anual", values: cuota, fmt: "eur", bold: true },
                         { label: "Cuota autónomos mensual", values: cuotaMensual, fmt: "eur", bold: false },
                     ]
                 }
@@ -105,7 +105,7 @@ Flickable {
 
         // ---------------- Datos de personal
         Card {
-            SectionTitle { text: "SALARIOS BASE DE PERSONAL" }
+            SectionTitle { text: "Salarios base de personal" }
 
             Flickable {
                 id: flickDatosPersonal
@@ -179,7 +179,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "TOTAL"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        Text { text: "Total"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
@@ -196,13 +196,13 @@ Flickable {
                 font.pixelSize: 12
                 color: "#6b7a76"
                 text: "Salario bruto a jornada completa; la jornada reduce el coste. El % SS empresa es igual "
-                    + "para todos. Cambiar aquí actualiza Datos Base y la Proyección."
+                    + "para todos. Cambiar aquí actualiza Datos base y la Proyección."
             }
         }
 
         // ---------------- Subida salarial anual
         Card {
-            SectionTitle { text: "SUBIDA SALARIAL ANUAL" }
+            SectionTitle { text: "Subida salarial anual" }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -227,7 +227,7 @@ Flickable {
 
         // ---------------- Plantilla recomendada
         Card {
-            SectionTitle { text: "PLANTILLA" }
+            SectionTitle { text: "Plantilla" }
 
             Flickable {
                 id: flickPlantilla
@@ -295,7 +295,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "TOTAL PLANTILLA"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Text { text: "Total plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
                         Celda { text: Fmt.num(Engine.personal.totPersonas) + " pers."; negrita: true; Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 108 }
@@ -328,7 +328,7 @@ Flickable {
                 anchors.leftMargin: 20
                 anchors.rightMargin: 20
                 Text {
-                    text: "SALARIO NETO MENSUAL TITULAR (Año 1)"
+                    text: "Salario neto mensual titular (año 1)"
                     color: "white";
                     font.pixelSize: 15;
                     font.bold: true

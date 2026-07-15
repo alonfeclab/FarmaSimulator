@@ -12,6 +12,7 @@ ApplicationWindow {
     minimumWidth: 340
     minimumHeight: 480
     visible: true
+    visibility: Window.Maximized
     title: "Simulación Farmacia"
     color: "#eef2f0"
 
@@ -23,16 +24,17 @@ ApplicationWindow {
 
     readonly property var hojas: [
         { nombre: "Simulación simple",   icono: "qrc:/qt/qml/FarmaciaSim/icons/simple.svg" },
-        { nombre: "Datos Base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
+        { nombre: "Datos base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
-        { nombre: "Proyección 10 Años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
+        { nombre: "Proyección 10 años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
         { nombre: "Impuestos",           icono: "qrc:/qt/qml/FarmaciaSim/icons/impuestos.svg" },
-        { nombre: "Análisis Inversión",  icono: "qrc:/qt/qml/FarmaciaSim/icons/analisis.svg" },
-        { nombre: "Amort. Banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
-        { nombre: "Amort. Cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
-        { nombre: "Amort. Propiedades",  icono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg" },
+        { nombre: "Análisis inversión",  icono: "qrc:/qt/qml/FarmaciaSim/icons/analisis.svg" },
+        { nombre: "Amort. banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
+        { nombre: "Amort. cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
+        { nombre: "Amort. propiedades",  icono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg" },
         { nombre: "Personal",            icono: "qrc:/qt/qml/FarmaciaSim/icons/personal.svg" },
-        { nombre: "Comparación",         icono: "qrc:/qt/qml/FarmaciaSim/icons/comparacion.svg" }
+        { nombre: "Comparación",         icono: "qrc:/qt/qml/FarmaciaSim/icons/comparacion.svg" },
+        { nombre: "Configuración",       icono: "qrc:/qt/qml/FarmaciaSim/icons/configuracion.svg" }
     ]
 
     header: ToolBar {
@@ -177,6 +179,7 @@ ApplicationWindow {
             }
             PersonalView {}
             ComparacionView {}
+            ConfiguracionView {}
         }
     }
 }

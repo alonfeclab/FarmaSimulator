@@ -25,7 +25,7 @@ Item {
     readonly property var filasFinanciacion: Engine.escenariosComparacion.length > 0
                                               ? Engine.comparacionFinanciacion() : []
 
-    // Inserta el grupo "Financiación" justo después de la fila "VENTA TOTAL"
+    // Inserta el grupo "Financiación" justo después de la fila "Venta total"
     // en vez de al final de la tabla. Las filas del grupo llevan "grupo: true"
     // (fondo propio, sin la franja alterna normal) y la última "groupEnd: true"
     // (línea divisoria inferior), para que se distingan del resto de la tabla.
@@ -34,8 +34,8 @@ Item {
             return page.filas
         const datosGrupo = page.filasFinanciacion.map((f, i, arr) =>
             Object.assign({}, f, { grupo: true, groupEnd: i === arr.length - 1 }))
-        const grupo = [{ label: "FINANCIACIÓN", separator: true }].concat(datosGrupo)
-        const idx = page.filas.findIndex(f => f.label === "VENTA TOTAL")
+        const grupo = [{ label: "Financiación", separator: true }].concat(datosGrupo)
+        const idx = page.filas.findIndex(f => f.label === "Venta total")
         if (idx < 0)
             return page.filas.concat(grupo)
         return page.filas.slice(0, idx + 1).concat(grupo, page.filas.slice(idx + 1))
@@ -82,7 +82,7 @@ Item {
                 Layout.alignment: Qt.AlignHCenter
             }
             Text {
-                text: "Ve a la hoja \"Datos Base\" y pulsa \"Añadir a comparación\" para guardar el escenario actual."
+                text: "Ve a la hoja \"Datos base\" y pulsa \"Añadir a comparación\" para guardar el escenario actual."
                 font.pixelSize: 13
                 color: "#6b7a76"
                 horizontalAlignment: Text.AlignHCenter
@@ -337,7 +337,7 @@ Item {
                 id: btnAnioSeleccionado
                 Layout.fillWidth: true
                 Layout.preferredHeight: 40
-                text: "Solo Año " + (anioCombo.currentIndex + 1)
+                text: "Solo año " + (anioCombo.currentIndex + 1)
                 font.pixelSize: 13
                 font.bold: true
                 onClicked: dlgExportarPdf.exportar(anioCombo.currentIndex)

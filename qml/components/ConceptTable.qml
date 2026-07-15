@@ -109,7 +109,7 @@ Flickable {
                 required property int index
                 required property var modelData
                 // Fila separadora de grupo: ocupa todo el ancho, sin celdas de valor
-                // (p.ej. "FINANCIACIÓN" en la vista completa de Comparación).
+                // (p.ej. "Financiación" en la vista completa de Comparación).
                 readonly property bool esSeparador: !!fila.modelData.separator
                 // Fila perteneciente a un grupo (fondo propio, no alterna con las
                 // filas normales) y, si es la última del grupo, línea divisoria abajo.

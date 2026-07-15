@@ -11,9 +11,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLocale>
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <QUrl>
+
+#include <cmath>
 
 #ifdef Q_OS_WASM
 #include <emscripten/val.h>   // acceso síncrono a localStorage del navegador
@@ -146,6 +149,10 @@ void Engine::registerInputs()
     m_dbl["notario"]           = &i.notario;
     m_dbl["registro"]          = &i.registro;
     m_dbl["gastosVarios"]      = &i.gastosVarios;
+    m_dbl["honorariosPct"]     = &i.honorariosPct;
+    m_dbl["ivaPct"]            = &i.ivaPct;
+    m_dbl["itpPct"]            = &i.itpPct;
+    m_dbl["ajdPct"]            = &i.ajdPct;
     m_dbl["tipoBanco"]         = &i.tipoBanco;
     m_dbl["tipoCoop"]          = &i.tipoCoop;
     m_dbl["tipoFamiliar"]      = &i.tipoFamiliar;
@@ -181,14 +188,35 @@ void Engine::registerInputs()
         m_dbl[QStringLiteral("factorVenta%1").arg(k)]    = &i.factorVenta[k];
         m_dbl[QStringLiteral("impuestosVenta%1").arg(k)] = &i.impuestosVenta[k];
     }
-    m_dbl["fdcInicialSim"] = &i.fdcInicialSim;
-    m_dbl["pctMaxFdC"]     = &i.pctMaxFdC;
-    m_dbl["pctAmortLocal"] = &i.pctAmortLocal;
+    m_dbl["fdcInicialSim"]     = &i.fdcInicialSim;
+    m_dbl["pctMaxFdC"]         = &i.pctMaxFdC;
+    m_dbl["pctAmortLocal"]     = &i.pctAmortLocal;
+    m_dbl["pctExistencias10"]  = &i.pctExistencias10;
     // ---- Hoja Impuestos (v2)
     m_dbl["impAmortLocalPct"] = &i.impAmortLocalPct;
     m_dbl["impAmortMinPct"]   = &i.impAmortMinPct;
     m_dbl["impAmortMaxPct"]   = &i.impAmortMaxPct;
     m_dbl["minimoPersonal"]   = &i.minimoPersonal;
+    // ---- Configuración: escalas y series oficiales (editables)
+    for (int k = 0; k < 6; ++k) {
+        m_dbl[QStringLiteral("irpfDesde%1").arg(k)] = &i.tramosIRPF[k].desde;
+        m_dbl[QStringLiteral("irpfHasta%1").arg(k)] = &i.tramosIRPF[k].hasta;
+        m_dbl[QStringLiteral("irpfTipo%1").arg(k)]  = &i.tramosIRPF[k].tipo;
+    }
+    for (int k = 0; k < 9; ++k) {
+        m_dbl[QStringLiteral("rdDesde%1").arg(k)] = &i.tramosRD[k].desde;
+        m_dbl[QStringLiteral("rdBase%1").arg(k)]  = &i.tramosRD[k].base;
+        m_dbl[QStringLiteral("rdPct%1").arg(k)]   = &i.tramosRD[k].pct;
+    }
+    for (int k = 0; k < 15; ++k) {
+        m_dbl[QStringLiteral("retaDesde%1").arg(k)] = &i.tramosRETA[k].desde;
+        m_dbl[QStringLiteral("retaCuota%1").arg(k)]  = &i.tramosRETA[k].cuotaMensual;
+    }
+    m_dbl["tarifaPlanaMensual"] = &i.tarifaPlanaMensual;
+    for (int k = 0; k < 10; ++k) {
+        m_dbl[QStringLiteral("ipcHistorico%1").arg(k)]       = &i.ipcHistorico[k];
+        m_dbl[QStringLiteral("margenComercialSim%1").arg(k)] = &i.margenComercialSim[k];
+    }
 }
 
 void Engine::set(const QString& key, double value)
@@ -283,7 +311,7 @@ QString Engine::exportarPdf()
 }
 
 // Igual que ComparacionView.qml (filasTabla), pero siempre en "vista
-// completa": el grupo "Financiación" se intercala después de "VENTA TOTAL"
+// completa": el grupo "Financiación" se intercala después de "Venta total"
 // sin depender del interruptor de la interfaz.
 static QVariantList filasComparacionCompleta(const Engine& engine, int anio)
 {
@@ -291,7 +319,7 @@ static QVariantList filasComparacionCompleta(const Engine& engine, int anio)
     const QVariantList filasFin = engine.comparacionFinanciacion();
 
     QVariantList grupo;
-    grupo << QVariantMap{ { "label", QStringLiteral("FINANCIACIÓN") }, { "separator", true } };
+    grupo << QVariantMap{ { "label", QStringLiteral("Financiación") }, { "separator", true } };
     for (int i = 0; i < filasFin.size(); ++i) {
         QVariantMap f = filasFin[i].toMap();
         f[QStringLiteral("grupo")] = true;
@@ -301,7 +329,7 @@ static QVariantList filasComparacionCompleta(const Engine& engine, int anio)
 
     int idx = -1;
     for (int i = 0; i < filas.size(); ++i) {
-        if (filas[i].toMap().value(QStringLiteral("label")).toString() == QStringLiteral("VENTA TOTAL")) {
+        if (filas[i].toMap().value(QStringLiteral("label")).toString() == QStringLiteral("Venta total")) {
             idx = i;
             break;
         }
@@ -347,6 +375,24 @@ void Engine::recalc()
 }
 
 // ---------------------------------------------------------------- helpers
+
+// Etiqueta de un tramo de la escala IRPF (p. ej. "12.450 – 20.200 € (24%)" o,
+// para el último tramo, "> 300.000 € (47%)"). Se genera a partir del tramo
+// real (in.tramosIRPF), que es editable desde la hoja Configuración: si se
+// usara un texto fijo, dejaría de coincidir en cuanto el usuario lo edite.
+static QString labelTramoIRPF(const sim::TramoIRPF& t, bool esUltimo)
+{
+    static const QLocale loc(QLocale::Spanish, QLocale::Spain);
+    const double pct100 = t.tipo * 100.0;
+    const int decPct = (std::abs(pct100 - std::round(pct100)) < 1e-6) ? 0 : 1;
+    const QString pctStr = loc.toString(pct100, 'f', decPct) + QStringLiteral("%");
+    if (esUltimo)
+        return QStringLiteral("> ") + loc.toString(t.desde, 'f', 0)
+             + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
+    return loc.toString(t.desde, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.hasta, 'f', 0)
+         + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
+}
+
 static QVariantList toList10(const std::array<double,10>& a)
 {
     QVariantList l;
@@ -446,40 +492,36 @@ void Engine::buildMaps()
     // ---- Proyección (filas como en la hoja)
     const auto& Y = m_r.proyeccion;
     m_proyeccion = QVariantList{
-        proyRow("Venta Receta",                  Y.ventaReceta),
-        proyRow("Venta Libre",                   Y.ventaLibre),
-        proyRow("VENTA TOTAL",                   Y.ventaTotal, "eur", true),
+        proyRow("Venta receta",                  Y.ventaReceta),
+        proyRow("Venta libre",                   Y.ventaLibre),
+        proyRow("Venta total",                   Y.ventaTotal, "eur", true),
         proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
-        proyRow("Coste Mercancía",               Y.costeMercancia),
-        proyRow("M. Comercial %",                Y.margenComercial, "pct1"),
-        proyRow("M. Comercial Bruto",            Y.mComBruto),
-        proyRow("Reales Decretos",               Y.realesDecretos),
-        proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur", true),
-        proyRow("Alquiler Local",                Y.alquiler),
-        proyRow("Gastos Personal + SS",          Y.gastosPersonal),
-        proyRow("% Gastos de Personal",          Y.pctGastoPersonal, "pct1"),
-        proyRow("Cuota Autónomos",               Y.cuotaAutonomos),
-        proyRow("Otros Gastos",                  Y.otrosGastos),
-        proyRow("Intereses de Deudas",           Y.intereses),
-        proyRow("BENEFICIO FARMACIA",            Y.beneficio, "eur", true),
-        proyRow("Pago Impuestos",                Y.pagoImpuestos),
-        proyRow("LIQUIDEZ DESPUÉS DE IMP.",      Y.liquidez, "eur", true),
-        proyRow("Devolución Banco",              Y.devCapitalBanco),
-        proyRow("Devolución Cooperativa",        Y.devCooperativa),
-        proyRow("SALARIO NETO ANUAL TITULAR",    Y.salarioNetoAnual, "eur", true),
-        proyRow("SALARIO NETO MENSUAL TITULAR",  Y.salarioNetoMensual, "eur", true),
+        proyRow("Coste mercancía",               Y.costeMercancia),
+        proyRow("M. comercial %",                Y.margenComercial, "pct1"),
+        proyRow("M. comercial bruto",            Y.mComBruto),
+        proyRow("Reales decretos",               Y.realesDecretos),
+        proyRow("M. comercial después de RDs",   Y.mComDespuesRD, "eur", true),
+        proyRow("Alquiler local",                Y.alquiler),
+        proyRow("Gastos personal + SS",          Y.gastosPersonal),
+        proyRow("% Gastos de personal",          Y.pctGastoPersonal, "pct1"),
+        proyRow("Cuota autónomos",               Y.cuotaAutonomos),
+        proyRow("Otros gastos",                  Y.otrosGastos),
+        proyRow("Intereses de deudas",           Y.intereses),
+        proyRow("Beneficio farmacia",            Y.beneficio, "eur", true),
+        proyRow("Pago impuestos",                Y.pagoImpuestos),
+        proyRow("Liquidez después de imp.",      Y.liquidez, "eur", true),
+        proyRow("Devolución banco",              Y.devCapitalBanco),
+        proyRow("Devolución cooperativa",        Y.devCooperativa),
+        proyRow("Salario neto anual titular",    Y.salarioNetoAnual, "eur", true),
+        proyRow("Salario neto mensual titular",  Y.salarioNetoMensual, "eur", true),
     };
 
     // ---- Impuestos (IRPF, v2)
     const auto& I = m_r.impuestos;
     QVariantList tramosList;
-    static const char* tramoLabels[6] = {
-        "0 – 12.450 € (19%)", "12.450 – 20.200 € (24%)",
-        "20.200 – 35.200 € (30%)", "35.200 – 60.000 € (37%)",
-        "60.000 – 300.000 € (45%)", "> 300.000 € (47%)" };
     for (int t = 0; t < 6; ++t)
         tramosList << QVariantMap{
-            { "label", QString::fromUtf8(tramoLabels[t]) },
+            { "label", labelTramoIRPF(m_in.tramosIRPF[t], t == 5) },
             { "values", toList10(I.tramos[t]) } };
     m_impuestos = QVariantMap{
         { "fdc",              I.fdc },

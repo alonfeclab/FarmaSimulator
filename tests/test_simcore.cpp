@@ -67,22 +67,25 @@ void TestSimCore::irr_npvIsZeroAtSolution()
 
 void TestSimCore::realesDecretos_matchesTramoTable()
 {
-    // Tabla de tramos de simcore.cpp (RD 823/2008 art. 2.5), sobre la media
-    // MENSUAL de venta de receta. deduccionMensual = base + (mensual-desde)*pct.
-    QCOMPARE(calcularRealesDecretos(0.0), 0.0);
+    // Tabla de tramos por defecto (Inputs::tramosRD, editable desde
+    // Configuración; RD 823/2008 art. 2.5), sobre la media MENSUAL de venta
+    // de receta. deduccionMensual = base + (mensual-desde)*pct.
+    const Inputs in;
+    const auto& tabla = in.tramosRD;
+    QCOMPARE(calcularRealesDecretos(0.0, tabla), 0.0);
 
     // mensual = 40000 -> tramo [37500, 45000) base=0 pct=0,078
     {
         const double anual = 40000.0 * 12.0;
         const double expected = (0.0 + (40000.0 - 37500.0) * 0.078) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual) - expected) < 1e-6);
+        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
     }
 
     // Límite exacto del tramo: mensual = 45000 -> cae en el tramo [45000, 58345.61)
     {
         const double anual = 45000.0 * 12.0;
         const double expected = 585.00 * 12.0; // (mensual-desde)=0
-        QVERIFY(std::fabs(calcularRealesDecretos(anual) - expected) < 1e-6);
+        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
     }
 
     // Dentro del tramo [45000, 58345.61) con offset no nulo, para ejercitar
@@ -90,31 +93,35 @@ void TestSimCore::realesDecretos_matchesTramoTable()
     {
         const double anual = 50000.0 * 12.0;
         const double expected = (585.00 + (50000.0 - 45000.0) * 0.091) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual) - expected) < 1e-6);
+        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
     }
 
     // Tramo más alto (>=600000 mensual)
     {
         const double anual = 650000.0 * 12.0;
         const double expected = (89081.17 + (650000.0 - 600000.0) * 0.200) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual) - expected) < 1e-6);
+        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
     }
 }
 
 void TestSimCore::cuotaAutonomos_matchesTramoTable()
 {
+    // Tabla de tramos por defecto (Inputs::tramosRETA, editable desde Configuración).
+    const Inputs in;
+    const auto& tabla = in.tramosRETA;
+
     // Beneficio <= 0 -> tramo más bajo (200/205,88 €/mes con MEI).
-    QCOMPARE(calcularCuotaAutonomos(0.0), 205.88 * 12.0);
-    QCOMPARE(calcularCuotaAutonomos(-50000.0), 205.88 * 12.0);
+    QCOMPARE(calcularCuotaAutonomos(0.0, tabla), 205.88 * 12.0);
+    QCOMPARE(calcularCuotaAutonomos(-50000.0, tabla), 205.88 * 12.0);
 
     // 1500 €/mes de beneficio -> tramo [1300, 1500) -> 302,64 €/mes.
-    QVERIFY(std::fabs(calcularCuotaAutonomos(1500.0 * 12.0) - 302.64 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calcularCuotaAutonomos(1500.0 * 12.0, tabla) - 302.64 * 12.0) < 1e-6);
 
     // Límite exacto del tramo [1500, 1700): 1700 €/mes de beneficio.
-    QVERIFY(std::fabs(calcularCuotaAutonomos(1700.0 * 12.0) - 319.12 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calcularCuotaAutonomos(1700.0 * 12.0, tabla) - 319.12 * 12.0) < 1e-6);
 
     // Tramo más alto (>= 6000 €/mes de beneficio).
-    QVERIFY(std::fabs(calcularCuotaAutonomos(650000.0) - 607.31 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calcularCuotaAutonomos(650000.0, tabla) - 607.31 * 12.0) < 1e-6);
 }
 
 void TestSimCore::compute_datosBaseInvariants()
