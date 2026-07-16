@@ -30,7 +30,7 @@ void TestPdfReport::escribirInforme_defaultInputs_producesValidPdf()
 
     QBuffer buf;
     QVERIFY(buf.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::escribirInforme(&buf, in, r));
+    QVERIFY(pdf::writeReport(&buf, in, r));
     buf.close();
 
     // Un informe de varias páginas (portada + 6 hojas) no es minúsculo.
@@ -44,16 +44,16 @@ void TestPdfReport::escribirInforme_sinPrestamosNiVentas_noRevienta()
     // simcore.cpp ya protege las divisiones por cero (p. ej. pctGastoPersonal);
     // esto comprueba que el maquetado del PDF tampoco revienta con esos ceros.
     Inputs in;
-    in.ventaReceta = 0;
-    in.ventaLibre = 0;
-    in.margenPct = 0;
-    in.pedidoInicial = 0;
-    in.finPropiedades = 0;
+    in.prescriptionSales = 0;
+    in.otcSales = 0;
+    in.marginPct = 0;
+    in.initialOrder = 0;
+    in.propertiesFinancing = 0;
     const Results r = compute(in);
 
     QBuffer buf;
     QVERIFY(buf.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::escribirInforme(&buf, in, r));
+    QVERIFY(pdf::writeReport(&buf, in, r));
     QVERIFY(buf.data().startsWith("%PDF-"));
 }
 
