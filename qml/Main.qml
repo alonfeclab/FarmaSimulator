@@ -12,7 +12,7 @@ ApplicationWindow {
     minimumWidth: 340
     minimumHeight: 480
     visible: true
-    visibility: Window.Maximized
+    visibility: Qt.platform.os === "wasm" ? Window.Windowed : Window.Maximized
     title: "Simulación Farmacia"
     color: "#eef2f0"
 
