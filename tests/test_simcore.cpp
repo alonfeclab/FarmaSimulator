@@ -67,25 +67,25 @@ void TestSimCore::irr_npvIsZeroAtSolution()
 
 void TestSimCore::realesDecretos_matchesTramoTable()
 {
-    // Tabla de tramos por defecto (Inputs::tramosRD, editable desde
+    // Tabla de tramos por defecto (Inputs::rdBrackets, editable desde
     // Configuración; RD 823/2008 art. 2.5), sobre la media MENSUAL de venta
     // de receta. deduccionMensual = base + (mensual-desde)*pct.
     const Inputs in;
-    const auto& tabla = in.tramosRD;
-    QCOMPARE(calcularRealesDecretos(0.0, tabla), 0.0);
+    const auto& tabla = in.rdBrackets;
+    QCOMPARE(calculateRdDeduction(0.0, tabla), 0.0);
 
     // mensual = 40000 -> tramo [37500, 45000) base=0 pct=0,078
     {
         const double anual = 40000.0 * 12.0;
         const double expected = (0.0 + (40000.0 - 37500.0) * 0.078) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
+        QVERIFY(std::fabs(calculateRdDeduction(anual, tabla) - expected) < 1e-6);
     }
 
     // Límite exacto del tramo: mensual = 45000 -> cae en el tramo [45000, 58345.61)
     {
         const double anual = 45000.0 * 12.0;
         const double expected = 585.00 * 12.0; // (mensual-desde)=0
-        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
+        QVERIFY(std::fabs(calculateRdDeduction(anual, tabla) - expected) < 1e-6);
     }
 
     // Dentro del tramo [45000, 58345.61) con offset no nulo, para ejercitar
@@ -93,96 +93,96 @@ void TestSimCore::realesDecretos_matchesTramoTable()
     {
         const double anual = 50000.0 * 12.0;
         const double expected = (585.00 + (50000.0 - 45000.0) * 0.091) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
+        QVERIFY(std::fabs(calculateRdDeduction(anual, tabla) - expected) < 1e-6);
     }
 
     // Tramo más alto (>=600000 mensual)
     {
         const double anual = 650000.0 * 12.0;
         const double expected = (89081.17 + (650000.0 - 600000.0) * 0.200) * 12.0;
-        QVERIFY(std::fabs(calcularRealesDecretos(anual, tabla) - expected) < 1e-6);
+        QVERIFY(std::fabs(calculateRdDeduction(anual, tabla) - expected) < 1e-6);
     }
 }
 
 void TestSimCore::cuotaAutonomos_matchesTramoTable()
 {
-    // Tabla de tramos por defecto (Inputs::tramosRETA, editable desde Configuración).
+    // Tabla de tramos por defecto (Inputs::retaBrackets, editable desde Configuración).
     const Inputs in;
-    const auto& tabla = in.tramosRETA;
+    const auto& tabla = in.retaBrackets;
 
     // Beneficio <= 0 -> tramo más bajo (200/205,88 €/mes con MEI).
-    QCOMPARE(calcularCuotaAutonomos(0.0, tabla), 205.88 * 12.0);
-    QCOMPARE(calcularCuotaAutonomos(-50000.0, tabla), 205.88 * 12.0);
+    QCOMPARE(calculateSelfEmployedQuota(0.0, tabla), 205.88 * 12.0);
+    QCOMPARE(calculateSelfEmployedQuota(-50000.0, tabla), 205.88 * 12.0);
 
     // 1500 €/mes de beneficio -> tramo [1300, 1500) -> 302,64 €/mes.
-    QVERIFY(std::fabs(calcularCuotaAutonomos(1500.0 * 12.0, tabla) - 302.64 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calculateSelfEmployedQuota(1500.0 * 12.0, tabla) - 302.64 * 12.0) < 1e-6);
 
     // Límite exacto del tramo [1500, 1700): 1700 €/mes de beneficio.
-    QVERIFY(std::fabs(calcularCuotaAutonomos(1700.0 * 12.0, tabla) - 319.12 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calculateSelfEmployedQuota(1700.0 * 12.0, tabla) - 319.12 * 12.0) < 1e-6);
 
     // Tramo más alto (>= 6000 €/mes de beneficio).
-    QVERIFY(std::fabs(calcularCuotaAutonomos(650000.0, tabla) - 607.31 * 12.0) < 1e-6);
+    QVERIFY(std::fabs(calculateSelfEmployedQuota(650000.0, tabla) - 607.31 * 12.0) < 1e-6);
 }
 
 void TestSimCore::compute_datosBaseInvariants()
 {
     const Inputs in; // valores por defecto = valores del Excel
     const Results r = compute(in);
-    const auto& D = r.datosBase;
+    const auto& D = r.baseData;
 
-    QVERIFY(std::fabs(D.ventaTotal - (in.ventaReceta + in.ventaLibre)) < 1e-6);
-    QVERIFY(std::fabs(D.mComBruto - D.ventaTotal * in.margenPct) < 1e-6);
-    QVERIFY(std::fabs((D.costeMercancia + D.mComBruto) - D.ventaTotal) < 1e-6);
-    QVERIFY(std::fabs(D.totalGastosPersonal
-                       - (D.gastosPersonal + D.seguridadSocial + r.proyeccion.cuotaAutonomos[0])) < 1e-6);
+    QVERIFY(std::fabs(D.totalSales - (in.prescriptionSales + in.otcSales)) < 1e-6);
+    QVERIFY(std::fabs(D.grossMargin - D.totalSales * in.marginPct) < 1e-6);
+    QVERIFY(std::fabs((D.costOfGoods + D.grossMargin) - D.totalSales) < 1e-6);
+    QVERIFY(std::fabs(D.totalStaffCost
+                       - (D.staffCost + D.socialSecurity + r.projection.selfEmployedQuota[0])) < 1e-6);
 }
 
 void TestSimCore::compute_amortBancoFullyAmortizes()
 {
     const Inputs in;
     const Results r = compute(in);
-    const auto& a = r.amortBanco;
+    const auto& a = r.bankAmort;
 
     QCOMPARE(int(a.rows.size()), 300);
-    QCOMPARE(a.numPagos, in.plazoBanco * 12);
+    QCOMPARE(a.numPayments, in.bankTermYears * 12);
 
-    // capital de cada fila es negativo (reduce el saldo pendiente); su suma en
-    // valor absoluto debe cubrir el principal cuando el préstamo se liquida.
+    // el capital de cada fila es negativo (reduce el saldo pendiente); su suma
+    // en valor absoluto debe cubrir el principal cuando el préstamo se liquida.
     double capitalPagado = 0;
-    for (int i = 0; i < a.numPagos; ++i)
-        capitalPagado += a.rows[i].capital;
+    for (int i = 0; i < a.numPayments; ++i)
+        capitalPagado += a.rows[i].principalPaid;
 
     QVERIFY(std::fabs(-capitalPagado - a.principal) < a.principal * 1e-6);
-    QVERIFY(std::fabs(a.rows[a.numPagos - 1].saldoFin) < a.principal * 1e-6);
+    QVERIFY(std::fabs(a.rows[a.numPayments - 1].endingBalance) < a.principal * 1e-6);
 }
 
 void TestSimCore::compute_personalTotalsSumRows()
 {
     const Inputs in;
     const Results r = compute(in);
-    const auto& P = r.personal;
+    const auto& P = r.staff;
 
     double sumaSS = 0, sumaReal = 0, sumaCoste = 0;
-    for (const auto& row : P.datos) {
-        sumaSS    += row.costeSS;
-        sumaReal  += row.salReal;
-        sumaCoste += row.costeTotal;
+    for (const auto& row : P.byRole) {
+        sumaSS    += row.socialSecurityCost;
+        sumaReal  += row.actualSalary;
+        sumaCoste += row.totalCost;
     }
-    QVERIFY(std::fabs(sumaSS - P.totCosteSS) < 1e-6);
-    QVERIFY(std::fabs(sumaReal - P.totSalReal) < 1e-6);
-    QVERIFY(std::fabs(sumaCoste - P.totCoste) < 1e-6);
+    QVERIFY(std::fabs(sumaSS - P.totalSocialSecurityCost) < 1e-6);
+    QVERIFY(std::fabs(sumaReal - P.totalActualSalary) < 1e-6);
+    QVERIFY(std::fabs(sumaCoste - P.totalCost) < 1e-6);
 
     double personas = 0, brutoReal = 0, ss = 0, plantilla = 0;
-    for (const auto& row : P.plantilla) {
-        personas  += row.personas;
-        brutoReal += row.brutoReal;
-        ss        += row.costeSS;
-        plantilla += row.costeTotal;
+    for (const auto& row : P.headcountPlan) {
+        personas  += row.headcount;
+        brutoReal += row.actualGross;
+        ss        += row.socialSecurityCost;
+        plantilla += row.totalCost;
     }
-    QVERIFY(std::fabs(personas - P.totPersonas) < 1e-9);
-    QVERIFY(std::fabs(brutoReal - P.totBrutoReal) < 1e-6);
-    QVERIFY(std::fabs(ss - P.totSS) < 1e-6);
-    QVERIFY(std::fabs(plantilla - P.totPlantilla) < 1e-6);
+    QVERIFY(std::fabs(personas - P.totalHeadcount) < 1e-9);
+    QVERIFY(std::fabs(brutoReal - P.totalActualGross) < 1e-6);
+    QVERIFY(std::fabs(ss - P.totalSocialSecurity) < 1e-6);
+    QVERIFY(std::fabs(plantilla - P.totalHeadcountCost) < 1e-6);
 }
 
 void TestSimCore::compute_goldenValues()
@@ -193,12 +193,12 @@ void TestSimCore::compute_goldenValues()
     const Inputs in;
     const Results r = compute(in);
 
-    QVERIFY(std::fabs(r.datosBase.beneficioAntesImp - 169851.78448) < 1e-3);
-    QVERIFY(std::fabs(r.financiacion.totalInversion - 2489296.48) < 1e-2);
-    QVERIFY(std::fabs(r.amortBanco.pagoMensual - (-7705.0049051490)) < 1e-6);
-    QVERIFY(std::fabs(r.proyeccion.beneficio[9] - 196200.0530834275) < 1e-4);
-    QVERIFY(std::fabs(r.impuestos.pago[0] - 0.0) < 1e-6);
-    QVERIFY(std::fabs(r.analisis.tir[1] - 0.1691787702) < 1e-6);
+    QVERIFY(std::fabs(r.baseData.profitBeforeTax - 169851.78448) < 1e-3);
+    QVERIFY(std::fabs(r.financing.totalInvestment - 2489296.48) < 1e-2);
+    QVERIFY(std::fabs(r.bankAmort.monthlyPayment - (-7705.0049051490)) < 1e-6);
+    QVERIFY(std::fabs(r.projection.profit[9] - 196200.0530834275) < 1e-4);
+    QVERIFY(std::fabs(r.taxes.payment[0] - 0.0) < 1e-6);
+    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1691787702) < 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)
