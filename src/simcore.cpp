@@ -7,12 +7,12 @@ double pmt(double r, int n, double p)
 {
     if (n <= 0) return 0;
     if (r == 0.0) return -p / n;
-    // exp(-n*log1p(r)) en lugar de pow(): coincide bit a bit con el PMT de
-    // Excel, lo que importa en el filo del último pago del cuadro.
+    // exp(-n*log1p(r)) instead of pow(): matches Excel's PMT bit-for-bit,
+    // which matters at the edge of the schedule's last payment.
     return -p * r / (1.0 - std::exp(-double(n) * std::log1p(r)));
 }
 
-// NPV para IRR
+// NPV for IRR
 static double npv(double rate, const std::vector<double>& cf)
 {
     double v = 0;
@@ -23,7 +23,7 @@ static double npv(double rate, const std::vector<double>& cf)
 
 double irr(const std::vector<double>& cf, double guess)
 {
-    // Newton-Raphson con derivada numérica y bisección de respaldo
+    // Newton-Raphson with numerical derivative and bisection fallback
     double r = guess;
     for (int it = 0; it < 100; ++it) {
         const double f  = npv(r, cf);
@@ -32,12 +32,12 @@ double irr(const std::vector<double>& cf, double guess)
         if (std::fabs(df) < 1e-12) break;
         const double r2 = r - f / df;
         if (std::fabs(r2 - r) < 1e-10) return r2;
-        r = (r2 <= -1.0) ? (r - 1.0) / 2.0 : r2; // no cruzar -100%
+        r = (r2 <= -1.0) ? (r - 1.0) / 2.0 : r2; // never cross -100%
     }
-    // Bisección
+    // Bisection
     double lo = -0.9999, hi = 10.0;
     double flo = npv(lo, cf), fhi = npv(hi, cf);
-    if (flo * fhi > 0) return r; // sin cambio de signo: devolver Newton
+    if (flo * fhi > 0) return r; // no sign change: return Newton's result
     for (int it = 0; it < 200; ++it) {
         const double mid = (lo + hi) / 2.0;
         const double fm = npv(mid, cf);
@@ -47,80 +47,80 @@ double irr(const std::vector<double>& cf, double guess)
     return (lo + hi) / 2.0;
 }
 
-// Cuadro de amortización: 300 filas SIEMPRE (como el Excel, filas 18-317).
-// Tras liquidarse el préstamo la cuota pasa a 0 pero el interés se sigue
-// calculando sobre el saldo (ligeramente negativo) — réplica exacta.
-static AmortResult amortizar(double principal, double tasaAnual, int plazoAnios,
-                             int anio0, int mes0)
+// Amortization schedule: ALWAYS 300 rows (like the Excel, rows 18-317).
+// Once the loan is paid off the payment drops to 0 but interest keeps being
+// computed on the (slightly negative) balance — exact replica.
+static AmortResult amortize(double principal, double annualRate, int termYears,
+                             int startYear, int startMonth)
 {
     AmortResult a;
-    a.principal  = principal;
-    a.tasaAnual  = tasaAnual;
-    a.plazoAnios = plazoAnios;
-    a.numPagos   = plazoAnios * 12;
+    a.principal   = principal;
+    a.annualRate  = annualRate;
+    a.termYears   = termYears;
+    a.numPayments = termYears * 12;
 
-    // Réplica exacta del Excel: la cuota usa F3/12, pero el interés de cada
-    // fila usa G3=F3*100/12 y luego /100 (difieren en el último bit, y eso
-    // determina el comportamiento del cuadro tras el último pago).
-    const double g3 = tasaAnual * 100.0 / 12.0;                        // G3
-    const double cuotaFija = pmt(tasaAnual / 12.0, a.numPagos, principal); // F18
+    // Exact replica of the Excel: the payment uses F3/12, but the interest of
+    // each row uses G3=F3*100/12 and then /100 (they differ in the last bit,
+    // and that determines the schedule's behavior after the last payment).
+    const double g3 = annualRate * 100.0 / 12.0;                              // G3
+    const double fixedPayment = pmt(annualRate / 12.0, a.numPayments, principal); // F18
 
-    a.pagoMensual = cuotaFija;
-    a.pagoAnual   = cuotaFija * 12.0;
+    a.monthlyPayment = fixedPayment;
+    a.annualPayment  = fixedPayment * 12.0;
 
     a.rows.reserve(300);
-    double saldo = principal;
-    int anio = anio0, mes = mes0;
+    double balance = principal;
+    int year = startYear, month = startMonth;
     for (int m = 1; m <= 300; ++m) {
         AmortRow r;
-        r.num      = m;
-        r.anio     = anio;
-        r.mes      = mes;
-        r.saldoIni = saldo;
-        r.cuota    = (m == 1) ? cuotaFija : (saldo <= 0.0 ? 0.0 : cuotaFija); // F19: IF(E<=0;0;$F$18)
-        r.interes  = (-saldo * g3) / 100.0; // H: -E*$G$3/100
-        r.capital  = r.cuota - r.interes;  // G: F-H
-        r.saldoFin = saldo + r.capital;    // I: E+G
-        a.totalIntereses += r.interes;
+        r.paymentNum      = m;
+        r.year            = year;
+        r.month           = month;
+        r.startingBalance = balance;
+        r.payment  = (m == 1) ? fixedPayment : (balance <= 0.0 ? 0.0 : fixedPayment); // F19: IF(E<=0;0;$F$18)
+        r.interest = (-balance * g3) / 100.0; // H: -E*$G$3/100
+        r.principalPaid = r.payment - r.interest;  // G: F-H
+        r.endingBalance = balance + r.principalPaid; // I: E+G
+        a.totalInterest += r.interest;
         a.rows.push_back(r);
-        saldo = r.saldoFin;
-        if (++mes > 12) { mes = 1; ++anio; }
+        balance = r.endingBalance;
+        if (++month > 12) { month = 1; ++year; }
     }
-    a.costeTotal = principal - a.totalIntereses; // F10
+    a.totalCost = principal - a.totalInterest; // F10
     return a;
 }
 
-double calcularRealesDecretos(double ventaRecetaAnual, const std::array<TramoRD,9>& tabla)
+double calculateRdDeduction(double annualPrescriptionSales, const std::array<RdBracket,9>& table)
 {
-    const double mensual = ventaRecetaAnual / 12.0;
-    const TramoRD* tramo = &tabla[0];
-    for (const auto& t : tabla) {
-        if (mensual < t.desde) break;
-        tramo = &t;
+    const double monthly = annualPrescriptionSales / 12.0;
+    const RdBracket* bracket = &table[0];
+    for (const auto& t : table) {
+        if (monthly < t.from) break;
+        bracket = &t;
     }
-    const double deduccionMensual = tramo->base + (mensual - tramo->desde) * tramo->pct;
-    return deduccionMensual * 12.0;
+    const double monthlyDeduction = bracket->base + (monthly - bracket->from) * bracket->pct;
+    return monthlyDeduction * 12.0;
 }
 
-double calcularCuotaAutonomos(double beneficioAnual, const std::array<TramoRETA,15>& tabla)
+double calculateSelfEmployedQuota(double annualProfit, const std::array<RetaBracket,15>& table)
 {
-    const double mensual = std::max(0.0, beneficioAnual) / 12.0;
-    const TramoRETA* tramo = &tabla[0];
-    for (const auto& t : tabla) {
-        if (mensual < t.desde) break;
-        tramo = &t;
+    const double monthly = std::max(0.0, annualProfit) / 12.0;
+    const RetaBracket* bracket = &table[0];
+    for (const auto& t : table) {
+        if (monthly < t.from) break;
+        bracket = &t;
     }
-    return tramo->cuotaMensual * 12.0;
+    return bracket->monthlyQuota * 12.0;
 }
 
-// Margen comercial, escenario "Optimista": editable por el usuario (año 1,
-// año 2, año 3 en adelante — constante desde el año 3).
-static std::array<double,10> margenComercialOptimista(const Inputs& in)
+// Commercial margin, "Optimistic" scenario: editable by the user (year 1,
+// year 2, year 3 onward — constant from year 3).
+static std::array<double,10> optimisticMarginSeries(const Inputs& in)
 {
     std::array<double,10> a;
-    a.fill(in.margenOptimistaAnio3);
-    a[0] = in.margenOptimistaAnio1;
-    a[1] = in.margenOptimistaAnio2;
+    a.fill(in.optimisticMarginYear3);
+    a[0] = in.optimisticMarginYear1;
+    a[1] = in.optimisticMarginYear2;
     return a;
 }
 
@@ -128,280 +128,280 @@ Results compute(const Inputs& in)
 {
     Results R;
 
-    // ================================================= Personal (sección 1)
+    // ================================================= Personal (section 1)
     {
-        auto& P = R.personal;
-        const double b[3] = { in.salFarmaceutico, in.salAuxiliar, in.salTecnico };
-        const double c[3] = { in.jornFarmaceutico, in.jornAuxiliar, in.jornTecnico };
+        auto& P = R.staff;
+        const double b[3] = { in.pharmacistSalary, in.assistantSalary, in.technicianSalary };
+        const double c[3] = { in.pharmacistFte, in.assistantFte, in.technicianFte };
         for (int i = 0; i < 3; ++i) {
-            auto& r = P.datos[i];
-            r.brutoFT   = b[i];
-            r.jornada   = c[i];
-            r.pctSS     = in.pctSS;                 // D7=D8=$D$6
-            r.costeSS   = b[i] * c[i] * in.pctSS;   // E = B*C*D
-            r.salReal   = b[i] * c[i];              // F = B*C
-            r.costeTotal= r.costeSS + r.salReal;    // G = E+F
-            P.totCosteSS += r.costeSS;
-            P.totSalReal += r.salReal;
-            P.totCoste   += r.costeTotal;
+            auto& r = P.byRole[i];
+            r.grossFte  = b[i];
+            r.fte       = c[i];
+            r.socialSecurityPct  = in.socialSecurityPct;    // D7=D8=$D$6
+            r.socialSecurityCost = b[i] * c[i] * in.socialSecurityPct; // E = B*C*D
+            r.actualSalary        = b[i] * c[i];             // F = B*C
+            r.totalCost = r.socialSecurityCost + r.actualSalary; // G = E+F
+            P.totalSocialSecurityCost += r.socialSecurityCost;
+            P.totalActualSalary       += r.actualSalary;
+            P.totalCost                += r.totalCost;
         }
 
-        // Plantilla recomendada (filas 13-16)
+        // Recommended headcount (rows 13-16)
         // D13=B6 ; D14=B6*(1+H6) ; D15=B7*(1+H6) ; D16=B8*(1+H6)
-        const double d[4] = { in.salFarmaceutico,
-                              in.salFarmaceutico * (1.0 + in.subidaPct),
-                              in.salAuxiliar     * (1.0 + in.subidaPct),
-                              in.salTecnico      * (1.0 + in.subidaPct) };
+        const double d[4] = { in.pharmacistSalary,
+                              in.pharmacistSalary * (1.0 + in.raisePct),
+                              in.assistantSalary  * (1.0 + in.raisePct),
+                              in.technicianSalary * (1.0 + in.raisePct) };
         for (int i = 0; i < 4; ++i) {
-            auto& r = P.plantilla[i];
-            r.jornada  = in.plJornada[i];
-            r.personas = (i == 0) ? 1.0 : in.plPersonas[i]; // Titular: siempre 1 persona
-            r.brutoFT  = d[i];
-            if (i == 0) { // Propietario: E13..H13 = 0 (se retribuye vía beneficio)
-                r.brutoReal = r.costeSS = r.costePersona = r.costeTotal = 0;
+            auto& r = P.headcountPlan[i];
+            r.fte       = in.staffFte[i];
+            r.headcount = (i == 0) ? 1.0 : in.staffCount[i]; // Owner: always 1 person
+            r.grossFte  = d[i];
+            if (i == 0) { // Owner: E13..H13 = 0 (compensated via profit)
+                r.actualGross = r.socialSecurityCost = r.costPerPerson = r.totalCost = 0;
             } else {
-                r.brutoReal    = d[i] * r.jornada * r.personas;   // E = D*B*C
-                r.costeSS      = r.brutoReal * in.pctSS;          // F = E*$D$6
-                r.costePersona = r.brutoReal * (1.0 + in.pctSS);  // G = E*(1+$D$6)
-                r.costeTotal   = r.costePersona;                  // H = G
+                r.actualGross      = d[i] * r.fte * r.headcount;      // E = D*B*C
+                r.socialSecurityCost = r.actualGross * in.socialSecurityPct; // F = E*$D$6
+                r.costPerPerson     = r.actualGross * (1.0 + in.socialSecurityPct); // G = E*(1+$D$6)
+                r.totalCost         = r.costPerPerson;               // H = G
             }
-            P.totPersonas  += r.personas;    // C17
-            P.totBrutoReal += r.brutoReal;   // E17 = SUM(E14:E16), E13=0
-            P.totSS        += r.costeSS;     // F17
-            P.totPlantilla += r.costeTotal;  // H17
+            P.totalHeadcount    += r.headcount;    // C17
+            P.totalActualGross  += r.actualGross;  // E17 = SUM(E14:E16), E13=0
+            P.totalSocialSecurity += r.socialSecurityCost; // F17
+            P.totalHeadcountCost  += r.totalCost;  // H17
         }
     }
 
     // ================================================= Datos Base
     {
-        auto& D = R.datosBase;
-        D.ventaTotal     = in.ventaReceta + in.ventaLibre;       // D12
-        D.mComBruto      = D.ventaTotal * in.margenPct;          // D14
-        D.costeMercancia = D.ventaTotal - D.mComBruto;           // D13
-        D.realesDecretos = calcularRealesDecretos(in.ventaReceta, in.tramosRD); // D16
-        D.mComDespuesRD  = D.mComBruto - D.realesDecretos;       // D17
-        D.gastosPersonal  = R.personal.totBrutoReal;             // D18 = 'Personal '!E17
-        D.seguridadSocial = R.personal.totSS;                    // D19 = 'Personal '!F17
-        D.totalOtrosGastos = in.alquilerLocal + in.suministros + in.asesoria
-                           + in.mantenimiento + in.robot + in.seguros + in.otrosGastos; // D29
-        // D20/D21 (cuota autónomos y total gastos personal) se completan más
-        // abajo, tras calcular la cuota RETA del año 1 en la Proyección.
+        auto& D = R.baseData;
+        D.totalSales   = in.prescriptionSales + in.otcSales;         // D12
+        D.grossMargin  = D.totalSales * in.marginPct;                // D14
+        D.costOfGoods  = D.totalSales - D.grossMargin;                // D13
+        D.rdDeduction  = calculateRdDeduction(in.prescriptionSales, in.rdBrackets); // D16
+        D.marginAfterRd = D.grossMargin - D.rdDeduction;              // D17
+        D.staffCost      = R.staff.totalActualGross;                  // D18 = 'Personal '!E17
+        D.socialSecurity = R.staff.totalSocialSecurity;                // D19 = 'Personal '!F17
+        D.totalOtherExpenses = in.premisesRent + in.utilities + in.advisoryFees
+                           + in.maintenance + in.robot + in.insurance + in.otherExpenses; // D29
+        // D20/D21 (self-employed quota and total staff cost) are completed
+        // further below, after computing the year-1 RETA quota in Projection.
     }
 
     // ================================================= Financiación (v2)
     {
-        auto& F = R.financiacion;
-        F.fondoComercio = (in.ventaReceta + in.ventaLibre) * in.coeficiente; // D14
-        F.honorarios    = (F.fondoComercio + in.localComercial) * in.honorariosPct; // D18
-        F.iva           = F.honorarios * in.ivaPct;                          // D19
-        F.impuestoITP   = in.itpPct * in.localComercial;                    // D20
-        F.ajd           = in.ajdPct * (F.fondoComercio + in.existencias);   // D21
-        F.impuestos     = F.impuestoITP + F.ajd;                           // D23
-        const double totalInversionSinApertura = F.fondoComercio + in.localComercial + in.existencias
-                         + F.honorarios + F.iva
-                         + in.notario + in.registro + in.gastosVarios + F.impuestos; // D24 (sin gastos de apertura)
-        F.finBancariaLocal = in.localComercial * in.pctFinLocal;            // D46 (Excel: D15*0,7 literal)
-        const double finBancariaFarmaciaSinApertura = totalInversionSinApertura - in.liquidezAportada
-                              - in.pedidoInicial - F.finBancariaLocal
-                              - in.finPropiedades * in.pctFinPropiedades;   // D45 (sin gastos de apertura)
-        // Los gastos de apertura de hipoteca son un % de la financiación bancaria
-        // (farmacia+local) más la hipoteca de la propiedad, pero esa misma
-        // financiación bancaria cubre esos gastos: se despeja algebraicamente
-        // en vez de iterar.
-        //   X = finBancariaFarmaciaSinApertura + p·(X + finBancariaLocal + finHipotecaPropiedad)
-        //   X·(1-p) = finBancariaFarmaciaSinApertura + p·(finBancariaLocal + finHipotecaPropiedad)
-        const double p = in.pctAperturaHipoteca;
-        const double finHipotecaPropiedad = in.finPropiedades * in.pctFinPropiedades;
-        F.finBancariaFarmacia = (finBancariaFarmaciaSinApertura + p * (F.finBancariaLocal + finHipotecaPropiedad)) / (1 - p);
-        F.gastosAperturaHipoteca = p * (F.finBancariaFarmacia + F.finBancariaLocal + finHipotecaPropiedad);
-        F.totalInversion = totalInversionSinApertura + F.gastosAperturaHipoteca; // D24
-        F.totalFinanciacion = in.liquidezAportada + in.aportacionFamiliar
-                            + F.finBancariaFarmacia + F.finBancariaLocal
-                            + in.finPropiedades * in.pctFinPropiedades
-                            + in.excesoAportacion + in.pedidoInicial;       // D50
-        F.minimoLiquidez = (F.totalInversion
-                          - in.finPropiedades * in.pctFinPropiedades
-                            - in.pedidoInicial - in.localComercial)* (1-in.pctFinFarmacia) + in.localComercial * (1-in.pctFinLocal);
-        F.liquidezInvalida = in.liquidezAportada < F.minimoLiquidez;
+        auto& F = R.financing;
+        F.goodwill = (in.prescriptionSales + in.otcSales) * in.goodwillMultiple; // D14
+        F.fees     = (F.goodwill + in.premisesPrice) * in.feesPct;   // D18
+        F.iva      = F.fees * in.ivaPct;                              // D19
+        F.itpTax   = in.itpPct * in.premisesPrice;                   // D20
+        F.ajd      = in.ajdPct * (F.goodwill + in.inventory);        // D21
+        F.taxes    = F.itpTax + F.ajd;                                // D23
+        const double totalInvestmentBeforeOpeningCost = F.goodwill + in.premisesPrice + in.inventory
+                         + F.fees + F.iva
+                         + in.notaryFees + in.registryFees + in.miscExpenses + F.taxes; // D24 (before opening fees)
+        F.premisesBankFinancing = in.premisesPrice * in.premisesFinancingPct; // D46 (Excel: D15*0,7 literal)
+        const double pharmacyBankFinancingBeforeOpeningCost = totalInvestmentBeforeOpeningCost - in.contributedCash
+                              - in.initialOrder - F.premisesBankFinancing
+                              - in.propertiesFinancing * in.propertiesFinancingPct; // D45 (before opening fees)
+        // The mortgage opening fee is a % of the bank financing (pharmacy+
+        // premises) plus the properties mortgage, but that same bank
+        // financing covers those fees: solved algebraically instead of
+        // iterating.
+        //   X = pharmacyBankFinancingBeforeOpeningCost + p·(X + premisesBankFinancing + propertiesMortgageFinancing)
+        //   X·(1-p) = pharmacyBankFinancingBeforeOpeningCost + p·(premisesBankFinancing + propertiesMortgageFinancing)
+        const double p = in.mortgageOpeningPct;
+        const double propertiesMortgageFinancing = in.propertiesFinancing * in.propertiesFinancingPct;
+        F.pharmacyBankFinancing = (pharmacyBankFinancingBeforeOpeningCost + p * (F.premisesBankFinancing + propertiesMortgageFinancing)) / (1 - p);
+        F.mortgageOpeningCost = p * (F.pharmacyBankFinancing + F.premisesBankFinancing + propertiesMortgageFinancing);
+        F.totalInvestment = totalInvestmentBeforeOpeningCost + F.mortgageOpeningCost; // D24
+        F.totalFinancing = in.contributedCash + in.familyContribution
+                            + F.pharmacyBankFinancing + F.premisesBankFinancing
+                            + in.propertiesFinancing * in.propertiesFinancingPct
+                            + in.contributionExcess + in.initialOrder;       // D50
+        F.minimumCash = (F.totalInvestment
+                          - in.propertiesFinancing * in.propertiesFinancingPct
+                            - in.initialOrder - in.premisesPrice)* (1-in.pharmacyFinancingPct) + in.premisesPrice * (1-in.premisesFinancingPct);
+        F.cashBelowMinimum = in.contributedCash < F.minimumCash;
     }
 
     // ================================================= Amortizaciones
-    R.amortBanco = amortizar(R.financiacion.finBancariaFarmacia + R.financiacion.finBancariaLocal,
-                             in.tipoBanco, in.plazoBanco, in.inicioAnio, in.inicioMes);
-    R.amortCoop  = amortizar(in.pedidoInicial, in.tipoCoop, in.plazoCoop,
-                             in.inicioAnio, in.inicioMes);
-    R.amortProp  = amortizar(in.finPropiedades * in.pctFinPropiedades,
-                             in.tipoPropiedades, in.plazoPropiedades,
-                             in.inicioAnio, in.inicioMes);
+    R.bankAmort = amortize(R.financing.pharmacyBankFinancing + R.financing.premisesBankFinancing,
+                             in.bankRate, in.bankTermYears, in.startYear, in.startMonth);
+    R.coopAmort  = amortize(in.initialOrder, in.coopRate, in.coopTermYears,
+                             in.startYear, in.startMonth);
+    R.propertiesAmort  = amortize(in.propertiesFinancing * in.propertiesFinancingPct,
+                             in.propertiesRate, in.propertiesTermYears,
+                             in.startYear, in.startMonth);
 
-    // Sumas anuales de los cuadros (año i: meses 12i+1 .. 12i+12)
-    auto sumaAnual = [](const AmortResult& a, int anio, bool interes) {
+    // Annual sums of the schedules (year i: months 12i+1 .. 12i+12)
+    auto annualSum = [](const AmortResult& a, int year, bool interest) {
         double s = 0;
-        for (int m = anio * 12; m < anio * 12 + 12; ++m)
-            s += interes ? a.rows[m].interes : a.rows[m].capital;
+        for (int m = year * 12; m < year * 12 + 12; ++m)
+            s += interest ? a.rows[m].interest : a.rows[m].principalPaid;
         return s;
     };
 
-    // ================================================= Proyección 10 años
+    // ================================================= Proyección 10 years
     {
-        auto& P = R.proyeccion;
+        auto& P = R.projection;
 
-        // Escenario de crecimiento: Realista usa el IPC histórico de los
-        // últimos 10 años; Optimista usa el IPC constante fijado por el usuario.
-        const std::array<double,10> ipcAnual = (in.escenarioCrecimiento >= 0.5)
-            ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimista); return a; }()
-            : in.ipcHistorico;
-        const std::array<double,10> margenComercialAnual = (in.escenarioCrecimiento >= 0.5)
-            ? margenComercialOptimista(in)
-            : in.margenComercialSim;
+        // Growth scenario: Realistic uses the last 10 years' historical IPC;
+        // Optimistic uses the constant IPC set by the user.
+        const std::array<double,10> annualIpc = (in.growthScenario >= 0.5)
+            ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimistic); return a; }()
+            : in.ipcHistorical;
+        const std::array<double,10> annualCommercialMargin = (in.growthScenario >= 0.5)
+            ? optimisticMarginSeries(in)
+            : in.realisticMarginSeries;
 
         for (int i = 0; i < 10; ++i) {
-            // Año 1 parte de los valores iniciales tal cual (sin aplicar IPC);
-            // el crecimiento empieza a contar desde el año 2.
-            // IPC negativo se trata como 0% (no se aplica deflación en la proyección).
-            const double ipc = (i == 0) ? 0.0 : std::max(0.0, ipcAnual[i]);
-            P.ipcAplicado[i]     = ipc;
-            P.margenComercial[i] = margenComercialAnual[i];
+            // Year 1 starts from the initial values as-is (IPC not applied);
+            // growth starts counting from year 2.
+            // Negative IPC is treated as 0% (no deflation applied in the projection).
+            const double ipc = (i == 0) ? 0.0 : std::max(0.0, annualIpc[i]);
+            P.ipcApplied[i]         = ipc;
+            P.commercialMarginPct[i] = annualCommercialMargin[i];
 
-            // Ventas (filas 6-7)
-            P.ventaReceta[i] = (i == 0 ? in.ventaReceta : P.ventaReceta[i-1]) * (1.0 + ipc);
-            P.ventaLibre[i]  = (i == 0 ? in.ventaLibre  : P.ventaLibre[i-1])  * (1.0 + ipc);
-            P.ventaTotal[i]  = P.ventaReceta[i] + P.ventaLibre[i];             // fila 8
-            P.costeMercancia[i] = P.ventaTotal[i] * (1.0 - margenComercialAnual[i]); // fila 9
-            P.mComBruto[i]      = P.ventaTotal[i] - P.costeMercancia[i];       // fila 10
-            P.realesDecretos[i] = (i == 0 ? R.datosBase.realesDecretos : P.realesDecretos[i-1]) * (1.0 + ipc); // fila 11
-            P.mComDespuesRD[i]  = P.mComBruto[i] - P.realesDecretos[i];        // fila 12
-            P.alquiler[i] = 0;                                                 // fila 13 (constante 0)
-            P.gastosPersonal[i] = (i == 0)
-                ? R.datosBase.gastosPersonal + R.datosBase.seguridadSocial     // B14 = SUM(D18:E19)
-                : P.gastosPersonal[i-1] * (1.0 + ipc);                         // fila 14
-            P.otrosGastos[i] = (i == 0)
-                ? R.datosBase.totalOtrosGastos                                 // B15 = D29
-                : P.otrosGastos[i-1] * (1.0 + ipc);                            // fila 15
-            P.intereses[i] = sumaAnual(R.amortBanco, i, true)
-                           + sumaAnual(R.amortProp,  i, true);                 // fila 16 (negativo)
-            const double beneficioPreCuota = P.mComDespuesRD[i] - P.alquiler[i]
-                           - P.gastosPersonal[i] - P.otrosGastos[i] + P.intereses[i];
-            // Cuota de autónomos (RETA) del año: el año 1 usa la tarifa plana
-            // de alta inicial (fija, con independencia del tramo); del año 2
-            // en adelante se ubica el tramo según el beneficio proyectado del
-            // año anterior (antes de la propia cuota).
-            P.cuotaAutonomos[i] = (i == 0)
-                ? in.tarifaPlanaMensual * 12.0
-                : calcularCuotaAutonomos(beneficioPreCuota, in.tramosRETA);
-            P.beneficio[i] = beneficioPreCuota - P.cuotaAutonomos[i];          // fila 17
+            // Sales (rows 6-7)
+            P.prescriptionSales[i] = (i == 0 ? in.prescriptionSales : P.prescriptionSales[i-1]) * (1.0 + ipc);
+            P.otcSales[i]  = (i == 0 ? in.otcSales  : P.otcSales[i-1])  * (1.0 + ipc);
+            P.totalSales[i]  = P.prescriptionSales[i] + P.otcSales[i];             // row 8
+            P.costOfGoods[i] = P.totalSales[i] * (1.0 - annualCommercialMargin[i]); // row 9
+            P.grossMargin[i]      = P.totalSales[i] - P.costOfGoods[i];       // row 10
+            P.rdDeduction[i] = (i == 0 ? R.baseData.rdDeduction : P.rdDeduction[i-1]) * (1.0 + ipc); // row 11
+            P.marginAfterRd[i]  = P.grossMargin[i] - P.rdDeduction[i];        // row 12
+            P.rent[i] = 0;                                                 // row 13 (constant 0)
+            P.staffCost[i] = (i == 0)
+                ? R.baseData.staffCost + R.baseData.socialSecurity     // B14 = SUM(D18:E19)
+                : P.staffCost[i-1] * (1.0 + ipc);                         // row 14
+            P.otherExpenses[i] = (i == 0)
+                ? R.baseData.totalOtherExpenses                                 // B15 = D29
+                : P.otherExpenses[i-1] * (1.0 + ipc);                            // row 15
+            P.interest[i] = annualSum(R.bankAmort, i, true)
+                           + annualSum(R.propertiesAmort,  i, true);                 // row 16 (negative)
+            const double profitBeforeQuota = P.marginAfterRd[i] - P.rent[i]
+                           - P.staffCost[i] - P.otherExpenses[i] + P.interest[i];
+            // Self-employed (RETA) quota for the year: year 1 uses the flat
+            // sign-up rate (fixed, regardless of bracket); from year 2 onward
+            // the bracket is located from the previous year's projected
+            // profit (before the quota itself).
+            P.selfEmployedQuota[i] = (i == 0)
+                ? in.retaFlatMonthlyFee * 12.0
+                : calculateSelfEmployedQuota(profitBeforeQuota, in.retaBrackets);
+            P.profit[i] = profitBeforeQuota - P.selfEmployedQuota[i];          // row 17
         }
 
-        // Datos Base (D20/D21): usan la cuota RETA calculada para el año 1.
-        R.datosBase.totalGastosPersonal = R.datosBase.gastosPersonal
-            + R.datosBase.seguridadSocial + P.cuotaAutonomos[0];               // D21
-        R.datosBase.beneficioAntesImp = R.datosBase.mComDespuesRD
-            - R.datosBase.totalGastosPersonal - R.datosBase.totalOtrosGastos;  // D30
+        // Datos Base (D20/D21): use the RETA quota computed for year 1.
+        R.baseData.totalStaffCost = R.baseData.staffCost
+            + R.baseData.socialSecurity + P.selfEmployedQuota[0];               // D21
+        R.baseData.profitBeforeTax = R.baseData.marginAfterRd
+            - R.baseData.totalStaffCost - R.baseData.totalOtherExpenses;  // D30
 
-        // ------------------------- Hoja Impuestos (IRPF, v2) — entre filas 17 y 18
+        // ------------------------- Hoja Impuestos (IRPF, v2) — between rows 17 and 18
         {
-            auto& I = R.impuestos;
-            const auto& F = R.financiacion;
-            I.fdc             = F.fondoComercio;                               // B6
-            I.honorarios      = F.honorarios;                                  // B7
-            I.ajd             = in.ajdPct * (F.fondoComercio + in.existencias); // B8
-            I.baseAmortizable = I.fdc + I.honorarios + I.ajd;                  // B9
-            I.costeLocal      = in.localComercial;                             // B10
-            I.deduccionMinimo = in.minimoPersonal * in.tramosIRPF[0].tipo;     // B33 = B14*O26
+            auto& I = R.taxes;
+            const auto& F = R.financing;
+            I.fdc             = F.goodwill;                               // B6
+            I.fees             = F.fees;                                  // B7
+            I.ajd             = in.ajdPct * (F.goodwill + in.inventory); // B8
+            I.depreciableBase = I.fdc + I.fees + I.ajd;                  // B9
+            I.premisesCost      = in.premisesPrice;                             // B10
+            I.minimumDeduction = in.personalAllowance * in.irpfBrackets[0].rate;     // B33 = B14*O26
             for (int i = 0; i < 10; ++i) {
-                I.beneficio[i]  = P.beneficio[i];                              // fila 18
-                I.amortLocal[i] = I.costeLocal * in.impAmortLocalPct;          // fila 19
-                I.pctAjustado[i] = std::min(in.impAmortMaxPct,
-                    std::max(in.impAmortMinPct,
-                             (I.beneficio[i] - I.amortLocal[i]) / I.baseAmortizable)); // fila 20
-                I.amortFdC[i] = I.pctAjustado[i] * I.baseAmortizable;          // fila 21
-                I.baseImponible[i] = std::max(0.0,
-                    I.beneficio[i] - I.amortLocal[i] - I.amortFdC[i]);         // fila 22
-                I.cuotaEscala[i] = 0;
-                for (int t = 0; t < 6; ++t) {                                  // filas 26-31
-                    const auto& tr = in.tramosIRPF[t];
-                    I.tramos[t][i] = std::max(0.0,
-                        std::min(I.baseImponible[i], tr.hasta) - tr.desde) * tr.tipo;
-                    I.cuotaEscala[i] += I.tramos[t][i];                        // fila 32
+                I.profit[i]  = P.profit[i];                              // row 18
+                I.premisesDepreciation[i] = I.premisesCost * in.taxPremisesDeprPct;          // row 19
+                I.adjustedPct[i] = std::min(in.taxMaxGoodwillDeprPct,
+                    std::max(in.taxMinGoodwillDeprPct,
+                             (I.profit[i] - I.premisesDepreciation[i]) / I.depreciableBase)); // row 20
+                I.fdcDepreciation[i] = I.adjustedPct[i] * I.depreciableBase;          // row 21
+                I.taxableBase[i] = std::max(0.0,
+                    I.profit[i] - I.premisesDepreciation[i] - I.fdcDepreciation[i]);         // row 22
+                I.bracketQuota[i] = 0;
+                for (int t = 0; t < 6; ++t) {                                  // rows 26-31
+                    const auto& tr = in.irpfBrackets[t];
+                    I.brackets[t][i] = std::max(0.0,
+                        std::min(I.taxableBase[i], tr.to) - tr.from) * tr.rate;
+                    I.bracketQuota[i] += I.brackets[t][i];                        // row 32
                 }
-                I.pago[i] = std::max(0.0, I.cuotaEscala[i] - I.deduccionMinimo); // fila 34
+                I.payment[i] = std::max(0.0, I.bracketQuota[i] - I.minimumDeduction); // row 34
             }
         }
 
-        // ------------------------- Proyección filas 18-25 (necesitan Impuestos)
+        // ------------------------- Proyección rows 18-25 (need Impuestos)
         for (int i = 0; i < 10; ++i) {
-            P.pagoImpuestos[i] = R.impuestos.pago[i];                          // fila 18 = Impuestos!34
-            P.liquidez[i] = P.beneficio[i] - P.pagoImpuestos[i];               // fila 19
-            P.devCapitalBanco[i] = sumaAnual(R.amortBanco, i, false)
-                                 + sumaAnual(R.amortProp,  i, false);          // fila 20 (negativo)
-            P.devCooperativa[i]  = sumaAnual(R.amortCoop,  i, false);          // fila 21
-            P.salarioNetoAnual[i]   = P.liquidez[i] + P.devCapitalBanco[i] + P.devCooperativa[i]; // fila 23
-            P.salarioNetoMensual[i] = P.salarioNetoAnual[i] / 12.0;            // fila 24
-            P.pctGastoPersonal[i] = (P.ventaTotal[i] != 0.0)
-                ? P.gastosPersonal[i] / P.ventaTotal[i] : 0.0;                 // fila 25 (IFERROR)
+            P.taxPayment[i] = R.taxes.payment[i];                          // row 18 = Impuestos!34
+            P.cashAfterTax[i] = P.profit[i] - P.taxPayment[i];               // row 19
+            P.bankPrincipalRepayment[i] = annualSum(R.bankAmort, i, false)
+                                 + annualSum(R.propertiesAmort,  i, false);          // row 20 (negative)
+            P.coopPrincipalRepayment[i]  = annualSum(R.coopAmort,  i, false);          // row 21
+            P.netAnnualSalary[i]   = P.cashAfterTax[i] + P.bankPrincipalRepayment[i] + P.coopPrincipalRepayment[i]; // row 23
+            P.netMonthlySalary[i] = P.netAnnualSalary[i] / 12.0;            // row 24
+            P.staffCostPct[i] = (P.totalSales[i] != 0.0)
+                ? P.staffCost[i] / P.totalSales[i] : 0.0;                 // row 25 (IFERROR)
         }
-        R.personal.salarioNetoMensualAnio1 = P.salarioNetoMensual[0];          // Personal!B19
+        R.staff.netMonthlySalaryYear1 = P.netMonthlySalary[0];          // Personal!B19
     }
 
     // ================================================= Análisis Inversión
     {
-        auto& A = R.analisis;
-        const auto& P = R.proyeccion;
-        const double saldoBanco120 = R.amortBanco.rows[119].saldoFin; // I137
-        const double saldoCoop120  = R.amortCoop .rows[119].saldoFin;
-        const double saldoProp120  = R.amortProp .rows[119].saldoFin;
+        auto& A = R.analysis;
+        const auto& P = R.projection;
+        const double bankBalanceAt120 = R.bankAmort.rows[119].endingBalance; // I137
+        const double coopBalanceAt120  = R.coopAmort .rows[119].endingBalance;
+        const double propertiesBalanceAt120  = R.propertiesAmort .rows[119].endingBalance;
 
-        // Revalorización del local a 10 años con el IPC realmente aplicado cada año.
-        double factorIpc10 = 1.0;
-        for (int y = 1; y < 10; ++y) factorIpc10 *= (1.0 + P.ipcAplicado[y]);
+        // Revaluation of the premises over 10 years with the IPC actually applied each year.
+        double ipcFactor10 = 1.0;
+        for (int y = 1; y < 10; ++y) ipcFactor10 *= (1.0 + P.ipcApplied[y]);
 
-        // Fondo de comercio ya amortizado en los 10 años (hoja Impuestos).
-        double amortFdCAcum10 = 0.0;
-        for (int i = 0; i < 10; ++i) amortFdCAcum10 += R.impuestos.amortFdC[i];
+        // Goodwill already depreciated over the 10 years (Impuestos sheet).
+        double fdcDepreciationAccum10 = 0.0;
+        for (int i = 0; i < 10; ++i) fdcDepreciationAccum10 += R.taxes.fdcDepreciation[i];
 
         for (int s = 0; s < 3; ++s) {
-            A.inversionInicial[s] = in.liquidezAportada;                        // fila 7
-            A.valorVentaFdC[s]    = P.ventaTotal[9] * in.factorVenta[s];        // fila 9
-            A.valorVentaLocal[s]  = in.localComercial * factorIpc10;            // fila 10
-            A.existencias10[s]    = P.ventaTotal[9] * in.pctExistencias10;      // fila 11
-            A.fdcPendiente[s]     = R.impuestos.fdc - amortFdCAcum10;          // fila 12
-            A.deuda[s]            = -(saldoBanco120 + saldoCoop120 + saldoProp120); // fila 14
-            A.patrimonioBruto[s]  = A.valorVentaFdC[s] + A.valorVentaLocal[s]
-                                  + A.existencias10[s] + A.deuda[s];            // fila 15
-            A.patrimonioNeto[s]   = A.patrimonioBruto[s] + in.impuestosVenta[s];// fila 16
-            A.cagr[s] = std::pow(A.patrimonioNeto[s] / A.inversionInicial[s], 0.1) - 1.0; // fila 17
+            A.initialInvestment[s] = in.contributedCash;                        // row 7
+            A.fdcSaleValue[s]    = P.totalSales[9] * in.saleFactor[s];        // row 9
+            A.premisesSaleValue[s]  = in.premisesPrice * ipcFactor10;            // row 10
+            A.inventoryYear10[s]    = P.totalSales[9] * in.inventoryPctYear10;      // row 11
+            A.fdcOutstanding[s]     = R.taxes.fdc - fdcDepreciationAccum10;          // row 12
+            A.debt[s]            = -(bankBalanceAt120 + coopBalanceAt120 + propertiesBalanceAt120); // row 14
+            A.grossEquity[s]  = A.fdcSaleValue[s] + A.premisesSaleValue[s]
+                                  + A.inventoryYear10[s] + A.debt[s];            // row 15
+            A.netEquity[s]   = A.grossEquity[s] + in.saleTaxes[s];// row 16
+            A.cagr[s] = std::pow(A.netEquity[s] / A.initialInvestment[s], 0.1) - 1.0; // row 17
 
-            std::vector<double> cf;                                             // fila 18 (TIR)
-            cf.push_back(-A.inversionInicial[s]);
-            for (int i = 0; i < 9; ++i) cf.push_back(P.salarioNetoAnual[i]);
-            cf.push_back(P.salarioNetoAnual[9] + A.patrimonioNeto[s]);
-            A.tir[s] = irr(cf);
+            std::vector<double> cf;                                             // row 18 (IRR)
+            cf.push_back(-A.initialInvestment[s]);
+            for (int i = 0; i < 9; ++i) cf.push_back(P.netAnnualSalary[i]);
+            cf.push_back(P.netAnnualSalary[9] + A.netEquity[s]);
+            A.irr[s] = irr(cf);
         }
 
-        // Liquidez mensual: años 1, 5, 10 (índices 0, 4, 9)
+        // Monthly cash flow: years 1, 5, 10 (indices 0, 4, 9)
         const int yrs[3] = {0, 4, 9};
         for (int k = 0; k < 3; ++k) {
             const int y = yrs[k];
-            A.liqMensual[k]        = P.liquidez[y] / 12.0;                              // fila 22
-            A.devCapitalMensual[k] = -(P.devCapitalBanco[y] + P.devCooperativa[y]) / 12.0; // fila 23
-            A.interesesMensual[k]  = -P.intereses[y] / 12.0;                            // fila 24
-            A.netoTitular[k]       = P.salarioNetoMensual[y];                           // fila 25
+            A.monthlyCashFlow[k]        = P.cashAfterTax[y] / 12.0;                              // row 22
+            A.monthlyPrincipalRepayment[k] = -(P.bankPrincipalRepayment[y] + P.coopPrincipalRepayment[y]) / 12.0; // row 23
+            A.monthlyInterest[k]  = -P.interest[y] / 12.0;                            // row 24
+            A.ownerNetIncome[k]       = P.netMonthlySalary[y];                           // row 25
         }
 
-        // Simulación amortización fondo de comercio (filas 28-40)
-        A.amortLocalAnual = in.localComercial * in.pctAmortLocal;               // B32 (B30=Financiación!D15)
-        double pend = 0;
+        // Goodwill depreciation simulation (rows 28-40)
+        A.annualPremisesDepreciation = in.premisesPrice * in.investmentPremisesDeprPct;               // B32 (B30=Financiación!D15)
+        double remaining = 0;
         for (int i = 0; i < 10; ++i) {
-            A.benFarmacia[i] = P.beneficio[i];                                  // fila 35
-            A.pctAmortFdC[i] = std::min(in.pctMaxFdC,
-                std::max(0.0, A.benFarmacia[i] - A.amortLocalAnual) / in.fdcInicialSim); // fila 36
-            const double tope = (i == 0) ? in.fdcInicialSim : std::max(0.0, pend);
-            A.amortFdC[i]   = std::min(A.pctAmortFdC[i] * in.fdcInicialSim, tope); // fila 37
-            A.amortLocal[i] = A.amortLocalAnual;                                 // fila 38
-            A.baseImponible[i] = A.benFarmacia[i] - A.amortFdC[i] - A.amortLocal[i]; // fila 39
-            pend = (i == 0) ? std::max(0.0, in.fdcInicialSim - A.amortFdC[i])
-                            : std::max(0.0, pend - A.amortFdC[i]);               // fila 40
-            A.fdcPendienteSim[i] = pend;
+            A.pharmacyProfit[i] = P.profit[i];                                  // row 35
+            A.fdcDepreciationPct[i] = std::min(in.fdcMaxPct,
+                std::max(0.0, A.pharmacyProfit[i] - A.annualPremisesDepreciation) / in.fdcInitialSim); // row 36
+            const double cap = (i == 0) ? in.fdcInitialSim : std::max(0.0, remaining);
+            A.fdcDepreciation[i]   = std::min(A.fdcDepreciationPct[i] * in.fdcInitialSim, cap); // row 37
+            A.premisesDepreciation[i] = A.annualPremisesDepreciation;                 // row 38
+            A.taxableBase[i] = A.pharmacyProfit[i] - A.fdcDepreciation[i] - A.premisesDepreciation[i]; // row 39
+            remaining = (i == 0) ? std::max(0.0, in.fdcInitialSim - A.fdcDepreciation[i])
+                            : std::max(0.0, remaining - A.fdcDepreciation[i]);               // row 40
+            A.fdcOutstandingSim[i] = remaining;
         }
     }
 

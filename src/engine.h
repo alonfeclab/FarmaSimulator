@@ -9,102 +9,102 @@
 
 class AmortModel;
 
-// Fachada QML: entradas editables + resultados de todas las hojas.
+// QML facade: editable inputs + results of every sheet.
 class Engine : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
     Q_PROPERTY(QVariantMap inputs       READ inputs       NOTIFY recalculated)
-    Q_PROPERTY(QVariantMap datosBase    READ datosBase    NOTIFY recalculated)
-    Q_PROPERTY(QVariantMap financiacion READ financiacion NOTIFY recalculated)
-    Q_PROPERTY(QVariantMap personal     READ personal     NOTIFY recalculated)
-    Q_PROPERTY(QVariantList proyeccion  READ proyeccion   NOTIFY recalculated)
-    Q_PROPERTY(QVariantMap impuestos    READ impuestos    NOTIFY recalculated)
-    Q_PROPERTY(QVariantMap analisis     READ analisis     NOTIFY recalculated)
-    Q_PROPERTY(AmortModel* banco        READ banco        CONSTANT)
-    Q_PROPERTY(AmortModel* cooperativa  READ cooperativa  CONSTANT)
-    Q_PROPERTY(AmortModel* propiedades  READ propiedades  CONSTANT)
-    Q_PROPERTY(QString rutaDatos        READ rutaDatos    CONSTANT)
-    Q_PROPERTY(QVariantList escenariosComparacion READ escenariosComparacion NOTIFY escenariosComparacionChanged)
+    Q_PROPERTY(QVariantMap baseData     READ baseData     NOTIFY recalculated)
+    Q_PROPERTY(QVariantMap financing    READ financing    NOTIFY recalculated)
+    Q_PROPERTY(QVariantMap staff        READ staff        NOTIFY recalculated)
+    Q_PROPERTY(QVariantList projection  READ projection   NOTIFY recalculated)
+    Q_PROPERTY(QVariantMap taxes        READ taxes        NOTIFY recalculated)
+    Q_PROPERTY(QVariantMap analysis     READ analysis     NOTIFY recalculated)
+    Q_PROPERTY(AmortModel* bank         READ bank         CONSTANT)
+    Q_PROPERTY(AmortModel* cooperative  READ cooperative  CONSTANT)
+    Q_PROPERTY(AmortModel* properties   READ properties   CONSTANT)
+    Q_PROPERTY(QString dataPath         READ dataPath     CONSTANT)
+    Q_PROPERTY(QVariantList comparisonScenarios READ comparisonScenarios NOTIFY comparisonScenariosChanged)
 
 public:
     explicit Engine(QObject* parent = nullptr);
 
-    // Cambia una entrada por su clave (p. ej. "ventaReceta", "ipcOptimista") y recalcula.
+    // Changes an input by its key (e.g. "prescriptionSales", "ipcOptimistic") and recalculates.
     Q_INVOKABLE void set(const QString& key, double value);
-    Q_INVOKABLE void restaurarValoresIniciales();
+    Q_INVOKABLE void resetToDefaults();
 
-    // Recalcula la proyección con algunas entradas sustituidas (p. ej. desde la
-    // hoja "Simulación simple"), sin tocar el estado compartido del motor: no
-    // afecta a las demás hojas ni se guarda en disco.
-    Q_INVOKABLE QVariantMap simularSimple(const QVariantMap& cambios) const;
+    // Recalculates the projection with some inputs substituted (e.g. from the
+    // "Simulación simple" sheet), without touching the engine's shared state:
+    // it doesn't affect the other sheets nor does it get saved to disk.
+    Q_INVOKABLE QVariantMap simulateQuick(const QVariantMap& overrides) const;
 
-    // Genera el informe PDF. Escritorio: lo guarda en Documentos, lo abre y
-    // devuelve la ruta. WASM: lo descarga el navegador. Vacío si falla.
-    Q_INVOKABLE QString exportarPdf();
+    // Generates the PDF report. Desktop: saves it to Documents, opens it and
+    // returns the path. WASM: the browser downloads it. Empty on failure.
+    Q_INVOKABLE QString exportPdf();
 
-    // Genera un PDF solo con la tabla comparativa de escenarios, siempre con
-    // la vista completa (incluye el grupo "Financiación"). Si 'anio' es -1,
-    // incluye los 10 años, uno por página; si no, solo el año dado (0-9).
-    // Mismo comportamiento de guardado/descarga que exportarPdf().
-    Q_INVOKABLE QString exportarPdfComparacion(int anio);
+    // Generates a PDF with just the scenario comparison table, always with
+    // the "full view" (includes the "Financiación" group). If 'year' is -1,
+    // includes all 10 years, one per page; otherwise just the given year
+    // (0-9). Same save/download behavior as exportPdf().
+    Q_INVOKABLE QString exportComparisonPdf(int year);
 
-    // Congela la proyección actual (m_proyeccion) como un nuevo escenario
-    // guardado para la hoja "Comparación".
-    Q_INVOKABLE void anadirEscenarioComparacion();
-    Q_INVOKABLE void quitarEscenarioComparacion(int index);
+    // Freezes the current projection (m_projection) as a new scenario saved
+    // for the "Comparación" sheet.
+    Q_INVOKABLE void addComparisonScenario();
+    Q_INVOKABLE void removeComparisonScenario(int index);
 
-    // Pivota los escenarios guardados: una fila por concepto, una columna
-    // (values[i]) por escenario, con el valor de ese concepto en el año dado.
-    Q_INVOKABLE QVariantList comparacionAnio(int anio) const;
+    // Pivots the saved scenarios: one row per concept, one column
+    // (values[i]) per scenario, with that concept's value for the given year.
+    Q_INVOKABLE QVariantList comparisonForYear(int year) const;
 
-    // Grupo "Financiación" de la vista completa: valores fijos (no varían por
-    // año) de cada escenario guardado, pivotados igual que comparacionAnio().
-    Q_INVOKABLE QVariantList comparacionFinanciacion() const;
+    // "Financiación" group of the full view: fixed values (don't vary by
+    // year) of each saved scenario, pivoted the same way as comparisonForYear().
+    Q_INVOKABLE QVariantList financingComparison() const;
 
     QVariantMap inputs()        const { return m_inputs; }
-    QVariantMap datosBase()     const { return m_datosBase; }
-    QVariantMap financiacion()  const { return m_financiacion; }
-    QVariantMap personal()      const { return m_personal; }
-    QVariantList proyeccion()   const { return m_proyeccion; }
-    QVariantMap impuestos()     const { return m_impuestos; }
-    QVariantMap analisis()      const { return m_analisis; }
-    AmortModel* banco()         const { return m_banco; }
-    AmortModel* cooperativa()   const { return m_coop; }
-    AmortModel* propiedades()   const { return m_prop; }
-    QString rutaDatos()         const { return m_rutaDatos; }
-    QVariantList escenariosComparacion() const { return m_escenariosComparacion; }
+    QVariantMap baseData()      const { return m_baseData; }
+    QVariantMap financing()     const { return m_financing; }
+    QVariantMap staff()         const { return m_staff; }
+    QVariantList projection()   const { return m_projection; }
+    QVariantMap taxes()         const { return m_taxes; }
+    QVariantMap analysis()      const { return m_analysis; }
+    AmortModel* bank()          const { return m_bank; }
+    AmortModel* cooperative()   const { return m_coop; }
+    AmortModel* properties()    const { return m_properties; }
+    QString dataPath()          const { return m_dataPath; }
+    QVariantList comparisonScenarios() const { return m_comparisonScenarios; }
 
 signals:
     void recalculated();
-    void escenariosComparacionChanged();
+    void comparisonScenariosChanged();
 
 private:
     void registerInputs();
     void recalc();
     void buildMaps();
-    void resolverRutaDatos();  // junto al .exe; si no se puede escribir, AppData
-    void guardarEnDisco() const;
-    void cargarDeDisco();
+    void resolveDataPath();  // next to the .exe; falls back to AppData if not writable
+    void saveToDisk() const;
+    void loadFromDisk();
 
     sim::Inputs  m_in;
     sim::Results m_r;
 
-    QHash<QString, double*> m_dbl; // entradas double
-    QHash<QString, int*>    m_int; // entradas enteras (plazos)
+    QHash<QString, double*> m_dbl; // double inputs
+    QHash<QString, int*>    m_int; // integer inputs (terms)
 
-    AmortModel* m_banco = nullptr;
-    AmortModel* m_coop  = nullptr;
-    AmortModel* m_prop  = nullptr;
+    AmortModel* m_bank = nullptr;
+    AmortModel* m_coop = nullptr;
+    AmortModel* m_properties = nullptr;
 
-    QVariantMap  m_inputs, m_datosBase, m_financiacion, m_personal, m_impuestos, m_analisis;
-    QVariantList m_proyeccion;
-    QString m_rutaDatos;
+    QVariantMap  m_inputs, m_baseData, m_financing, m_staff, m_taxes, m_analysis;
+    QVariantList m_projection;
+    QString m_dataPath;
 
-    // Escenarios congelados para comparación: cada entrada es
-    // { "id": qint64, "nombre": QString, "proyeccion": QVariantList (copia de m_proyeccion),
-    //   "financiacion": QVariantMap (liquidezAportada, finBancariaFarmacia, finBancariaLocal,
-    //   pedidoInicial, finPropiedades) }.
-    QVariantList m_escenariosComparacion;
+    // Frozen scenarios for comparison: each entry is
+    // { "id": qint64, "name": QString, "projection": QVariantList (copy of m_projection),
+    //   "financing": QVariantMap (contributedCash, pharmacyBankFinancing, premisesBankFinancing,
+    //   initialOrder, propertiesFinancing) }.
+    QVariantList m_comparisonScenarios;
 };

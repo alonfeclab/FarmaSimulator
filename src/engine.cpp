@@ -19,65 +19,65 @@
 #include <cmath>
 
 #ifdef Q_OS_WASM
-#include <emscripten/val.h>   // acceso síncrono a localStorage del navegador
+#include <emscripten/val.h>   // synchronous access to the browser's localStorage
 #endif
 
 Engine::Engine(QObject* parent)
     : QObject(parent)
 {
-    m_banco = new AmortModel(QStringLiteral("Amortización préstamo bancario"), this);
+    m_bank = new AmortModel(QStringLiteral("Amortización préstamo bancario"), this);
     m_coop  = new AmortModel(QStringLiteral("Amortización cooperativa"), this);
-    m_prop  = new AmortModel(QStringLiteral("Amortización propiedades"), this);
+    m_properties  = new AmortModel(QStringLiteral("Amortización propiedades"), this);
     registerInputs();
-    resolverRutaDatos();
-    cargarDeDisco();
+    resolveDataPath();
+    loadFromDisk();
     recalc();
 }
 
-// ---------------------------------------------------------------- persistencia
-void Engine::resolverRutaDatos()
+// ---------------------------------------------------------------- persistence
+void Engine::resolveDataPath()
 {
 #ifdef Q_OS_WASM
-    // En el navegador no hay sistema de archivos: se usa localStorage.
-    m_rutaDatos = QStringLiteral("almacenamiento del navegador (localStorage)");
+    // No filesystem in the browser: localStorage is used instead.
+    m_dataPath = QStringLiteral("almacenamiento del navegador (localStorage)");
 #else
-    // Preferir un JSON junto al ejecutable (uso portable). Si esa carpeta no
-    // es escribible (p. ej. Archivos de programa), usar AppData.
-    const QString junto = QCoreApplication::applicationDirPath()
-                        + QStringLiteral("/farmaciasim_datos.json");
-    QFile probe(junto);
-    if (probe.open(QIODevice::ReadWrite)) {   // no trunca; crea si no existe
+    // Prefer a JSON file next to the executable (portable use). If that
+    // folder isn't writable (e.g. Program Files), use AppData instead.
+    const QString besideExe = QCoreApplication::applicationDirPath()
+                        + QStringLiteral("/farmaciasim_data.json");
+    QFile probe(besideExe);
+    if (probe.open(QIODevice::ReadWrite)) {   // doesn't truncate; creates if missing
         probe.close();
         if (probe.size() == 0)
-            QFile::remove(junto);             // no dejar un archivo vacío
-        m_rutaDatos = junto;
+            QFile::remove(besideExe);             // don't leave an empty file
+        m_dataPath = besideExe;
         return;
     }
     const QString appData =
         QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(appData);
-    m_rutaDatos = appData + QStringLiteral("/farmaciasim_datos.json");
+    m_dataPath = appData + QStringLiteral("/farmaciasim_data.json");
 #endif
 }
 
-void Engine::guardarEnDisco() const
+void Engine::saveToDisk() const
 {
     QJsonObject o;
     for (auto it = m_dbl.cbegin(); it != m_dbl.cend(); ++it)
         o[it.key()] = *it.value();
     for (auto it = m_int.cbegin(); it != m_int.cend(); ++it)
         o[it.key()] = *it.value();
-    o["escenariosComparacion"] = QJsonArray::fromVariantList(m_escenariosComparacion);
+    o["comparisonScenarios"] = QJsonArray::fromVariantList(m_comparisonScenarios);
 
 #ifdef Q_OS_WASM
     const QByteArray json = QJsonDocument(o).toJson(QJsonDocument::Compact);
     emscripten::val::global("localStorage")
-        .call<void>("setItem", std::string("farmaciasim_datos"),
+        .call<void>("setItem", std::string("farmaciasim_data"),
                     json.toStdString());
 #else
-    QSaveFile f(m_rutaDatos);                 // escritura atómica
+    QSaveFile f(m_dataPath);                 // atomic write
     if (!f.open(QIODevice::WriteOnly)) {
-        qWarning("No se pudo guardar en '%s'", qPrintable(m_rutaDatos));
+        qWarning("No se pudo guardar en '%s'", qPrintable(m_dataPath));
         return;
     }
     f.write(QJsonDocument(o).toJson(QJsonDocument::Indented));
@@ -85,22 +85,22 @@ void Engine::guardarEnDisco() const
 #endif
 }
 
-void Engine::cargarDeDisco()
+void Engine::loadFromDisk()
 {
-    QByteArray datos;
+    QByteArray data;
 #ifdef Q_OS_WASM
     const emscripten::val v = emscripten::val::global("localStorage")
-        .call<emscripten::val>("getItem", std::string("farmaciasim_datos"));
+        .call<emscripten::val>("getItem", std::string("farmaciasim_data"));
     if (v.isNull() || v.isUndefined())
-        return;                                // primera ejecución: defaults
-    datos = QByteArray::fromStdString(v.as<std::string>());
+        return;                                // first run: defaults
+    data = QByteArray::fromStdString(v.as<std::string>());
 #else
-    QFile f(m_rutaDatos);
+    QFile f(m_dataPath);
     if (!f.exists() || !f.open(QIODevice::ReadOnly))
-        return;                                // primera ejecución: defaults
-    datos = f.readAll();
+        return;                                // first run: defaults
+    data = f.readAll();
 #endif
-    const QJsonDocument doc = QJsonDocument::fromJson(datos);
+    const QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject())
         return;
     const QJsonObject o = doc.object();
@@ -114,11 +114,11 @@ void Engine::cargarDeDisco()
             if (v > 0) **n = v;
         }
     }
-    m_in.plPersonas[0] = 1; // Farmacéutico titular: siempre 1 persona, no editable
+    m_in.staffCount[0] = 1; // Owner pharmacist: always 1 person, not editable
 
-    if (const auto it = o.constFind(QStringLiteral("escenariosComparacion"));
+    if (const auto it = o.constFind(QStringLiteral("comparisonScenarios"));
         it != o.constEnd() && it->isArray()) {
-        m_escenariosComparacion = it->toArray().toVariantList();
+        m_comparisonScenarios = it->toArray().toVariantList();
     }
 }
 
@@ -126,103 +126,103 @@ void Engine::registerInputs()
 {
     auto& i = m_in;
     // ---- Datos Base
-    m_dbl["ventaReceta"]    = &i.ventaReceta;
-    m_dbl["ventaLibre"]     = &i.ventaLibre;
-    m_dbl["margenPct"]      = &i.margenPct;
-    m_dbl["alquilerLocal"]  = &i.alquilerLocal;
-    m_dbl["suministros"]    = &i.suministros;
-    m_dbl["asesoria"]       = &i.asesoria;
-    m_dbl["mantenimiento"]  = &i.mantenimiento;
-    m_dbl["robot"]          = &i.robot;
-    m_dbl["seguros"]        = &i.seguros;
-    m_dbl["otrosGastos"]    = &i.otrosGastos;
-    // ---- Financiación: escenario de crecimiento
-    m_dbl["escenarioCrecimiento"] = &i.escenarioCrecimiento;
-    m_dbl["ipcOptimista"]         = &i.ipcOptimista;
-    m_dbl["margenOptimistaAnio1"] = &i.margenOptimistaAnio1;
-    m_dbl["margenOptimistaAnio2"] = &i.margenOptimistaAnio2;
-    m_dbl["margenOptimistaAnio3"] = &i.margenOptimistaAnio3;
-    // ---- Financiación: inversión, tipos, aportaciones
-    m_dbl["coeficiente"]       = &i.coeficiente;
-    m_dbl["localComercial"]    = &i.localComercial;
-    m_dbl["existencias"]       = &i.existencias;
-    m_dbl["notario"]           = &i.notario;
-    m_dbl["registro"]          = &i.registro;
-    m_dbl["gastosVarios"]      = &i.gastosVarios;
-    m_dbl["honorariosPct"]     = &i.honorariosPct;
+    m_dbl["prescriptionSales"] = &i.prescriptionSales;
+    m_dbl["otcSales"]          = &i.otcSales;
+    m_dbl["marginPct"]         = &i.marginPct;
+    m_dbl["premisesRent"]      = &i.premisesRent;
+    m_dbl["utilities"]         = &i.utilities;
+    m_dbl["advisoryFees"]      = &i.advisoryFees;
+    m_dbl["maintenance"]       = &i.maintenance;
+    m_dbl["robot"]             = &i.robot;
+    m_dbl["insurance"]         = &i.insurance;
+    m_dbl["otherExpenses"]     = &i.otherExpenses;
+    // ---- Financiación: growth scenario
+    m_dbl["growthScenario"]       = &i.growthScenario;
+    m_dbl["ipcOptimistic"]        = &i.ipcOptimistic;
+    m_dbl["optimisticMarginYear1"] = &i.optimisticMarginYear1;
+    m_dbl["optimisticMarginYear2"] = &i.optimisticMarginYear2;
+    m_dbl["optimisticMarginYear3"] = &i.optimisticMarginYear3;
+    // ---- Financiación: investment, rates, contributions
+    m_dbl["goodwillMultiple"]  = &i.goodwillMultiple;
+    m_dbl["premisesPrice"]     = &i.premisesPrice;
+    m_dbl["inventory"]         = &i.inventory;
+    m_dbl["notaryFees"]        = &i.notaryFees;
+    m_dbl["registryFees"]      = &i.registryFees;
+    m_dbl["miscExpenses"]      = &i.miscExpenses;
+    m_dbl["feesPct"]           = &i.feesPct;
     m_dbl["ivaPct"]            = &i.ivaPct;
     m_dbl["itpPct"]            = &i.itpPct;
     m_dbl["ajdPct"]            = &i.ajdPct;
-    m_dbl["tipoBanco"]         = &i.tipoBanco;
-    m_dbl["tipoCoop"]          = &i.tipoCoop;
-    m_dbl["tipoFamiliar"]      = &i.tipoFamiliar;
-    m_dbl["tipoPropiedades"]   = &i.tipoPropiedades;
-    m_int["plazoBanco"]        = &i.plazoBanco;
-    m_int["plazoCoop"]         = &i.plazoCoop;
-    m_int["plazoFamiliar"]     = &i.plazoFamiliar;
-    m_int["plazoPropiedades"]  = &i.plazoPropiedades;
-    m_dbl["pctFinFarmacia"]    = &i.pctFinFarmacia;
-    m_dbl["pctFinLocal"]       = &i.pctFinLocal;
-    m_dbl["pctAperturaHipoteca"] = &i.pctAperturaHipoteca;
-    m_dbl["pctFinPropiedades"] = &i.pctFinPropiedades;
-    m_dbl["liquidezAportada"]  = &i.liquidezAportada;
-    m_dbl["aportacionFamiliar"]= &i.aportacionFamiliar;
-    m_dbl["finPropiedades"]    = &i.finPropiedades;
-    m_dbl["excesoAportacion"]  = &i.excesoAportacion;
-    m_dbl["pedidoInicial"]     = &i.pedidoInicial;
+    m_dbl["bankRate"]          = &i.bankRate;
+    m_dbl["coopRate"]          = &i.coopRate;
+    m_dbl["familyRate"]        = &i.familyRate;
+    m_dbl["propertiesRate"]    = &i.propertiesRate;
+    m_int["bankTermYears"]       = &i.bankTermYears;
+    m_int["coopTermYears"]       = &i.coopTermYears;
+    m_int["familyTermYears"]     = &i.familyTermYears;
+    m_int["propertiesTermYears"] = &i.propertiesTermYears;
+    m_dbl["pharmacyFinancingPct"]  = &i.pharmacyFinancingPct;
+    m_dbl["premisesFinancingPct"]  = &i.premisesFinancingPct;
+    m_dbl["mortgageOpeningPct"]    = &i.mortgageOpeningPct;
+    m_dbl["propertiesFinancingPct"] = &i.propertiesFinancingPct;
+    m_dbl["contributedCash"]     = &i.contributedCash;
+    m_dbl["familyContribution"]  = &i.familyContribution;
+    m_dbl["propertiesFinancing"] = &i.propertiesFinancing;
+    m_dbl["contributionExcess"]  = &i.contributionExcess;
+    m_dbl["initialOrder"]        = &i.initialOrder;
     // ---- Personal
-    m_dbl["salFarmaceutico"]  = &i.salFarmaceutico;
-    m_dbl["jornFarmaceutico"] = &i.jornFarmaceutico;
-    m_dbl["pctSS"]            = &i.pctSS;
-    m_dbl["subidaPct"]        = &i.subidaPct;
-    m_dbl["salAuxiliar"]      = &i.salAuxiliar;
-    m_dbl["jornAuxiliar"]     = &i.jornAuxiliar;
-    m_dbl["salTecnico"]       = &i.salTecnico;
-    m_dbl["jornTecnico"]      = &i.jornTecnico;
+    m_dbl["pharmacistSalary"]  = &i.pharmacistSalary;
+    m_dbl["pharmacistFte"]     = &i.pharmacistFte;
+    m_dbl["socialSecurityPct"] = &i.socialSecurityPct;
+    m_dbl["raisePct"]          = &i.raisePct;
+    m_dbl["assistantSalary"]   = &i.assistantSalary;
+    m_dbl["assistantFte"]      = &i.assistantFte;
+    m_dbl["technicianSalary"]  = &i.technicianSalary;
+    m_dbl["technicianFte"]     = &i.technicianFte;
     for (int k = 0; k < 4; ++k) {
-        m_dbl[QStringLiteral("plJornada%1").arg(k)]  = &i.plJornada[k];
-        m_dbl[QStringLiteral("plPersonas%1").arg(k)] = &i.plPersonas[k];
+        m_dbl[QStringLiteral("staffFte%1").arg(k)]   = &i.staffFte[k];
+        m_dbl[QStringLiteral("staffCount%1").arg(k)] = &i.staffCount[k];
     }
     // ---- Análisis
     for (int k = 0; k < 3; ++k) {
-        m_dbl[QStringLiteral("factorVenta%1").arg(k)]    = &i.factorVenta[k];
-        m_dbl[QStringLiteral("impuestosVenta%1").arg(k)] = &i.impuestosVenta[k];
+        m_dbl[QStringLiteral("saleFactor%1").arg(k)] = &i.saleFactor[k];
+        m_dbl[QStringLiteral("saleTaxes%1").arg(k)]  = &i.saleTaxes[k];
     }
-    m_dbl["fdcInicialSim"]     = &i.fdcInicialSim;
-    m_dbl["pctMaxFdC"]         = &i.pctMaxFdC;
-    m_dbl["pctAmortLocal"]     = &i.pctAmortLocal;
-    m_dbl["pctExistencias10"]  = &i.pctExistencias10;
+    m_dbl["fdcInitialSim"]     = &i.fdcInitialSim;
+    m_dbl["fdcMaxPct"]         = &i.fdcMaxPct;
+    m_dbl["investmentPremisesDeprPct"] = &i.investmentPremisesDeprPct;
+    m_dbl["inventoryPctYear10"]  = &i.inventoryPctYear10;
     // ---- Hoja Impuestos (v2)
-    m_dbl["impAmortLocalPct"] = &i.impAmortLocalPct;
-    m_dbl["impAmortMinPct"]   = &i.impAmortMinPct;
-    m_dbl["impAmortMaxPct"]   = &i.impAmortMaxPct;
-    m_dbl["minimoPersonal"]   = &i.minimoPersonal;
-    // ---- Configuración: escalas y series oficiales (editables)
+    m_dbl["taxPremisesDeprPct"]    = &i.taxPremisesDeprPct;
+    m_dbl["taxMinGoodwillDeprPct"] = &i.taxMinGoodwillDeprPct;
+    m_dbl["taxMaxGoodwillDeprPct"] = &i.taxMaxGoodwillDeprPct;
+    m_dbl["personalAllowance"]     = &i.personalAllowance;
+    // ---- Configuración: official scales and series (editable)
     for (int k = 0; k < 6; ++k) {
-        m_dbl[QStringLiteral("irpfDesde%1").arg(k)] = &i.tramosIRPF[k].desde;
-        m_dbl[QStringLiteral("irpfHasta%1").arg(k)] = &i.tramosIRPF[k].hasta;
-        m_dbl[QStringLiteral("irpfTipo%1").arg(k)]  = &i.tramosIRPF[k].tipo;
+        m_dbl[QStringLiteral("irpfFrom%1").arg(k)] = &i.irpfBrackets[k].from;
+        m_dbl[QStringLiteral("irpfTo%1").arg(k)]   = &i.irpfBrackets[k].to;
+        m_dbl[QStringLiteral("irpfRate%1").arg(k)] = &i.irpfBrackets[k].rate;
     }
     for (int k = 0; k < 9; ++k) {
-        m_dbl[QStringLiteral("rdDesde%1").arg(k)] = &i.tramosRD[k].desde;
-        m_dbl[QStringLiteral("rdBase%1").arg(k)]  = &i.tramosRD[k].base;
-        m_dbl[QStringLiteral("rdPct%1").arg(k)]   = &i.tramosRD[k].pct;
+        m_dbl[QStringLiteral("rdFrom%1").arg(k)] = &i.rdBrackets[k].from;
+        m_dbl[QStringLiteral("rdBase%1").arg(k)] = &i.rdBrackets[k].base;
+        m_dbl[QStringLiteral("rdPct%1").arg(k)]  = &i.rdBrackets[k].pct;
     }
     for (int k = 0; k < 15; ++k) {
-        m_dbl[QStringLiteral("retaDesde%1").arg(k)] = &i.tramosRETA[k].desde;
-        m_dbl[QStringLiteral("retaCuota%1").arg(k)]  = &i.tramosRETA[k].cuotaMensual;
+        m_dbl[QStringLiteral("retaFrom%1").arg(k)]  = &i.retaBrackets[k].from;
+        m_dbl[QStringLiteral("retaQuota%1").arg(k)] = &i.retaBrackets[k].monthlyQuota;
     }
-    m_dbl["tarifaPlanaMensual"] = &i.tarifaPlanaMensual;
+    m_dbl["retaFlatMonthlyFee"] = &i.retaFlatMonthlyFee;
     for (int k = 0; k < 10; ++k) {
-        m_dbl[QStringLiteral("ipcHistorico%1").arg(k)]       = &i.ipcHistorico[k];
-        m_dbl[QStringLiteral("margenComercialSim%1").arg(k)] = &i.margenComercialSim[k];
+        m_dbl[QStringLiteral("ipcHistorical%1").arg(k)]        = &i.ipcHistorical[k];
+        m_dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
 }
 
 void Engine::set(const QString& key, double value)
 {
-    if (key == QStringLiteral("plPersonas0"))
-        return; // Farmacéutico titular: siempre 1 persona, no editable
+    if (key == QStringLiteral("staffCount0"))
+        return; // Owner pharmacist: always 1 person, not editable
 
     if (auto it = m_dbl.find(key); it != m_dbl.end()) {
         if (**it == value) return;
@@ -238,158 +238,158 @@ void Engine::set(const QString& key, double value)
     recalc();
 }
 
-void Engine::restaurarValoresIniciales()
+void Engine::resetToDefaults()
 {
     m_in = sim::Inputs{};
     recalc();
 }
 
-// ---------------------------------------------------------------- exportar PDF
+// ---------------------------------------------------------------- export PDF
 #ifdef Q_OS_WASM
-// Descarga en el navegador: Blob + <a download>, sin necesitar QtWidgets.
-static void descargarEnNavegador(const QByteArray& datos, const QString& nombre)
+// Browser download: Blob + <a download>, without needing QtWidgets.
+static void downloadInBrowser(const QByteArray& data, const QString& fileName)
 {
     using emscripten::val;
-    val vista{ emscripten::typed_memory_view(
-        size_t(datos.size()), reinterpret_cast<const uint8_t*>(datos.constData())) };
-    val arr = val::global("Uint8Array").new_(datos.size());
-    arr.call<void>("set", vista);
+    val view{ emscripten::typed_memory_view(
+        size_t(data.size()), reinterpret_cast<const uint8_t*>(data.constData())) };
+    val arr = val::global("Uint8Array").new_(data.size());
+    arr.call<void>("set", view);
 
-    val partes = val::array();
-    partes.call<void>("push", arr);
-    val opciones = val::object();
-    opciones.set("type", std::string("application/pdf"));
-    val blob = val::global("Blob").new_(partes, opciones);
+    val parts = val::array();
+    parts.call<void>("push", arr);
+    val options = val::object();
+    options.set("type", std::string("application/pdf"));
+    val blob = val::global("Blob").new_(parts, options);
 
     val url = val::global("URL").call<val>("createObjectURL", blob);
     val a = val::global("document").call<val>("createElement", std::string("a"));
     a.set("href", url);
-    a.set("download", nombre.toStdString());
+    a.set("download", fileName.toStdString());
     a.call<void>("click");
     val::global("URL").call<void>("revokeObjectURL", url);
 }
 #endif
 
-// Guarda/descarga los bytes de un PDF ya generado. Escritorio: lo guarda en
-// Documentos con el prefijo dado y lo abre; WASM: lo descarga el navegador.
-// Devuelve la ruta (o "descargas del navegador" en WASM), vacío si falla.
-static QString guardarPdf(const QByteArray& datos, const QString& prefijoNombre)
+// Saves/downloads the bytes of an already-generated PDF. Desktop: saves it to
+// Documents with the given prefix and opens it; WASM: the browser downloads
+// it. Returns the path (or "descargas del navegador" on WASM), empty on failure.
+static QString saveOrDownloadPdf(const QByteArray& data, const QString& filenamePrefix)
 {
-    const QString nombre = prefijoNombre + QLatin1Char('_')
+    const QString fileName = filenamePrefix + QLatin1Char('_')
         + QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_HHmm")) + QStringLiteral(".pdf");
 
 #ifdef Q_OS_WASM
-    descargarEnNavegador(datos, nombre);
+    downloadInBrowser(data, fileName);
     return QStringLiteral("descargas del navegador");
 #else
     QString dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     if (dir.isEmpty())
         dir = QDir::homePath();
-    const QString ruta = dir + QLatin1Char('/') + nombre;
+    const QString path = dir + QLatin1Char('/') + fileName;
 
-    QFile f(ruta);
+    QFile f(path);
     if (!f.open(QIODevice::WriteOnly)) {
-        qWarning("No se pudo escribir el PDF en '%s'", qPrintable(ruta));
+        qWarning("No se pudo escribir el PDF en '%s'", qPrintable(path));
         return {};
     }
-    f.write(datos);
+    f.write(data);
     f.close();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(ruta));   // abrirlo al momento
-    return ruta;
+    QDesktopServices::openUrl(QUrl::fromLocalFile(path));   // open it right away
+    return path;
 #endif
 }
 
-QString Engine::exportarPdf()
+QString Engine::exportPdf()
 {
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);
-    if (!pdf::escribirInforme(&buf, m_in, m_r))
+    if (!pdf::writeReport(&buf, m_in, m_r))
         return {};
     buf.close();
 
-    return guardarPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"));
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"));
 }
 
-// Igual que ComparacionView.qml (filasTabla), pero siempre en "vista
-// completa": el grupo "Financiación" se intercala después de "Venta total"
-// sin depender del interruptor de la interfaz.
-static QVariantList filasComparacionCompleta(const Engine& engine, int anio)
+// Same as ComparacionView.qml (tableRows), but always in "full view": the
+// "Financiación" group is interleaved after "Venta total" regardless of the
+// UI's toggle switch.
+static QVariantList fullComparisonRows(const Engine& engine, int year)
 {
-    const QVariantList filas = engine.comparacionAnio(anio);
-    const QVariantList filasFin = engine.comparacionFinanciacion();
+    const QVariantList rows = engine.comparisonForYear(year);
+    const QVariantList financingRows = engine.financingComparison();
 
-    QVariantList grupo;
-    grupo << QVariantMap{ { "label", QStringLiteral("Financiación") }, { "separator", true } };
-    for (int i = 0; i < filasFin.size(); ++i) {
-        QVariantMap f = filasFin[i].toMap();
-        f[QStringLiteral("grupo")] = true;
-        f[QStringLiteral("groupEnd")] = (i == filasFin.size() - 1);
-        grupo << f;
+    QVariantList group;
+    group << QVariantMap{ { "label", QStringLiteral("Financiación") }, { "separator", true } };
+    for (int i = 0; i < financingRows.size(); ++i) {
+        QVariantMap f = financingRows[i].toMap();
+        f[QStringLiteral("group")] = true;
+        f[QStringLiteral("groupEnd")] = (i == financingRows.size() - 1);
+        group << f;
     }
 
     int idx = -1;
-    for (int i = 0; i < filas.size(); ++i) {
-        if (filas[i].toMap().value(QStringLiteral("label")).toString() == QStringLiteral("Venta total")) {
+    for (int i = 0; i < rows.size(); ++i) {
+        if (rows[i].toMap().value(QStringLiteral("label")).toString() == QStringLiteral("Venta total")) {
             idx = i;
             break;
         }
     }
-    return idx < 0 ? filas + grupo : filas.mid(0, idx + 1) + grupo + filas.mid(idx + 1);
+    return idx < 0 ? rows + group : rows.mid(0, idx + 1) + group + rows.mid(idx + 1);
 }
 
-QString Engine::exportarPdfComparacion(int anio)
+QString Engine::exportComparisonPdf(int year)
 {
-    if (m_escenariosComparacion.isEmpty())
+    if (m_comparisonScenarios.isEmpty())
         return {};
 
-    QStringList nombres;
-    for (const QVariant& ev : m_escenariosComparacion)
-        nombres << ev.toMap().value(QStringLiteral("nombre")).toString();
+    QStringList names;
+    for (const QVariant& ev : m_comparisonScenarios)
+        names << ev.toMap().value(QStringLiteral("name")).toString();
 
-    QVariantList paginas;
-    if (anio < 0) {
+    QVariantList pages;
+    if (year < 0) {
         for (int a = 0; a < 10; ++a)
-            paginas << QVariantMap{ { "anio", a + 1 }, { "filas", filasComparacionCompleta(*this, a) } };
+            pages << QVariantMap{ { "year", a + 1 }, { "rows", fullComparisonRows(*this, a) } };
     } else {
-        paginas << QVariantMap{ { "anio", anio + 1 }, { "filas", filasComparacionCompleta(*this, anio) } };
+        pages << QVariantMap{ { "year", year + 1 }, { "rows", fullComparisonRows(*this, year) } };
     }
 
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);
-    if (!pdf::escribirComparacion(&buf, paginas, nombres))
+    if (!pdf::writeComparison(&buf, pages, names))
         return {};
     buf.close();
 
-    return guardarPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
 }
 
 void Engine::recalc()
 {
     m_r = sim::compute(m_in);
-    m_banco->setResult(m_r.amortBanco);
-    m_coop ->setResult(m_r.amortCoop);
-    m_prop ->setResult(m_r.amortProp);
+    m_bank->setResult(m_r.bankAmort);
+    m_coop ->setResult(m_r.coopAmort);
+    m_properties ->setResult(m_r.propertiesAmort);
     buildMaps();
-    guardarEnDisco();
+    saveToDisk();
     emit recalculated();
 }
 
 // ---------------------------------------------------------------- helpers
 
-// Etiqueta de un tramo de la escala IRPF (p. ej. "12.450 – 20.200 € (24%)" o,
-// para el último tramo, "> 300.000 € (47%)"). Se genera a partir del tramo
-// real (in.tramosIRPF), que es editable desde la hoja Configuración: si se
-// usara un texto fijo, dejaría de coincidir en cuanto el usuario lo edite.
-static QString labelTramoIRPF(const sim::TramoIRPF& t, bool esUltimo)
+// Label of an IRPF bracket (e.g. "12.450 – 20.200 € (24%)" or, for the last
+// bracket, "> 300.000 € (47%)"). Generated from the actual bracket
+// (in.irpfBrackets), which is editable from the Configuración sheet: a fixed
+// string would go stale as soon as the user edits it.
+static QString irpfBracketLabel(const sim::IrpfBracket& t, bool isLast)
 {
     static const QLocale loc(QLocale::Spanish, QLocale::Spain);
-    const double pct100 = t.tipo * 100.0;
+    const double pct100 = t.rate * 100.0;
     const int decPct = (std::abs(pct100 - std::round(pct100)) < 1e-6) ? 0 : 1;
     const QString pctStr = loc.toString(pct100, 'f', decPct) + QStringLiteral("%");
-    if (esUltimo)
-        return QStringLiteral("> ") + loc.toString(t.desde, 'f', 0)
+    if (isLast)
+        return QStringLiteral("> ") + loc.toString(t.from, 'f', 0)
              + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
-    return loc.toString(t.desde, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.hasta, 'f', 0)
+    return loc.toString(t.from, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.to, 'f', 0)
          + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
 }
 
@@ -407,7 +407,7 @@ static QVariantList toList3(const std::array<double,3>& a)
     return l;
 }
 
-static QVariantMap proyRow(const QString& label, const std::array<double,10>& vals,
+static QVariantMap projectionRow(const QString& label, const std::array<double,10>& vals,
                            const QString& fmt = QStringLiteral("eur"), bool bold = false)
 {
     return { { "label", label }, { "values", toList10(vals) },
@@ -424,282 +424,282 @@ void Engine::buildMaps()
         m_inputs[it.key()] = *it.value();
 
     // ---- Datos Base
-    const auto& D = m_r.datosBase;
-    m_datosBase = QVariantMap{
-        { "ventaTotal",          D.ventaTotal },
-        { "costeMercancia",      D.costeMercancia },
-        { "mComBruto",           D.mComBruto },
-        { "mComDespuesRD",       D.mComDespuesRD },
-        { "gastosPersonal",      D.gastosPersonal },
-        { "seguridadSocial",     D.seguridadSocial },
-        { "cuotaAutonomos",      m_r.proyeccion.cuotaAutonomos[0] },
-        { "totalGastosPersonal", D.totalGastosPersonal },
-        { "totalOtrosGastos",    D.totalOtrosGastos },
-        { "beneficioAntesImp",   D.beneficioAntesImp },
+    const auto& D = m_r.baseData;
+    m_baseData = QVariantMap{
+        { "totalSales",          D.totalSales },
+        { "costOfGoods",         D.costOfGoods },
+        { "grossMargin",         D.grossMargin },
+        { "marginAfterRd",       D.marginAfterRd },
+        { "staffCost",           D.staffCost },
+        { "socialSecurity",      D.socialSecurity },
+        { "selfEmployedQuota",   m_r.projection.selfEmployedQuota[0] },
+        { "totalStaffCost",      D.totalStaffCost },
+        { "totalOtherExpenses",  D.totalOtherExpenses },
+        { "profitBeforeTax",     D.profitBeforeTax },
     };
 
     // ---- Financiación
-    const auto& F = m_r.financiacion;
-    m_financiacion = QVariantMap{
-        { "fondoComercio",        F.fondoComercio },
-        { "honorarios",           F.honorarios },
-        { "iva",                  F.iva },
-        { "impuestoITP",          F.impuestoITP },
-        { "ajd",                  F.ajd },
-        { "impuestos",            F.impuestos },
-        { "gastosAperturaHipoteca", F.gastosAperturaHipoteca },
-        { "totalInversion",       F.totalInversion },
-        { "finBancariaFarmacia",  F.finBancariaFarmacia },
-        { "finBancariaLocal",     F.finBancariaLocal },
-        { "totalFinanciacion",    F.totalFinanciacion },
-        { "minimoLiquidez",       F.minimoLiquidez },
-        { "liquidezInvalida",     F.liquidezInvalida },
+    const auto& F = m_r.financing;
+    m_financing = QVariantMap{
+        { "goodwill",              F.goodwill },
+        { "fees",                  F.fees },
+        { "iva",                   F.iva },
+        { "itpTax",                F.itpTax },
+        { "ajd",                   F.ajd },
+        { "taxes",                 F.taxes },
+        { "mortgageOpeningCost",   F.mortgageOpeningCost },
+        { "totalInvestment",       F.totalInvestment },
+        { "pharmacyBankFinancing", F.pharmacyBankFinancing },
+        { "premisesBankFinancing", F.premisesBankFinancing },
+        { "totalFinancing",        F.totalFinancing },
+        { "minimumCash",           F.minimumCash },
+        { "cashBelowMinimum",      F.cashBelowMinimum },
     };
 
     // ---- Personal
-    const auto& P = m_r.personal;
-    static const char* tiposDatos[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
-    static const char* tiposPlant[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
+    const auto& P = m_r.staff;
+    static const char* dataRoleLabels[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
+    static const char* headcountRoleLabels[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
                                          "Auxiliar de farmacia", "Técnico especialista" };
-    QVariantList datos, plantilla;
+    QVariantList byRole, headcountPlan;
     for (int k = 0; k < 3; ++k) {
-        const auto& r = P.datos[k];
-        datos << QVariantMap{
-            { "tipo", QString::fromUtf8(tiposDatos[k]) },
-            { "brutoFT", r.brutoFT }, { "jornada", r.jornada },
-            { "pctSS", r.pctSS }, { "costeSS", r.costeSS },
-            { "salReal", r.salReal }, { "costeTotal", r.costeTotal } };
+        const auto& r = P.byRole[k];
+        byRole << QVariantMap{
+            { "role", QString::fromUtf8(dataRoleLabels[k]) },
+            { "grossFte", r.grossFte }, { "fte", r.fte },
+            { "socialSecurityPct", r.socialSecurityPct }, { "socialSecurityCost", r.socialSecurityCost },
+            { "actualSalary", r.actualSalary }, { "totalCost", r.totalCost } };
     }
     for (int k = 0; k < 4; ++k) {
-        const auto& r = P.plantilla[k];
-        plantilla << QVariantMap{
-            { "tipo", QString::fromUtf8(tiposPlant[k]) },
-            { "jornada", r.jornada }, { "personas", r.personas },
-            { "brutoFT", r.brutoFT }, { "brutoReal", r.brutoReal },
-            { "costeSS", r.costeSS }, { "costePersona", r.costePersona },
-            { "costeTotal", r.costeTotal }};
+        const auto& r = P.headcountPlan[k];
+        headcountPlan << QVariantMap{
+            { "role", QString::fromUtf8(headcountRoleLabels[k]) },
+            { "fte", r.fte }, { "headcount", r.headcount },
+            { "grossFte", r.grossFte }, { "actualGross", r.actualGross },
+            { "socialSecurityCost", r.socialSecurityCost }, { "costPerPerson", r.costPerPerson },
+            { "totalCost", r.totalCost }};
     }
-    m_personal = QVariantMap{
-        { "datos", datos },
-        { "totCosteSS", P.totCosteSS }, { "totSalReal", P.totSalReal },
-        { "totCoste", P.totCoste },
-        { "plantilla", plantilla },
-        { "totPersonas", P.totPersonas }, { "totBrutoReal", P.totBrutoReal },
-        { "totSS", P.totSS }, { "totPlantilla", P.totPlantilla },
-        { "salarioNetoMensualAnio1", P.salarioNetoMensualAnio1 },
+    m_staff = QVariantMap{
+        { "byRole", byRole },
+        { "totalSocialSecurityCost", P.totalSocialSecurityCost }, { "totalActualSalary", P.totalActualSalary },
+        { "totalCost", P.totalCost },
+        { "headcountPlan", headcountPlan },
+        { "totalHeadcount", P.totalHeadcount }, { "totalActualGross", P.totalActualGross },
+        { "totalSocialSecurity", P.totalSocialSecurity }, { "totalHeadcountCost", P.totalHeadcountCost },
+        { "netMonthlySalaryYear1", P.netMonthlySalaryYear1 },
     };
 
-    // ---- Proyección (filas como en la hoja)
-    const auto& Y = m_r.proyeccion;
-    m_proyeccion = QVariantList{
-        proyRow("Venta receta",                  Y.ventaReceta),
-        proyRow("Venta libre",                   Y.ventaLibre),
-        proyRow("Venta total",                   Y.ventaTotal, "eur", true),
-        proyRow("IPC aplicado",                  Y.ipcAplicado, "pct1"),
-        proyRow("Coste mercancía",               Y.costeMercancia),
-        proyRow("M. comercial %",                Y.margenComercial, "pct1"),
-        proyRow("M. comercial bruto",            Y.mComBruto),
-        proyRow("Reales decretos",               Y.realesDecretos),
-        proyRow("M. comercial después de RDs",   Y.mComDespuesRD, "eur", true),
-        proyRow("Alquiler local",                Y.alquiler),
-        proyRow("Gastos personal + SS",          Y.gastosPersonal),
-        proyRow("% Gastos de personal",          Y.pctGastoPersonal, "pct1"),
-        proyRow("Cuota autónomos",               Y.cuotaAutonomos),
-        proyRow("Otros gastos",                  Y.otrosGastos),
-        proyRow("Intereses de deudas",           Y.intereses),
-        proyRow("Beneficio farmacia",            Y.beneficio, "eur", true),
-        proyRow("Pago impuestos",                Y.pagoImpuestos),
-        proyRow("Liquidez después de imp.",      Y.liquidez, "eur", true),
-        proyRow("Devolución banco",              Y.devCapitalBanco),
-        proyRow("Devolución cooperativa",        Y.devCooperativa),
-        proyRow("Salario neto anual titular",    Y.salarioNetoAnual, "eur", true),
-        proyRow("Salario neto mensual titular",  Y.salarioNetoMensual, "eur", true),
+    // ---- Proyección (rows as in the sheet)
+    const auto& Y = m_r.projection;
+    m_projection = QVariantList{
+        projectionRow("Venta receta",                  Y.prescriptionSales),
+        projectionRow("Venta libre",                   Y.otcSales),
+        projectionRow("Venta total",                   Y.totalSales, "eur", true),
+        projectionRow("IPC aplicado",                  Y.ipcApplied, "pct1"),
+        projectionRow("Coste mercancía",               Y.costOfGoods),
+        projectionRow("M. comercial %",                Y.commercialMarginPct, "pct1"),
+        projectionRow("M. comercial bruto",            Y.grossMargin),
+        projectionRow("Reales decretos",                Y.rdDeduction),
+        projectionRow("M. comercial después de RDs",   Y.marginAfterRd, "eur", true),
+        projectionRow("Alquiler local",                Y.rent),
+        projectionRow("Gastos personal + SS",           Y.staffCost),
+        projectionRow("% Gastos de personal",           Y.staffCostPct, "pct1"),
+        projectionRow("Cuota autónomos",                Y.selfEmployedQuota),
+        projectionRow("Otros gastos",                   Y.otherExpenses),
+        projectionRow("Intereses de deudas",            Y.interest),
+        projectionRow("Beneficio farmacia",             Y.profit, "eur", true),
+        projectionRow("Pago impuestos",                 Y.taxPayment),
+        projectionRow("Liquidez después de imp.",       Y.cashAfterTax, "eur", true),
+        projectionRow("Devolución banco",               Y.bankPrincipalRepayment),
+        projectionRow("Devolución cooperativa",         Y.coopPrincipalRepayment),
+        projectionRow("Salario neto anual titular",     Y.netAnnualSalary, "eur", true),
+        projectionRow("Salario neto mensual titular",   Y.netMonthlySalary, "eur", true),
     };
 
     // ---- Impuestos (IRPF, v2)
-    const auto& I = m_r.impuestos;
-    QVariantList tramosList;
+    const auto& I = m_r.taxes;
+    QVariantList bracketsList;
     for (int t = 0; t < 6; ++t)
-        tramosList << QVariantMap{
-            { "label", labelTramoIRPF(m_in.tramosIRPF[t], t == 5) },
-            { "values", toList10(I.tramos[t]) } };
-    m_impuestos = QVariantMap{
-        { "fdc",              I.fdc },
-        { "honorarios",       I.honorarios },
-        { "ajd",              I.ajd },
-        { "baseAmortizable",  I.baseAmortizable },
-        { "costeLocal",       I.costeLocal },
-        { "deduccionMinimo",  I.deduccionMinimo },
-        { "beneficio",        toList10(I.beneficio) },
-        { "amortLocal",       toList10(I.amortLocal) },
-        { "pctAjustado",      toList10(I.pctAjustado) },
-        { "amortFdC",         toList10(I.amortFdC) },
-        { "baseImponible",    toList10(I.baseImponible) },
-        { "cuotaEscala",      toList10(I.cuotaEscala) },
-        { "pago",             toList10(I.pago) },
-        { "tramos",           tramosList },
+        bracketsList << QVariantMap{
+            { "label", irpfBracketLabel(m_in.irpfBrackets[t], t == 5) },
+            { "values", toList10(I.brackets[t]) } };
+    m_taxes = QVariantMap{
+        { "fdc",               I.fdc },
+        { "fees",               I.fees },
+        { "ajd",               I.ajd },
+        { "depreciableBase",   I.depreciableBase },
+        { "premisesCost",      I.premisesCost },
+        { "minimumDeduction",  I.minimumDeduction },
+        { "profit",            toList10(I.profit) },
+        { "premisesDepreciation", toList10(I.premisesDepreciation) },
+        { "adjustedPct",       toList10(I.adjustedPct) },
+        { "fdcDepreciation",   toList10(I.fdcDepreciation) },
+        { "taxableBase",       toList10(I.taxableBase) },
+        { "bracketQuota",      toList10(I.bracketQuota) },
+        { "payment",           toList10(I.payment) },
+        { "brackets",          bracketsList },
     };
 
     // ---- Análisis
-    const auto& A = m_r.analisis;
-    m_analisis = QVariantMap{
-        { "inversionInicial",  toList3(A.inversionInicial) },
-        { "valorVentaFdC",     toList3(A.valorVentaFdC) },
-        { "valorVentaLocal",   toList3(A.valorVentaLocal) },
-        { "existencias10",     toList3(A.existencias10) },
-        { "fdcPendiente",      toList3(A.fdcPendiente) },
-        { "deuda",             toList3(A.deuda) },
-        { "patrimonioBruto",   toList3(A.patrimonioBruto) },
-        { "patrimonioNeto",    toList3(A.patrimonioNeto) },
+    const auto& A = m_r.analysis;
+    m_analysis = QVariantMap{
+        { "initialInvestment", toList3(A.initialInvestment) },
+        { "fdcSaleValue",      toList3(A.fdcSaleValue) },
+        { "premisesSaleValue", toList3(A.premisesSaleValue) },
+        { "inventoryYear10",   toList3(A.inventoryYear10) },
+        { "fdcOutstanding",    toList3(A.fdcOutstanding) },
+        { "debt",              toList3(A.debt) },
+        { "grossEquity",       toList3(A.grossEquity) },
+        { "netEquity",         toList3(A.netEquity) },
         { "cagr",              toList3(A.cagr) },
-        { "tir",               toList3(A.tir) },
-        { "liqMensual",        toList3(A.liqMensual) },
-        { "devCapitalMensual", toList3(A.devCapitalMensual) },
-        { "interesesMensual",  toList3(A.interesesMensual) },
-        { "netoTitular",       toList3(A.netoTitular) },
-        { "amortLocalAnual",   A.amortLocalAnual },
-        { "benFarmacia",       toList10(A.benFarmacia) },
-        { "pctAmortFdC",       toList10(A.pctAmortFdC) },
-        { "amortFdC",          toList10(A.amortFdC) },
-        { "amortLocal",        toList10(A.amortLocal) },
-        { "baseImponible",     toList10(A.baseImponible) },
-        { "fdcPendienteSim",   toList10(A.fdcPendienteSim) },
+        { "irr",               toList3(A.irr) },
+        { "monthlyCashFlow",        toList3(A.monthlyCashFlow) },
+        { "monthlyPrincipalRepayment", toList3(A.monthlyPrincipalRepayment) },
+        { "monthlyInterest",   toList3(A.monthlyInterest) },
+        { "ownerNetIncome",    toList3(A.ownerNetIncome) },
+        { "annualPremisesDepreciation", A.annualPremisesDepreciation },
+        { "pharmacyProfit",    toList10(A.pharmacyProfit) },
+        { "fdcDepreciationPct",toList10(A.fdcDepreciationPct) },
+        { "fdcDepreciation",   toList10(A.fdcDepreciation) },
+        { "premisesDepreciation", toList10(A.premisesDepreciation) },
+        { "taxableBase",       toList10(A.taxableBase) },
+        { "fdcOutstandingSim", toList10(A.fdcOutstandingSim) },
     };
 }
 
 // ---------------------------------------------------------------- comparación de escenarios
-void Engine::anadirEscenarioComparacion()
+void Engine::addComparisonScenario()
 {
-    // Valores de la hoja Financiación para el grupo de la "vista completa":
-    // no varían por año, así que se guardan como un valor fijo por escenario.
+    // Values from the Financiación sheet for the "full view" group: they
+    // don't vary by year, so they're saved as a fixed value per scenario.
     const QVariantMap fin{
-        { "liquidezAportada",    m_inputs.value(QStringLiteral("liquidezAportada")) },
-        { "finBancariaFarmacia", m_financiacion.value(QStringLiteral("finBancariaFarmacia")) },
-        { "finBancariaLocal",    m_financiacion.value(QStringLiteral("finBancariaLocal")) },
-        { "pedidoInicial",       m_inputs.value(QStringLiteral("pedidoInicial")) },
-        { "finPropiedades",      m_inputs.value(QStringLiteral("finPropiedades")) },
+        { "contributedCash",       m_inputs.value(QStringLiteral("contributedCash")) },
+        { "pharmacyBankFinancing", m_financing.value(QStringLiteral("pharmacyBankFinancing")) },
+        { "premisesBankFinancing", m_financing.value(QStringLiteral("premisesBankFinancing")) },
+        { "initialOrder",          m_inputs.value(QStringLiteral("initialOrder")) },
+        { "propertiesFinancing",   m_inputs.value(QStringLiteral("propertiesFinancing")) },
     };
     const QVariantMap esc{
-        { "id",           QDateTime::currentMSecsSinceEpoch() },
-        { "nombre",       QStringLiteral("Escenario %1").arg(m_escenariosComparacion.size() + 1) },
-        { "proyeccion",   m_proyeccion },
-        { "financiacion", fin },
+        { "id",         QDateTime::currentMSecsSinceEpoch() },
+        { "name",       QStringLiteral("Escenario %1").arg(m_comparisonScenarios.size() + 1) },
+        { "projection", m_projection },
+        { "financing",  fin },
     };
-    m_escenariosComparacion.append(esc);
-    guardarEnDisco();
-    emit escenariosComparacionChanged();
+    m_comparisonScenarios.append(esc);
+    saveToDisk();
+    emit comparisonScenariosChanged();
 }
 
-void Engine::quitarEscenarioComparacion(int index)
+void Engine::removeComparisonScenario(int index)
 {
-    if (index < 0 || index >= m_escenariosComparacion.size())
+    if (index < 0 || index >= m_comparisonScenarios.size())
         return;
-    m_escenariosComparacion.removeAt(index);
-    guardarEnDisco();
-    emit escenariosComparacionChanged();
+    m_comparisonScenarios.removeAt(index);
+    saveToDisk();
+    emit comparisonScenariosChanged();
 }
 
-// Pivota "escenario -> filas(concepto, 10 años)" a "filas(concepto) -> escenarios",
-// quedándonos con el valor del año pedido de cada escenario.
-QVariantList Engine::comparacionAnio(int anio) const
+// Pivots "scenario -> rows(concept, 10 years)" into "rows(concept) -> scenarios",
+// keeping the value for the requested year of each scenario.
+QVariantList Engine::comparisonForYear(int year) const
 {
-    QVariantList filas;
-    if (m_escenariosComparacion.isEmpty())
-        return filas;
+    QVariantList rows;
+    if (m_comparisonScenarios.isEmpty())
+        return rows;
 
-    const QVariantList plantilla = m_escenariosComparacion.first().toMap()
-                                        .value(QStringLiteral("proyeccion")).toList();
-    for (int r = 0; r < plantilla.size(); ++r) {
-        const QVariantMap filaPlantilla = plantilla[r].toMap();
-        QVariantList valores;
-        for (const QVariant& ev : m_escenariosComparacion) {
-            const QVariantList filasEsc = ev.toMap().value(QStringLiteral("proyeccion")).toList();
+    const QVariantList templateRows = m_comparisonScenarios.first().toMap()
+                                        .value(QStringLiteral("projection")).toList();
+    for (int r = 0; r < templateRows.size(); ++r) {
+        const QVariantMap templateRow = templateRows[r].toMap();
+        QVariantList values;
+        for (const QVariant& ev : m_comparisonScenarios) {
+            const QVariantList scenarioRows = ev.toMap().value(QStringLiteral("projection")).toList();
             double v = 0;
-            if (r < filasEsc.size()) {
-                const QVariantList vals = filasEsc[r].toMap().value(QStringLiteral("values")).toList();
-                if (anio >= 0 && anio < vals.size())
-                    v = vals[anio].toDouble();
+            if (r < scenarioRows.size()) {
+                const QVariantList rowValues = scenarioRows[r].toMap().value(QStringLiteral("values")).toList();
+                if (year >= 0 && year < rowValues.size())
+                    v = rowValues[year].toDouble();
             }
-            valores << v;
+            values << v;
         }
-        filas << QVariantMap{
-            { "label", filaPlantilla.value(QStringLiteral("label")) },
-            { "values", valores },
-            { "fmt", filaPlantilla.value(QStringLiteral("fmt")) },
-            { "bold", filaPlantilla.value(QStringLiteral("bold")) },
+        rows << QVariantMap{
+            { "label", templateRow.value(QStringLiteral("label")) },
+            { "values", values },
+            { "fmt", templateRow.value(QStringLiteral("fmt")) },
+            { "bold", templateRow.value(QStringLiteral("bold")) },
         };
     }
-    return filas;
+    return rows;
 }
 
-QVariantList Engine::comparacionFinanciacion() const
+QVariantList Engine::financingComparison() const
 {
-    static const struct { const char* clave; const char* label; } kFilas[] = {
-        { "liquidezAportada",    "Liquidez aportada" },
-        { "finBancariaFarmacia", "Financiación farmacia" },
-        { "finBancariaLocal",    "Financiación local" },
-        { "pedidoInicial",       "Cooperativa" },
-        { "finPropiedades",      "Hipoteca propiedad" },
+    static const struct { const char* key; const char* label; } kRows[] = {
+        { "contributedCash",       "Liquidez aportada" },
+        { "pharmacyBankFinancing", "Financiación farmacia" },
+        { "premisesBankFinancing", "Financiación local" },
+        { "initialOrder",          "Cooperativa" },
+        { "propertiesFinancing",   "Hipoteca propiedad" },
     };
 
-    QVariantList filas;
-    if (m_escenariosComparacion.isEmpty())
-        return filas;
+    QVariantList rows;
+    if (m_comparisonScenarios.isEmpty())
+        return rows;
 
-    for (const auto& f : kFilas) {
-        const QString clave = QString::fromUtf8(f.clave);
-        QVariantList valores;
-        for (const QVariant& ev : m_escenariosComparacion) {
-            const QVariantMap fin = ev.toMap().value(QStringLiteral("financiacion")).toMap();
-            valores << fin.value(clave, 0.0);
+    for (const auto& row : kRows) {
+        const QString key = QString::fromUtf8(row.key);
+        QVariantList values;
+        for (const QVariant& ev : m_comparisonScenarios) {
+            const QVariantMap fin = ev.toMap().value(QStringLiteral("financing")).toMap();
+            values << fin.value(key, 0.0);
         }
-        filas << QVariantMap{
-            { "label", QString::fromUtf8(f.label) },
-            { "values", valores },
+        rows << QVariantMap{
+            { "label", QString::fromUtf8(row.label) },
+            { "values", values },
             { "fmt", QStringLiteral("eur") },
             { "bold", false },
         };
     }
-    return filas;
+    return rows;
 }
 
 // ---------------------------------------------------------------- simulación aislada
-// Calcula una proyección "de bolsillo" con algunas entradas sustituidas, a
-// partir de una copia de las entradas actuales. No toca m_in ni dispara
-// recalc()/guardarEnDisco(): así los cambios de la hoja "Simulación simple"
-// no se propagan a las demás hojas ni se guardan.
-QVariantMap Engine::simularSimple(const QVariantMap& cambios) const
+// Computes a "quick" projection with some inputs substituted, from a copy of
+// the current inputs. Doesn't touch m_in nor trigger recalc()/saveToDisk():
+// this way changes on the "Simulación simple" sheet don't propagate to the
+// other sheets nor get saved.
+QVariantMap Engine::simulateQuick(const QVariantMap& overrides) const
 {
-    sim::Inputs copia = m_in;
-    if (cambios.contains(QStringLiteral("ventaReceta")))
-        copia.ventaReceta = cambios[QStringLiteral("ventaReceta")].toDouble();
-    if (cambios.contains(QStringLiteral("ventaLibre")))
-        copia.ventaLibre = cambios[QStringLiteral("ventaLibre")].toDouble();
-    if (cambios.contains(QStringLiteral("existencias")))
-        copia.existencias = cambios[QStringLiteral("existencias")].toDouble();
-    if (cambios.contains(QStringLiteral("liquidezAportada")))
-        copia.liquidezAportada = cambios[QStringLiteral("liquidezAportada")].toDouble();
-    if (cambios.contains(QStringLiteral("finPropiedades")))
-        copia.finPropiedades = cambios[QStringLiteral("finPropiedades")].toDouble();
-    if (cambios.contains(QStringLiteral("pedidoInicial")))
-        copia.pedidoInicial = cambios[QStringLiteral("pedidoInicial")].toDouble();
-    if (cambios.contains(QStringLiteral("alquilerLocal")))
-        copia.alquilerLocal = cambios[QStringLiteral("alquilerLocal")].toDouble();
+    sim::Inputs workingCopy = m_in;
+    if (overrides.contains(QStringLiteral("prescriptionSales")))
+        workingCopy.prescriptionSales = overrides[QStringLiteral("prescriptionSales")].toDouble();
+    if (overrides.contains(QStringLiteral("otcSales")))
+        workingCopy.otcSales = overrides[QStringLiteral("otcSales")].toDouble();
+    if (overrides.contains(QStringLiteral("inventory")))
+        workingCopy.inventory = overrides[QStringLiteral("inventory")].toDouble();
+    if (overrides.contains(QStringLiteral("contributedCash")))
+        workingCopy.contributedCash = overrides[QStringLiteral("contributedCash")].toDouble();
+    if (overrides.contains(QStringLiteral("propertiesFinancing")))
+        workingCopy.propertiesFinancing = overrides[QStringLiteral("propertiesFinancing")].toDouble();
+    if (overrides.contains(QStringLiteral("initialOrder")))
+        workingCopy.initialOrder = overrides[QStringLiteral("initialOrder")].toDouble();
+    if (overrides.contains(QStringLiteral("premisesRent")))
+        workingCopy.premisesRent = overrides[QStringLiteral("premisesRent")].toDouble();
 
-    const sim::Results r = sim::compute(copia);
-    const auto& Y = r.proyeccion;
-    const QVariantList proyeccion{
-        proyRow("Venta total",                   Y.ventaTotal, "eur"),
-        proyRow("M. Comercial después de RDs",   Y.mComDespuesRD, "eur"),
-        proyRow("Beneficio farmacia",            Y.beneficio, "eur"),
-        proyRow("Liquidez después de imp.",      Y.liquidez, "eur"),
-        proyRow("Salario neto anual titular",    Y.salarioNetoAnual, "eur", true),
-        proyRow("Salario neto mensual titular",  Y.salarioNetoMensual, "eur", true),
+    const sim::Results r = sim::compute(workingCopy);
+    const auto& Y = r.projection;
+    const QVariantList projection{
+        projectionRow("Venta total",                   Y.totalSales, "eur"),
+        projectionRow("M. Comercial después de RDs",   Y.marginAfterRd, "eur"),
+        projectionRow("Beneficio farmacia",            Y.profit, "eur"),
+        projectionRow("Liquidez después de imp.",      Y.cashAfterTax, "eur"),
+        projectionRow("Salario neto anual titular",    Y.netAnnualSalary, "eur", true),
+        projectionRow("Salario neto mensual titular",  Y.netMonthlySalary, "eur", true),
     };
     return QVariantMap{
-        { "ventaTotal", r.datosBase.ventaTotal },
-        { "proyeccion", proyeccion },
-        { "minimoLiquidez", r.financiacion.minimoLiquidez },
-        { "liquidezInvalida", r.financiacion.liquidezInvalida },
+        { "totalSales", r.baseData.totalSales },
+        { "projection", projection },
+        { "minimumCash", r.financing.minimumCash },
+        { "cashBelowMinimum", r.financing.cashBelowMinimum },
     };
 }

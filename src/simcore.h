@@ -1,5 +1,5 @@
-// simcore.h — Motor de cálculo puro (sin Qt).
-// Replica exactamente las fórmulas de "Simulación Farmacia_qt.xlsx".
+// simcore.h — Pure calculation engine (no Qt).
+// Replicates exactly the formulas of "Simulación Farmacia_qt.xlsx".
 #pragma once
 
 #include <array>
@@ -7,114 +7,114 @@
 
 namespace sim {
 
-// Tramos de escalas oficiales (IRPF, Reales Decretos, RETA): valores por
-// defecto editables desde la hoja "Configuración" (forman parte de Inputs).
-struct TramoIRPF { double desde, hasta, tipo; };
-struct TramoRD   { double desde, base, pct; };
-struct TramoRETA { double desde, cuotaMensual; };
+// Official scale brackets (IRPF, Reales Decretos, RETA): editable defaults
+// from the "Configuración" sheet (part of Inputs).
+struct IrpfBracket { double from, to, rate; };
+struct RdBracket   { double from, base, pct; };
+struct RetaBracket { double from, monthlyQuota; };
 
-// ---------------------------------------------------------------- Entradas
+// ---------------------------------------------------------------- Inputs
 struct Inputs {
-    // ---- Datos Base (celdas editables)
-    double ventaReceta      = 800000;   // D10
-    double ventaLibre       = 200000;   // D11
-    double margenPct        = 0.34;     // D15
-    double alquilerLocal    = 0;        // D22
-    double suministros      = 2500;     // D23
-    double asesoria         = 5000;     // D24
-    double mantenimiento    = 3000;     // D25
-    double robot            = 0;        // D26
-    double seguros          = 4000;     // D27
-    double otrosGastos      = 15000;    // D28
+    // ---- Datos Base (editable cells)
+    double prescriptionSales = 800000;   // D10
+    double otcSales          = 200000;   // D11
+    double marginPct         = 0.34;     // D15
+    double premisesRent      = 0;        // D22
+    double utilities         = 2500;     // D23
+    double advisoryFees      = 5000;     // D24
+    double maintenance       = 3000;     // D25
+    double robot             = 0;        // D26
+    double insurance         = 4000;     // D27
+    double otherExpenses     = 15000;    // D28
 
-    // ---- Financiación: escenario de crecimiento
-    // 0 = Realista (usa la serie ipcHistorico, editable en Configuración)
-    // 1 = Optimista (IPC constante introducido por el usuario)
-    double escenarioCrecimiento = 0;
-    double ipcOptimista         = 0.025;
+    // ---- Financiación: growth scenario
+    // 0 = Realistic (uses the ipcHistorical series, editable in Configuración)
+    // 1 = Optimistic (constant IPC entered by the user)
+    double growthScenario = 0;
+    double ipcOptimistic   = 0.025;
 
-    // ---- Escenario Optimista: margen comercial editable por año
-    // (año 1, año 2, año 3 en adelante — constante desde el año 3).
-    double margenOptimistaAnio1 = 0.330;
-    double margenOptimistaAnio2 = 0.340;
-    double margenOptimistaAnio3 = 0.350;
+    // ---- Optimistic scenario: commercial margin editable per year
+    // (year 1, year 2, year 3 onward — constant from year 3).
+    double optimisticMarginYear1 = 0.330;
+    double optimisticMarginYear2 = 0.340;
+    double optimisticMarginYear3 = 0.350;
 
-    // ---- Financiación: inversión
-    double coeficiente     = 2;         // D13
-    double localComercial  = 200000;    // D15
-    double existencias     = 100000;    // D16
-    double notario         = 4000;      // D20a
-    double registro        = 2500;      // D20b
-    double gastosVarios    = 3955.28;   // D20c (resto)
+    // ---- Financiación: investment
+    double goodwillMultiple = 2;         // D13
+    double premisesPrice    = 200000;    // D15
+    double inventory        = 100000;    // D16
+    double notaryFees       = 4000;      // D20a
+    double registryFees     = 2500;      // D20b
+    double miscExpenses     = 3955.28;   // D20c (remainder)
 
-    // ---- Financiación: porcentajes fijos de la compraventa (editables desde
-    // Configuración): honorarios de gestoría/notaría sobre FdC+local, IVA
-    // sobre esos honorarios, ITP sobre el local comercial y AJD sobre
-    // FdC+existencias (este último también se usa en la hoja Impuestos).
-    double honorariosPct = 0.05;        // D18
-    double ivaPct        = 0.21;        // D19
-    double itpPct        = 0.08;        // D20
-    double ajdPct        = 0.015;       // D21 y B8 (Impuestos)
+    // ---- Financiación: fixed percentages of the sale/purchase (editable from
+    // Configuración): agency/notary fees on FdC+premises, VAT (IVA) on those
+    // fees, ITP on the commercial premises and AJD on FdC+inventory (the
+    // latter is also used in the Impuestos sheet).
+    double feesPct = 0.05;        // D18
+    double ivaPct  = 0.21;        // D19
+    double itpPct  = 0.08;        // D20
+    double ajdPct  = 0.015;       // D21 y B8 (Impuestos)
 
-    // ---- Financiación: tipos y plazos
-    double tipoBanco        = 0.03;     // D27
-    double tipoCoop         = 0.0;      // D28
-    double tipoFamiliar     = 0.0;      // D29
-    int    plazoBanco       = 20;       // D31 (años)
-    int    plazoCoop        = 8;        // D32
-    int    plazoFamiliar    = 10;       // D33
-    double pctFinFarmacia   = 0.8;      // D34
-    double pctFinLocal      = 0.7;      // D35 (el Excel usa 0,7 literal en D44)
-    double pctAperturaHipoteca = 0.01;  // % gastos de apertura sobre financiación bancaria (farmacia+local+hipoteca propiedad)
-    double pctFinPropiedades= 0.7;      // D36
-    double tipoPropiedades  = 0.03;     // D37
-    int    plazoPropiedades = 25;       // D38
+    // ---- Financiación: rates and terms
+    double bankRate         = 0.03;     // D27
+    double coopRate         = 0.0;      // D28
+    double familyRate       = 0.0;      // D29
+    int    bankTermYears    = 20;       // D31 (years)
+    int    coopTermYears    = 8;        // D32
+    int    familyTermYears  = 10;       // D33
+    double pharmacyFinancingPct  = 0.8; // D34
+    double premisesFinancingPct  = 0.7; // D35 (the Excel uses literal 0,7 in D44)
+    double mortgageOpeningPct = 0.01;  // opening-fee % on bank financing (pharmacy+premises+properties mortgage)
+    double propertiesFinancingPct = 0.7; // D36
+    double propertiesRate         = 0.03; // D37
+    int    propertiesTermYears    = 25;   // D38
 
-    // ---- Financiación: aportaciones (filas v2)
-    double liquidezAportada   = 400000; // D43
-    double aportacionFamiliar = 0;      // D44
-    double finPropiedades     = 1000000;// D47
-    double excesoAportacion   = 0;      // D48
-    double pedidoInicial      = 0;      // D49 (cooperativa; vacío en el Excel v2)
+    // ---- Financiación: contributions (v2 rows)
+    double contributedCash    = 400000; // D43
+    double familyContribution = 0;      // D44
+    double propertiesFinancing = 1000000;// D47
+    double contributionExcess  = 0;      // D48
+    double initialOrder        = 0;      // D49 (cooperative; empty in the v2 Excel)
 
-    // ---- Hoja Impuestos (IRPF, nueva en v2)
-    double impAmortLocalPct = 0.04;     // B11 (% amortización local, fijo)
-    double impAmortMinPct   = 0.05;     // B12 (% amort. farmacia mínimo)
-    double impAmortMaxPct   = 0.075;    // B13 (% amort. farmacia máximo)
-    double minimoPersonal   = 5550;     // B14 (mínimo personal exento IRPF)
+    // ---- Hoja Impuestos (IRPF, new in v2)
+    double taxPremisesDeprPct    = 0.04;     // B11 (fixed premises depreciation %)
+    double taxMinGoodwillDeprPct = 0.05;     // B12 (min goodwill depreciation %)
+    double taxMaxGoodwillDeprPct = 0.075;    // B13 (max goodwill depreciation %)
+    double personalAllowance     = 5550;     // B14 (IRPF-exempt personal minimum)
 
-    // ---- Personal: sección 1 (datos salariales)
-    double salFarmaceutico  = 32000;    // B6
-    double jornFarmaceutico = 1;        // C6
-    double pctSS            = 0.3;      // D6 (igual para todos)
-    double subidaPct        = 0.1;      // H6 (% subida s/ salario base)
-    double salAuxiliar      = 19189;    // B7
-    double jornAuxiliar     = 1;        // C7
-    double salTecnico       = 21102;    // B8
-    double jornTecnico      = 0.5;      // C8
+    // ---- Personal: section 1 (salary data)
+    double pharmacistSalary  = 32000;    // B6
+    double pharmacistFte     = 1;        // C6
+    double socialSecurityPct = 0.3;      // D6 (same for everyone)
+    double raisePct          = 0.1;      // H6 (% raise over base salary)
+    double assistantSalary   = 19189;    // B7
+    double assistantFte      = 1;        // C7
+    double technicianSalary  = 21102;    // B8
+    double technicianFte     = 0.5;      // C8
 
-    // ---- Personal: plantilla recomendada (filas 13-16)
-    // 0=Propietario, 1=Farmacéutico empleado, 2=Auxiliar, 3=Técnico
-    std::array<double,4> plJornada  {1, 1, 1, 0.5}; // B13:B16
-    std::array<double,4> plPersonas {1, 2, 0, 1};   // C13:C16
+    // ---- Personal: recommended headcount (rows 13-16)
+    // 0=Owner, 1=Employed pharmacist, 2=Assistant, 3=Technician
+    std::array<double,4> staffFte   {1, 1, 1, 0.5}; // B13:B16
+    std::array<double,4> staffCount {1, 2, 0, 1};   // C13:C16
 
     // ---- Análisis Inversión
-    std::array<double,3> factorVenta   {1.8, 2.0, 2.2};              // B8:D8
-    std::array<double,3> impuestosVenta{-530474.16, -607279.23, -684084.30}; // B13:D13
-    double fdcInicialSim = 2000000;     // B28
-    double pctMaxFdC     = 0.075;       // B29
-    double pctAmortLocal = 0.04;        // B31
-    double pctExistencias10 = 0.1;      // fila 11: existencias estimadas a 10 años, % de la venta total del año 10
+    std::array<double,3> saleFactor {1.8, 2.0, 2.2};                     // B8:D8
+    std::array<double,3> saleTaxes  {-530474.16, -607279.23, -684084.30}; // B13:D13
+    double fdcInitialSim       = 2000000;     // B28
+    double fdcMaxPct           = 0.075;       // B29
+    double investmentPremisesDeprPct = 0.04;  // B31
+    double inventoryPctYear10  = 0.1;         // row 11: estimated 10-year inventory, % of year-10 total sales
 
-    // Fecha inicio préstamos (F5): 01/2027
-    int inicioAnio = 2027;
-    int inicioMes  = 1;
+    // Loan start date (F5): 01/2027
+    int startYear  = 2027;
+    int startMonth = 1;
 
-    // ---- Configuración: escalas y series oficiales (editables por el
-    // usuario desde la hoja "Configuración"; estos son los valores vigentes).
+    // ---- Configuración: official scales and series (editable by the user
+    // from the "Configuración" sheet; these are the values currently in force).
 
-    // Escala general IRPF 2026 (hoja Impuestos, filas 26-31)
-    std::array<TramoIRPF,6> tramosIRPF {{
+    // General IRPF scale 2026 (Impuestos sheet, rows 26-31)
+    std::array<IrpfBracket,6> irpfBrackets {{
         {      0,     12450, 0.19 },
         {  12450,     20200, 0.24 },
         {  20200,     35200, 0.30 },
@@ -123,9 +123,9 @@ struct Inputs {
         { 300000, 999999999, 0.47 },
     }};
 
-    // Escala de deducciones "Reales Decretos" (RD 823/2008, art. 2.5): tramos
-    // sobre la facturación MENSUAL de recetas al SNS (PVP+IVA).
-    std::array<TramoRD,9> tramosRD {{
+    // "Reales Decretos" deduction scale (RD 823/2008, art. 2.5): brackets on
+    // MONTHLY prescription sales billed to the SNS (PVP+IVA).
+    std::array<RdBracket,9> rdBrackets {{
         {      0.00,     0.00, 0.000 },
         {  37500.00,     0.00, 0.078 },
         {  45000.00,   585.00, 0.091 },
@@ -137,10 +137,10 @@ struct Inputs {
         { 600000.00, 89081.17, 0.200 },
     }};
 
-    // Escala RETA (autónomos) 2026 = 2025, congelada (Orden PJC/297/2026, BOE
-    // 31-mar-2026): 15 tramos por rendimientos netos mensuales, cuota mínima
-    // mensual de cada tramo (base mínima de cotización + MEI 0,9%).
-    std::array<TramoRETA,15> tramosRETA {{
+    // RETA scale (self-employed) 2026 = 2025, frozen (Orden PJC/297/2026, BOE
+    // 31-mar-2026): 15 brackets by monthly net income, minimum monthly quota
+    // of each bracket (minimum contribution base + 0.9% MEI).
+    std::array<RetaBracket,15> retaBrackets {{
         {      0.00, 205.88 },
         {   670.00, 226.47 },
         {   900.00, 267.64 },
@@ -158,139 +158,139 @@ struct Inputs {
         {  6000.00, 607.31 },
     }};
 
-    // Tarifa plana para alta inicial en el RETA (vigente desde 2023, 2026 =
-    // 2025): 80 €/mes fijos + MEI, con independencia del tramo de
-    // rendimientos, durante los primeros 12 meses de actividad.
-    double tarifaPlanaMensual = 88.64;
+    // Flat rate for the initial RETA sign-up (in force since 2023, 2026 =
+    // 2025): 80 €/month fixed + MEI, regardless of the income bracket,
+    // during the first 12 months of activity.
+    double retaFlatMonthlyFee = 88.64;
 
-    // IPC histórico de España (INE, variación media anual), últimos 10 años
-    // disponibles — escenario "Realista".
-    std::array<double,10> ipcHistorico {
+    // Spain's historical CPI (IPC) (INE, average annual change), last 10
+    // available years — "Realistic" scenario.
+    std::array<double,10> ipcHistorical {
         -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
     };
 
-    // Evolución simulada del margen comercial, escenario "Realista".
-    std::array<double,10> margenComercialSim {
+    // Simulated commercial margin evolution, "Realistic" scenario.
+    std::array<double,10> realisticMarginSeries {
         0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
     };
 };
 
-// ---------------------------------------------------------------- Salidas
+// ---------------------------------------------------------------- Outputs
 struct AmortRow {
-    int    num;        // Nº pago (1..300)
-    int    anio, mes;  // fecha
-    double saldoIni, cuota, capital, interes, saldoFin;
+    int    paymentNum;      // payment # (1..300)
+    int    year, month;     // date
+    double startingBalance, payment, principalPaid, interest, endingBalance;
 };
 
 struct AmortResult {
-    double principal   = 0;  // F2
-    double tasaAnual   = 0;  // F3
-    int    plazoAnios  = 0;  // F4
-    double pagoMensual = 0;  // F7
-    double pagoAnual   = 0;  // I7
-    int    numPagos    = 0;  // F8
-    double totalIntereses = 0; // F9  (suma H18:H317)
-    double costeTotal     = 0; // F10 (F2-F9)
-    std::vector<AmortRow> rows; // 300 filas (meses 1..300)
+    double principal      = 0;  // F2
+    double annualRate     = 0;  // F3
+    int    termYears      = 0;  // F4
+    double monthlyPayment = 0;  // F7
+    double annualPayment  = 0;  // I7
+    int    numPayments    = 0;  // F8
+    double totalInterest  = 0;  // F9  (sum H18:H317)
+    double totalCost      = 0;  // F10 (F2-F9)
+    std::vector<AmortRow> rows; // 300 rows (months 1..300)
 };
 
-struct PersonalRow { double brutoFT, jornada, pctSS, costeSS, salReal, costeTotal; };
-struct PlantillaRow { double jornada, personas, brutoFT, brutoReal, costeSS, costePersona, costeTotal; };
+struct StaffRow { double grossFte, fte, socialSecurityPct, socialSecurityCost, actualSalary, totalCost; };
+struct HeadcountRow { double fte, headcount, grossFte, actualGross, socialSecurityCost, costPerPerson, totalCost; };
 
-struct PersonalResult {
-    std::array<PersonalRow,3> datos;     // filas 6-8
-    double totCosteSS=0, totSalReal=0, totCoste=0;          // fila 9
-    std::array<PlantillaRow,4> plantilla;// filas 13-16
-    double totPersonas=0, totBrutoReal=0, totSS=0, totPlantilla=0; // fila 17
-    double salarioNetoMensualAnio1=0;    // B19
+struct StaffResult {
+    std::array<StaffRow,3> byRole;     // rows 6-8
+    double totalSocialSecurityCost=0, totalActualSalary=0, totalCost=0;          // row 9
+    std::array<HeadcountRow,4> headcountPlan;// rows 13-16
+    double totalHeadcount=0, totalActualGross=0, totalSocialSecurity=0, totalHeadcountCost=0; // row 17
+    double netMonthlySalaryYear1=0;    // B19
 };
 
-struct DatosBaseResult {
-    double ventaTotal=0, costeMercancia=0, mComBruto=0, realesDecretos=0, mComDespuesRD=0;
-    double gastosPersonal=0, seguridadSocial=0, totalGastosPersonal=0;
-    double totalOtrosGastos=0, beneficioAntesImp=0;
+struct BaseDataResult {
+    double totalSales=0, costOfGoods=0, grossMargin=0, rdDeduction=0, marginAfterRd=0;
+    double staffCost=0, socialSecurity=0, totalStaffCost=0;
+    double totalOtherExpenses=0, profitBeforeTax=0;
 };
 
-struct FinanciacionResult {
-    double fondoComercio=0, honorarios=0, iva=0, totalInversion=0;
-    double impuestoITP=0;   // D20 (v2): 8% del local
-    double ajd=0;           // D21 (v2): 1,5% de FdC + existencias
-    double impuestos=0;     // D23 (v2): ITP + AJD
-    double gastosAperturaHipoteca=0; // % sobre financiación bancaria (farmacia+local+hipoteca propiedad)
-    double finBancariaFarmacia=0, finBancariaLocal=0, totalFinanciacion=0;
-    double minimoLiquidez=0;    // Aportación mínima recomendada = totalInversion - (finPropiedades*pctFinPropiedades) - pedidoInicial
-    bool   liquidezInvalida=false; // liquidezAportada < minimoLiquidez
+struct FinancingResult {
+    double goodwill=0, fees=0, iva=0, totalInvestment=0;
+    double itpTax=0;         // D20 (v2): 8% of the premises
+    double ajd=0;            // D21 (v2): 1.5% of FdC + inventory
+    double taxes=0;          // D23 (v2): ITP + AJD
+    double mortgageOpeningCost=0; // % on bank financing (pharmacy+premises+properties mortgage)
+    double pharmacyBankFinancing=0, premisesBankFinancing=0, totalFinancing=0;
+    double minimumCash=0;    // Recommended minimum contribution = totalInvestment - (propertiesFinancing*propertiesFinancingPct) - initialOrder
+    bool   cashBelowMinimum=false; // contributedCash < minimumCash
 };
 
-struct ImpuestosResult {
-    // Paso 1: base amortizable
-    double fdc=0;            // B6
-    double honorarios=0;     // B7
-    double ajd=0;            // B8
-    double baseAmortizable=0;// B9
-    double costeLocal=0;     // B10
-    double deduccionMinimo=0;// B33 = mínimo personal × 19%
-    // Paso 2 y 3 (10 años)
-    std::array<double,10> beneficio{},      // fila 18
-        amortLocal{},                        // fila 19
-        pctAjustado{},                       // fila 20
-        amortFdC{},                          // fila 21
-        baseImponible{},                     // fila 22
-        cuotaEscala{},                       // fila 32
-        pago{};                              // fila 34 (PAGO IMPUESTOS)
-    std::array<std::array<double,10>,6> tramos{}; // filas 26-31
+struct TaxResult {
+    // Step 1: depreciable base
+    double fdc=0;             // B6
+    double fees=0;            // B7
+    double ajd=0;              // B8
+    double depreciableBase=0;  // B9
+    double premisesCost=0;     // B10
+    double minimumDeduction=0; // B33 = personalAllowance × 19%
+    // Step 2 and 3 (10 years)
+    std::array<double,10> profit{},          // row 18
+        premisesDepreciation{},              // row 19
+        adjustedPct{},                       // row 20
+        fdcDepreciation{},                   // row 21
+        taxableBase{},                       // row 22
+        bracketQuota{},                      // row 32
+        payment{};                           // row 34 (TAX PAYMENT)
+    std::array<std::array<double,10>,6> brackets{}; // rows 26-31
 };
 
-struct ProyeccionResult {           // 10 valores = años 1..10
-    std::array<double,10> ventaReceta{}, ventaLibre{}, ventaTotal{},
-        costeMercancia{}, mComBruto{}, realesDecretos{}, mComDespuesRD{},
-        alquiler{}, gastosPersonal{}, cuotaAutonomos{}, otrosGastos{}, intereses{},
-        beneficio{}, pagoImpuestos{}, liquidez{}, devCapitalBanco{},
-        devCooperativa{}, salarioNetoAnual{}, salarioNetoMensual{},
-        pctGastoPersonal{};
-    // Series aplicadas por el escenario de crecimiento (solo informativas).
-    std::array<double,10> ipcAplicado{}, margenComercial{};
+struct ProjectionResult {           // 10 values = years 1..10
+    std::array<double,10> prescriptionSales{}, otcSales{}, totalSales{},
+        costOfGoods{}, grossMargin{}, rdDeduction{}, marginAfterRd{},
+        rent{}, staffCost{}, selfEmployedQuota{}, otherExpenses{}, interest{},
+        profit{}, taxPayment{}, cashAfterTax{}, bankPrincipalRepayment{},
+        coopPrincipalRepayment{}, netAnnualSalary{}, netMonthlySalary{},
+        staffCostPct{};
+    // Series applied by the growth scenario (informational only).
+    std::array<double,10> ipcApplied{}, commercialMarginPct{};
 };
 
-struct AnalisisResult {
-    // Escenarios 0=pesimista, 1=neutral, 2=optimista
-    std::array<double,3> inversionInicial{}, valorVentaFdC{}, valorVentaLocal{},
-        existencias10{}, fdcPendiente{}, deuda{}, patrimonioBruto{},
-        patrimonioNeto{}, cagr{}, tir{};
-    // Liquidez mensual: años 1, 5, 10
-    std::array<double,3> liqMensual{}, devCapitalMensual{}, interesesMensual{}, netoTitular{};
-    // Simulación amortización FdC (10 años)
-    double amortLocalAnual=0;   // B32
-    std::array<double,10> benFarmacia{}, pctAmortFdC{}, amortFdC{},
-        amortLocal{}, baseImponible{}, fdcPendienteSim{};
+struct AnalysisResult {
+    // Scenarios 0=pessimistic, 1=neutral, 2=optimistic
+    std::array<double,3> initialInvestment{}, fdcSaleValue{}, premisesSaleValue{},
+        inventoryYear10{}, fdcOutstanding{}, debt{}, grossEquity{},
+        netEquity{}, cagr{}, irr{};
+    // Monthly cash flow: years 1, 5, 10
+    std::array<double,3> monthlyCashFlow{}, monthlyPrincipalRepayment{}, monthlyInterest{}, ownerNetIncome{};
+    // FdC depreciation simulation (10 years)
+    double annualPremisesDepreciation=0;   // B32
+    std::array<double,10> pharmacyProfit{}, fdcDepreciationPct{}, fdcDepreciation{},
+        premisesDepreciation{}, taxableBase{}, fdcOutstandingSim{};
 };
 
 struct Results {
-    PersonalResult     personal;
-    DatosBaseResult    datosBase;
-    FinanciacionResult financiacion;
-    AmortResult        amortBanco, amortCoop, amortProp;
-    ProyeccionResult   proyeccion;
-    ImpuestosResult    impuestos;
-    AnalisisResult     analisis;
+    StaffResult      staff;
+    BaseDataResult   baseData;
+    FinancingResult  financing;
+    AmortResult      bankAmort, coopAmort, propertiesAmort;
+    ProjectionResult projection;
+    TaxResult        taxes;
+    AnalysisResult   analysis;
 };
 
-// Deducción "Reales Decretos" (RD 823/2008 art. 2.5): escala progresiva por
-// tramos sobre la facturación MENSUAL de recetas (PVP+IVA) al SNS. Se aplica
-// a la media mensual de la venta de receta anual y se anualiza (x12).
-double calcularRealesDecretos(double ventaRecetaAnual, const std::array<TramoRD,9>& tabla);
+// "Reales Decretos" deduction (RD 823/2008 art. 2.5): progressive bracket
+// scale on MONTHLY prescription sales (PVP+IVA) billed to the SNS. Applied
+// to the monthly average of annual prescription sales and annualized (x12).
+double calculateRdDeduction(double annualPrescriptionSales, const std::array<RdBracket,9>& table);
 
-// Cuota RETA (autónomos) anual según la escala real de 15 tramos de
-// rendimientos netos (Seguridad Social, tabla 2026 = 2025, congelada).
-// beneficioAnual es el beneficio de la farmacia antes de esta cuota; se
-// promedia a mensual para ubicar el tramo, y se aplica la cuota mínima
-// mensual de ese tramo (incluye el 0,9% del MEI).
-double calcularCuotaAutonomos(double beneficioAnual, const std::array<TramoRETA,15>& tabla);
+// RETA (self-employed) quota, annual, per the real 15-bracket scale on net
+// monthly income (Social Security, 2026 table = 2025, frozen). annualProfit
+// is the pharmacy's profit before this quota; it is averaged monthly to
+// locate the bracket, and the minimum monthly quota of that bracket is
+// applied (includes the 0.9% MEI).
+double calculateSelfEmployedQuota(double annualProfit, const std::array<RetaBracket,15>& table);
 
-// PMT de Excel: cuota constante (negativa) de un préstamo.
-double pmt(double tasaMensual, int numPagos, double principal);
+// Excel's PMT: constant (negative) payment of a loan.
+double pmt(double monthlyRate, int numPayments, double principal);
 
-// TIR (IRR de Excel) de una serie de flujos de caja.
+// IRR (Excel's IRR) of a series of cash flows.
 double irr(const std::vector<double>& cashflows, double guess = 0.1);
 
 Results compute(const Inputs& in);

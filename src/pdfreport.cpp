@@ -1,7 +1,7 @@
-// pdfreport.cpp — Genera el informe PDF con QPdfWriter + QPainter.
-// Maquetación propia (no captura de pantalla): portada, cabecera/pie por
-// página, tarjetas de cifras clave y tablas con zebra, en el mismo estilo
-// visual (verde #14523f) que la aplicación.
+// pdfreport.cpp — Generates the PDF report with QPdfWriter + QPainter.
+// Custom layout (not a screenshot): cover page, header/footer per page, key
+// figure cards and zebra tables, in the same visual style (green #14523f)
+// as the app.
 #include "pdfreport.h"
 
 #include <QBuffer>
@@ -18,30 +18,30 @@
 
 namespace {
 
-// ---------------------------------------------------------------- estilo
-const QColor kVerde       ("#14523f");
-const QColor kVerdeMedio  ("#1a7a5e");
-const QColor kVerdeSuave  ("#e3efe9");
-const QColor kZebra       ("#f7faf8");
-const QColor kTexto       ("#1e2b28");
-const QColor kGris        ("#3c4a46");
-const QColor kGrisClaro   ("#6b7a76");
-const QColor kRojo        ("#a33b2e");
-const QColor kBorde       ("#dde5e1");
-const QColor kAmarillo    ("#ffe9a8");
+// ---------------------------------------------------------------- style
+const QColor kGreen      ("#14523f");
+const QColor kGreenMedium("#1a7a5e");
+const QColor kGreenSoft  ("#e3efe9");
+const QColor kZebra      ("#f7faf8");
+const QColor kText       ("#1e2b28");
+const QColor kGray       ("#3c4a46");
+const QColor kGrayLight  ("#6b7a76");
+const QColor kRed        ("#a33b2e");
+const QColor kBorder     ("#dde5e1");
+const QColor kYellow     ("#ffe9a8");
 
-constexpr int   kDpi    = 96;   // coordenadas ~píxeles de pantalla
-constexpr qreal kMargen = 42;   // ≈ 11 mm
+constexpr int   kDpi    = 96;   // ~screen-pixel coordinates
+constexpr qreal kMargin = 42;   // ≈ 11 mm
 
-// ---------------------------------------------------------------- documento
+// ---------------------------------------------------------------- document
 struct Doc {
     QPdfWriter  wr;
     QPainter    p;
     QLocale     loc{QLocale::Spanish, QLocale::Spain};
-    QString     familia = QStringLiteral("Segoe UI"); // fallback automático
-    QString     seccion;
-    QString     fecha;
-    int         numPag = 0;
+    QString     fontFamily = QStringLiteral("Segoe UI"); // automatic fallback
+    QString     section;
+    QString     date;
+    int         pageNum = 0;
     qreal       y = 0;
 
     explicit Doc(QIODevice* dev) : wr(dev)
@@ -51,41 +51,41 @@ struct Doc {
         wr.setPageMargins(QMarginsF(0, 0, 0, 0));
         wr.setTitle(QStringLiteral("Simulación Farmacia — Informe"));
         wr.setCreator(QStringLiteral("FarmaciaSim"));
-        fecha = loc.toString(QDate::currentDate(), QStringLiteral("d 'de' MMMM 'de' yyyy"));
+        date = loc.toString(QDate::currentDate(), QStringLiteral("d 'de' MMMM 'de' yyyy"));
     }
 
-    qreal ancho() const { return wr.width();  }
-    qreal alto()  const { return wr.height(); }
-    qreal xIzq()  const { return kMargen; }
-    qreal xDer()  const { return ancho() - kMargen; }
-    qreal yFin()  const { return alto() - kMargen - 14; } // hueco para el pie
+    qreal pageWidth()  const { return wr.width();  }
+    qreal pageHeight() const { return wr.height(); }
+    qreal leftX()  const { return kMargin; }
+    qreal rightX() const { return pageWidth() - kMargin; }
+    qreal bottomY() const { return pageHeight() - kMargin - 14; } // room for the footer
 
     QFont f(qreal pt, bool bold = false) const
     {
-        QFont fu(familia);
+        QFont fu(fontFamily);
         fu.setPointSizeF(pt);
         fu.setBold(bold);
         return fu;
     }
-    qreal altoTexto(const QFont& fu) const { return QFontMetricsF(fu, &wr).height(); }
+    qreal textHeight(const QFont& fu) const { return QFontMetricsF(fu, &wr).height(); }
 
-    // ---- formato es-ES. Agrupación de miles propia ("1.234.567"): el CLDR
-    // español de Qt omite el punto cuando el primer grupo tiene 1 dígito.
+    // ---- es-ES formatting. Custom thousands grouping ("1.234.567"): Qt's
+    // Spanish CLDR omits the dot when the first group has 1 digit.
     QString num(double v, int dec = 0) const
     {
         QString s = QString::number(v, 'f', dec);
         const bool neg = s.startsWith(QLatin1Char('-'));
         if (neg) s.remove(0, 1);
-        const int punto = s.indexOf(QLatin1Char('.'));
-        QString ent  = punto < 0 ? s : s.left(punto);
-        QString frac = punto < 0 ? QString() : s.mid(punto + 1);
+        const int dot = s.indexOf(QLatin1Char('.'));
+        QString intPart  = dot < 0 ? s : s.left(dot);
+        QString fracPart = dot < 0 ? QString() : s.mid(dot + 1);
         QString res;
-        for (int i = 0; i < ent.size(); ++i) {
-            if (i && (ent.size() - i) % 3 == 0) res += QLatin1Char('.');
-            res += ent.at(i);
+        for (int i = 0; i < intPart.size(); ++i) {
+            if (i && (intPart.size() - i) % 3 == 0) res += QLatin1Char('.');
+            res += intPart.at(i);
         }
-        if (!frac.isEmpty()) res += QLatin1Char(',') + frac;
-        // evitar "-0"
+        if (!fracPart.isEmpty()) res += QLatin1Char(',') + fracPart;
+        // avoid "-0"
         if (neg && res.contains(QRegularExpression(QStringLiteral("[1-9]"))))
             res.prepend(QLatin1Char('-'));
         return res;
@@ -95,208 +95,209 @@ struct Doc {
     QString pct (double v, int dec = 1) const
     { return num(v * 100.0, dec) + QStringLiteral(" %"); }
 
-    // ---- cabecera y pie de página
-    void cabecera()
+    // ---- page header and footer
+    void header()
     {
         p.setFont(f(7.5, true));
-        p.setPen(kVerde);
-        p.drawText(QRectF(xIzq(), kMargen - 24, ancho() - 2 * kMargen, 14),
+        p.setPen(kGreen);
+        p.drawText(QRectF(leftX(), kMargin - 24, pageWidth() - 2 * kMargin, 14),
                    Qt::AlignLeft | Qt::AlignVCenter,
                    QStringLiteral("SIMULACIÓN FARMACIA · INFORME ECONÓMICO-FINANCIERO"));
         p.setFont(f(7.5));
-        p.setPen(kGrisClaro);
-        p.drawText(QRectF(xIzq(), kMargen - 24, ancho() - 2 * kMargen, 14),
-                   Qt::AlignRight | Qt::AlignVCenter, seccion);
-        p.setPen(QPen(kVerde, 1.2));
-        p.drawLine(QPointF(xIzq(), kMargen - 6), QPointF(xDer(), kMargen - 6));
+        p.setPen(kGrayLight);
+        p.drawText(QRectF(leftX(), kMargin - 24, pageWidth() - 2 * kMargin, 14),
+                   Qt::AlignRight | Qt::AlignVCenter, section);
+        p.setPen(QPen(kGreen, 1.2));
+        p.drawLine(QPointF(leftX(), kMargin - 6), QPointF(rightX(), kMargin - 6));
     }
 
-    void pie()
+    void footer()
     {
         p.setFont(f(7));
-        p.setPen(kGrisClaro);
-        const QRectF r(xIzq(), alto() - kMargen + 6, ancho() - 2 * kMargen, 14);
-        p.drawText(r, Qt::AlignLeft  | Qt::AlignVCenter, fecha);
+        p.setPen(kGrayLight);
+        const QRectF r(leftX(), pageHeight() - kMargin + 6, pageWidth() - 2 * kMargin, 14);
+        p.drawText(r, Qt::AlignLeft  | Qt::AlignVCenter, date);
         p.drawText(r, Qt::AlignRight | Qt::AlignVCenter,
-                   QStringLiteral("Página %1").arg(numPag));
+                   QStringLiteral("Página %1").arg(pageNum));
     }
 
-    // Nueva sección (puede cambiar la orientación de la página).
-    void paginaNueva(QPageLayout::Orientation o, const QString& s)
+    // New section (may change the page orientation).
+    void newPage(QPageLayout::Orientation o, const QString& s)
     {
         wr.setPageOrientation(o);
-        if (numPag == 0)
+        if (pageNum == 0)
             p.begin(&wr);
         else
             wr.newPage();
-        ++numPag;
-        seccion = s;
-        if (numPag > 1) {   // la portada no lleva cabecera/pie
-            cabecera();
-            pie();
+        ++pageNum;
+        section = s;
+        if (pageNum > 1) {   // the cover page has no header/footer
+            header();
+            footer();
         }
-        y = kMargen + 14;
+        y = kMargin + 14;
     }
 
-    // Salto de página dentro de la misma sección (misma orientación).
-    void saltoPagina()
+    // Page break within the same section (same orientation).
+    void pageBreak()
     {
         wr.newPage();
-        ++numPag;
-        cabecera();
-        pie();
-        y = kMargen + 14;
+        ++pageNum;
+        header();
+        footer();
+        y = kMargin + 14;
     }
 
-    void asegurar(qreal h)
+    void ensureSpace(qreal h)
     {
-        if (y + h > yFin())
-            saltoPagina();
+        if (y + h > bottomY())
+            pageBreak();
     }
 
-    // ---- bloques de texto
-    void tituloHoja(const QString& t)
+    // ---- text blocks
+    void sheetTitle(const QString& t)
     {
-        asegurar(46);
+        ensureSpace(46);
         p.setFont(f(16, true));
-        p.setPen(kVerde);
-        p.drawText(QPointF(xIzq(), y + 20), t);
+        p.setPen(kGreen);
+        p.drawText(QPointF(leftX(), y + 20), t);
         y += 34;
     }
 
-    void tituloSeccion(const QString& t)
+    void sectionTitle(const QString& t)
     {
-        asegurar(64);
+        ensureSpace(64);
         y += 8;
         p.setFont(f(9, true));
-        p.setPen(kVerdeMedio);
-        p.drawText(QPointF(xIzq(), y + 11), t.toUpper());
-        p.setPen(QPen(kBorde, 1));
-        p.drawLine(QPointF(xIzq(), y + 17), QPointF(xDer(), y + 17));
+        p.setPen(kGreenMedium);
+        p.drawText(QPointF(leftX(), y + 11), t.toUpper());
+        p.setPen(QPen(kBorder, 1));
+        p.drawLine(QPointF(leftX(), y + 17), QPointF(rightX(), y + 17));
         y += 26;
     }
 
-    void nota(const QString& t)
+    void note(const QString& t)
     {
         const QFont fu = f(7.5);
-        const QRectF medida = QFontMetricsF(fu, &wr).boundingRect(
-            QRectF(0, 0, ancho() - 2 * kMargen, 1000), Qt::TextWordWrap, t);
-        asegurar(medida.height() + 8);
+        const QRectF measured = QFontMetricsF(fu, &wr).boundingRect(
+            QRectF(0, 0, pageWidth() - 2 * kMargin, 1000), Qt::TextWordWrap, t);
+        ensureSpace(measured.height() + 8);
         p.setFont(fu);
-        p.setPen(kGrisClaro);
-        p.drawText(QRectF(xIzq(), y, ancho() - 2 * kMargen, medida.height() + 4),
+        p.setPen(kGrayLight);
+        p.drawText(QRectF(leftX(), y, pageWidth() - 2 * kMargin, measured.height() + 4),
                    Qt::TextWordWrap, t);
-        y += medida.height() + 8;
+        y += measured.height() + 8;
     }
 };
 
-// ---------------------------------------------------------------- tablas
+// ---------------------------------------------------------------- tables
 struct Col {
-    QString titulo;
+    QString title;
     qreal   w;
     Qt::Alignment align = Qt::AlignRight;
 };
 
-struct Tabla {
+struct Table {
     Doc&          d;
     QVector<Col>  cols;
-    bool          conCabecera;
-    qreal         hFila;
-    qreal         ptFuente;
-    int           fila = 0;
+    bool          hasHeader;
+    qreal         rowHeight;
+    qreal         fontPt;
+    int           row = 0;
 
-    Tabla(Doc& doc, QVector<Col> c, bool cab = true,
-          qreal alto = 19, qreal pt = 8.5)
-        : d(doc), cols(std::move(c)), conCabecera(cab), hFila(alto), ptFuente(pt)
+    Table(Doc& doc, QVector<Col> c, bool withHeader = true,
+          qreal height = 19, qreal pt = 8.5)
+        : d(doc), cols(std::move(c)), hasHeader(withHeader), rowHeight(height), fontPt(pt)
     {
-        if (conCabecera)
-            cabecera();
+        if (hasHeader)
+            header();
     }
 
-    qreal anchoTotal() const
+    qreal totalWidth() const
     {
         qreal w = 0;
         for (const auto& c : cols) w += c.w;
         return w;
     }
 
-    void cabecera()
+    void header()
     {
-        d.asegurar(hFila + 4);
+        d.ensureSpace(rowHeight + 4);
         d.p.setPen(Qt::NoPen);
-        d.p.setBrush(kVerde);
-        d.p.drawRect(QRectF(d.xIzq(), d.y, anchoTotal(), hFila + 2));
-        d.p.setFont(d.f(ptFuente, true));
+        d.p.setBrush(kGreen);
+        d.p.drawRect(QRectF(d.leftX(), d.y, totalWidth(), rowHeight + 2));
+        d.p.setFont(d.f(fontPt, true));
         d.p.setPen(Qt::white);
-        qreal x = d.xIzq();
+        qreal x = d.leftX();
         for (const auto& c : cols) {
-            d.p.drawText(QRectF(x + 6, d.y, c.w - 12, hFila + 2),
-                         c.align | Qt::AlignVCenter, c.titulo);
+            d.p.drawText(QRectF(x + 6, d.y, c.w - 12, rowHeight + 2),
+                         c.align | Qt::AlignVCenter, c.title);
             x += c.w;
         }
-        d.y += hFila + 2;
+        d.y += rowHeight + 2;
     }
 
-    // 'destacada' = fila de totales (fondo verde suave, texto verde, negrita).
-    // 'grupo'/'finGrupo' = fila de un grupo aparte (p.ej. "Financiación" en la
-    // tabla de Comparación): fondo propio, y si es la última del grupo, una
-    // línea divisoria inferior, igual que ConceptTable.qml.
-    void filaDatos(const QStringList& celdas, bool destacada = false,
-                    bool grupo = false, bool finGrupo = false)
+    // 'highlighted' = totals row (soft green background, green bold text).
+    // 'group'/'groupEnd' = row belonging to a separate group (e.g.
+    // "Financiación" in the comparison table): own background, and if it's
+    // the last row of the group, a divider line underneath — same as
+    // ConceptTable.qml.
+    void dataRow(const QStringList& cells, bool highlighted = false,
+                    bool group = false, bool groupEnd = false)
     {
-        if (d.y + hFila > d.yFin()) {
-            d.saltoPagina();
-            if (conCabecera)
-                cabecera();
+        if (d.y + rowHeight > d.bottomY()) {
+            d.pageBreak();
+            if (hasHeader)
+                header();
         }
-        const QColor fondo = grupo ? QColor("#eef5f1")
-                            : destacada ? kVerdeSuave
-                            : (fila % 2 ? kZebra : QColor(Qt::white));
+        const QColor bg = group ? QColor("#eef5f1")
+                            : highlighted ? kGreenSoft
+                            : (row % 2 ? kZebra : QColor(Qt::white));
         d.p.setPen(Qt::NoPen);
-        d.p.setBrush(fondo);
-        d.p.drawRect(QRectF(d.xIzq(), d.y, anchoTotal(), hFila));
+        d.p.setBrush(bg);
+        d.p.drawRect(QRectF(d.leftX(), d.y, totalWidth(), rowHeight));
 
-        d.p.setFont(d.f(ptFuente, destacada));
-        qreal x = d.xIzq();
-        for (int i = 0; i < cols.size() && i < celdas.size(); ++i) {
-            const QString& t = celdas.at(i);
-            QColor color = destacada ? kVerde : (i == 0 ? kGris : kTexto);
+        d.p.setFont(d.f(fontPt, highlighted));
+        qreal x = d.leftX();
+        for (int i = 0; i < cols.size() && i < cells.size(); ++i) {
+            const QString& t = cells.at(i);
+            QColor color = highlighted ? kGreen : (i == 0 ? kGray : kText);
             if (i > 0 && t.startsWith(QLatin1Char('-')))
-                color = kRojo;                      // importes negativos en rojo
+                color = kRed;                      // negative amounts in red
             d.p.setPen(color);
-            d.p.drawText(QRectF(x + 6, d.y, cols.at(i).w - 12, hFila),
+            d.p.drawText(QRectF(x + 6, d.y, cols.at(i).w - 12, rowHeight),
                          cols.at(i).align | Qt::AlignVCenter, t);
             x += cols.at(i).w;
         }
-        if (finGrupo) {
+        if (groupEnd) {
             d.p.setPen(QPen(QColor("#8fb3a3"), 2));
-            d.p.drawLine(QPointF(d.xIzq(), d.y + hFila), QPointF(d.xIzq() + anchoTotal(), d.y + hFila));
+            d.p.drawLine(QPointF(d.leftX(), d.y + rowHeight), QPointF(d.leftX() + totalWidth(), d.y + rowHeight));
         }
-        d.y += hFila;
-        ++fila;
+        d.y += rowHeight;
+        ++row;
     }
 
-    // Fila separadora a todo lo ancho (p.ej. el título "Financiación").
-    void filaSeparador(const QString& etiqueta)
+    // Full-width separator row (e.g. the "Financiación" title).
+    void separatorRow(const QString& label)
     {
-        if (d.y + hFila > d.yFin()) {
-            d.saltoPagina();
-            if (conCabecera)
-                cabecera();
+        if (d.y + rowHeight > d.bottomY()) {
+            d.pageBreak();
+            if (hasHeader)
+                header();
         }
         d.p.setPen(Qt::NoPen);
         d.p.setBrush(QColor("#dde9e2"));
-        d.p.drawRect(QRectF(d.xIzq(), d.y, anchoTotal(), hFila));
-        d.p.setFont(d.f(ptFuente, true));
-        d.p.setPen(kVerde);
-        d.p.drawText(QRectF(d.xIzq() + 6, d.y, anchoTotal() - 12, hFila),
-                     Qt::AlignLeft | Qt::AlignVCenter, etiqueta);
-        d.y += hFila;
+        d.p.drawRect(QRectF(d.leftX(), d.y, totalWidth(), rowHeight));
+        d.p.setFont(d.f(fontPt, true));
+        d.p.setPen(kGreen);
+        d.p.drawText(QRectF(d.leftX() + 6, d.y, totalWidth() - 12, rowHeight),
+                     Qt::AlignLeft | Qt::AlignVCenter, label);
+        d.y += rowHeight;
     }
 
-    void cerrar()
+    void close()
     {
-        d.p.setPen(QPen(kBorde, 1));
+        d.p.setPen(QPen(kBorder, 1));
         d.p.setBrush(Qt::NoBrush);
         const qreal h = d.y;
         Q_UNUSED(h)
@@ -304,84 +305,84 @@ struct Tabla {
     }
 };
 
-// Tabla de dos columnas etiqueta/valor (como las tarjetas de la app).
-Tabla kv(Doc& d)
+// Two-column label/value table (like the app's cards).
+Table kv(Doc& d)
 {
-    const qreal w = d.ancho() - 2 * kMargen;
-    return Tabla(d, { { QString(), w - 170, Qt::AlignLeft },
+    const qreal w = d.pageWidth() - 2 * kMargin;
+    return Table(d, { { QString(), w - 170, Qt::AlignLeft },
                       { QString(), 170,     Qt::AlignRight } },
-                 /*cab*/ false, 19, 9);
+                 /*header*/ false, 19, 9);
 }
 
-// ---------------------------------------------------------------- portada
-void portada(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- cover page
+void coverPage(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
     Q_UNUSED(in)
-    d.paginaNueva(QPageLayout::Portrait, QStringLiteral("Portada"));
+    d.newPage(QPageLayout::Portrait, QStringLiteral("Portada"));
 
-    // Banda superior verde con cruz de farmacia.
+    // Green top band with pharmacy cross.
     d.p.setPen(Qt::NoPen);
-    d.p.setBrush(kVerde);
-    d.p.drawRect(QRectF(0, 0, d.ancho(), 390));
+    d.p.setBrush(kGreen);
+    d.p.drawRect(QRectF(0, 0, d.pageWidth(), 390));
 
-    d.p.setBrush(kVerdeMedio);
-    const qreal cx = d.ancho() - 150, cy = 120, b = 26; // cruz
+    d.p.setBrush(kGreenMedium);
+    const qreal cx = d.pageWidth() - 150, cy = 120, b = 26; // cross
     d.p.drawRoundedRect(QRectF(cx - b * 1.5, cy - b / 2, b * 3, b), 6, 6);
     d.p.drawRoundedRect(QRectF(cx - b / 2, cy - b * 1.5, b, b * 3), 6, 6);
 
     d.p.setPen(QColor("#cfe8de"));
     d.p.setFont(d.f(11, true));
-    d.p.drawText(QPointF(kMargen + 14, 150), QStringLiteral("FARMACIASIM"));
+    d.p.drawText(QPointF(kMargin + 14, 150), QStringLiteral("FARMACIASIM"));
 
     d.p.setPen(Qt::white);
     d.p.setFont(d.f(27, true));
-    d.p.drawText(QPointF(kMargen + 14, 196), QStringLiteral("Simulación Farmacia"));
+    d.p.drawText(QPointF(kMargin + 14, 196), QStringLiteral("Simulación Farmacia"));
 
     d.p.setPen(QColor("#cfe8de"));
     d.p.setFont(d.f(12.5));
-    d.p.drawText(QPointF(kMargen + 14, 226),
+    d.p.drawText(QPointF(kMargin + 14, 226),
                  QStringLiteral("Informe económico-financiero · Proyección a 10 años"));
 
     d.p.setPen(QColor("#9fc6b6"));
     d.p.setFont(d.f(9.5));
-    d.p.drawText(QPointF(kMargen + 14, 252), d.fecha);
+    d.p.drawText(QPointF(kMargin + 14, 252), d.date);
 
-    // Tarjetas con las cifras clave.
-    struct Metrica { QString etiqueta, valor; };
-    const Metrica metricas[6] = {
-        { QStringLiteral("Venta total (año base)"),          d.eur(r.datosBase.ventaTotal) },
-        { QStringLiteral("Bº antes de imp. y amort."),       d.eur(r.datosBase.beneficioAntesImp) },
-        { QStringLiteral("Inversión total"),                 d.eur(r.financiacion.totalInversion) },
-        { QStringLiteral("Financiación total"),              d.eur(r.financiacion.totalFinanciacion) },
-        { QStringLiteral("TIR a 10 años (esc. neutral)"),    d.pct(r.analisis.tir[1], 2) },
-        { QStringLiteral("Salario neto mensual (año 1)"),    d.eur(r.personal.salarioNetoMensualAnio1) },
+    // Cards with the key figures.
+    struct Metric { QString label, value; };
+    const Metric metrics[6] = {
+        { QStringLiteral("Venta total (año base)"),          d.eur(r.baseData.totalSales) },
+        { QStringLiteral("Bº antes de imp. y amort."),       d.eur(r.baseData.profitBeforeTax) },
+        { QStringLiteral("Inversión total"),                 d.eur(r.financing.totalInvestment) },
+        { QStringLiteral("Financiación total"),              d.eur(r.financing.totalFinancing) },
+        { QStringLiteral("TIR a 10 años (esc. neutral)"),    d.pct(r.analysis.irr[1], 2) },
+        { QStringLiteral("Salario neto mensual (año 1)"),    d.eur(r.staff.netMonthlySalaryYear1) },
     };
 
-    const qreal x0 = kMargen + 14, gap = 16;
-    const qreal wCard = (d.ancho() - 2 * x0 - gap) / 2, hCard = 86;
+    const qreal x0 = kMargin + 14, gap = 16;
+    const qreal wCard = (d.pageWidth() - 2 * x0 - gap) / 2, hCard = 86;
     qreal yy = 450;
     for (int i = 0; i < 6; ++i) {
         const qreal x = x0 + (i % 2) * (wCard + gap);
-        d.p.setPen(QPen(kBorde, 1.2));
+        d.p.setPen(QPen(kBorder, 1.2));
         d.p.setBrush(Qt::white);
         d.p.drawRoundedRect(QRectF(x, yy, wCard, hCard), 10, 10);
-        d.p.setPen(kGrisClaro);
+        d.p.setPen(kGrayLight);
         d.p.setFont(d.f(8.5));
-        d.p.drawText(QPointF(x + 18, yy + 28), metricas[i].etiqueta);
-        d.p.setPen(kVerde);
+        d.p.drawText(QPointF(x + 18, yy + 28), metrics[i].label);
+        d.p.setPen(kGreen);
         d.p.setFont(d.f(17, true));
-        d.p.drawText(QPointF(x + 18, yy + 62), metricas[i].valor);
+        d.p.drawText(QPointF(x + 18, yy + 62), metrics[i].value);
         if (i % 2 == 1)
             yy += hCard + gap;
     }
 
-    // Índice de contenidos.
+    // Table of contents.
     yy += 26;
-    d.p.setPen(kVerde);
+    d.p.setPen(kGreen);
     d.p.setFont(d.f(10, true));
     d.p.drawText(QPointF(x0, yy), QStringLiteral("Contenido"));
     yy += 8;
-    const char* indice[] = {
+    const char* tableOfContents[] = {
         "1.  Datos base — PyG estimada del estudio",
         "2.  Estudio de financiación",
         "3.  Proyección a 10 años",
@@ -390,351 +391,351 @@ void portada(Doc& d, const sim::Inputs& in, const sim::Results& r)
         "6.  Personal",
     };
     d.p.setFont(d.f(9.5));
-    for (const char* linea : indice) {
+    for (const char* line : tableOfContents) {
         yy += 20;
-        d.p.setPen(kGris);
-        d.p.drawText(QPointF(x0 + 6, yy), QString::fromUtf8(linea));
+        d.p.setPen(kGray);
+        d.p.drawText(QPointF(x0 + 6, yy), QString::fromUtf8(line));
     }
 
-    d.p.setPen(kGrisClaro);
+    d.p.setPen(kGrayLight);
     d.p.setFont(d.f(7.5));
-    d.p.drawText(QRectF(0, d.alto() - 60, d.ancho(), 20), Qt::AlignCenter,
-                 QStringLiteral("Generado con FarmaciaSim · Importes en euros · %1").arg(d.fecha));
+    d.p.drawText(QRectF(0, d.pageHeight() - 60, d.pageWidth(), 20), Qt::AlignCenter,
+                 QStringLiteral("Generado con FarmaciaSim · Importes en euros · %1").arg(d.date));
 }
 
-// ---------------------------------------------------------------- datos base
-void hojaDatosBase(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- base data
+void baseDataSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
-    d.paginaNueva(QPageLayout::Portrait, QStringLiteral("1 · Datos base"));
-    d.tituloHoja(QStringLiteral("1. Datos base del estudio"));
+    d.newPage(QPageLayout::Portrait, QStringLiteral("1 · Datos base"));
+    d.sheetTitle(QStringLiteral("1. Datos base del estudio"));
 
-    const auto& D = r.datosBase;
+    const auto& D = r.baseData;
 
-    d.tituloSeccion(QStringLiteral("Ventas"));
-    Tabla t = kv(d);
-    t.filaDatos({ QStringLiteral("Venta receta"),               d.eur(in.ventaReceta) });
-    t.filaDatos({ QStringLiteral("Venta libre"),                d.eur(in.ventaLibre) });
-    t.filaDatos({ QStringLiteral("Venta total"),                d.eur(D.ventaTotal) }, true);
+    d.sectionTitle(QStringLiteral("Ventas"));
+    Table t = kv(d);
+    t.dataRow({ QStringLiteral("Venta receta"),               d.eur(in.prescriptionSales) });
+    t.dataRow({ QStringLiteral("Venta libre"),                d.eur(in.otcSales) });
+    t.dataRow({ QStringLiteral("Venta total"),                d.eur(D.totalSales) }, true);
 
-    d.tituloSeccion(QStringLiteral("Margen comercial"));
-    Tabla t1b = kv(d);
-    t1b.filaDatos({ QStringLiteral("Coste mercancía"),          d.eur(D.costeMercancia) });
-    t1b.filaDatos({ QStringLiteral("M. comercial bruto"),       d.eur(D.mComBruto) });
-    t1b.filaDatos({ QStringLiteral("M. comercial bruto %"),     d.pct(in.margenPct) });
-    t1b.filaDatos({ QStringLiteral("Reales decretos"),          d.eur(D.realesDecretos) });
-    t1b.filaDatos({ QStringLiteral("M. comercial después RDs"), d.eur(D.mComDespuesRD) }, true);
+    d.sectionTitle(QStringLiteral("Margen comercial"));
+    Table t1b = kv(d);
+    t1b.dataRow({ QStringLiteral("Coste mercancía"),          d.eur(D.costOfGoods) });
+    t1b.dataRow({ QStringLiteral("M. comercial bruto"),       d.eur(D.grossMargin) });
+    t1b.dataRow({ QStringLiteral("M. comercial bruto %"),     d.pct(in.marginPct) });
+    t1b.dataRow({ QStringLiteral("Reales decretos"),          d.eur(D.rdDeduction) });
+    t1b.dataRow({ QStringLiteral("M. comercial después RDs"), d.eur(D.marginAfterRd) }, true);
 
-    d.tituloSeccion(QStringLiteral("Gastos de personal"));
-    Tabla t2 = kv(d);
-    t2.filaDatos({ QStringLiteral("Gastos de personal"), d.eur(D.gastosPersonal) });
-    t2.filaDatos({ QStringLiteral("Seguridad social"),   d.eur(D.seguridadSocial) });
-    t2.filaDatos({ QStringLiteral("Cuota autónomos (RETA, año 1)"),      d.eur(r.proyeccion.cuotaAutonomos[0]) });
-    t2.filaDatos({ QStringLiteral("Total gastos personal"),              d.eur(D.totalGastosPersonal) }, true);
+    d.sectionTitle(QStringLiteral("Gastos de personal"));
+    Table t2 = kv(d);
+    t2.dataRow({ QStringLiteral("Gastos de personal"), d.eur(D.staffCost) });
+    t2.dataRow({ QStringLiteral("Seguridad social"),   d.eur(D.socialSecurity) });
+    t2.dataRow({ QStringLiteral("Cuota autónomos (RETA, año 1)"),      d.eur(r.projection.selfEmployedQuota[0]) });
+    t2.dataRow({ QStringLiteral("Total gastos personal"),              d.eur(D.totalStaffCost) }, true);
 
-    d.tituloSeccion(QStringLiteral("Otros gastos"));
-    Tabla t3 = kv(d);
-    t3.filaDatos({ QStringLiteral("Alquiler local"),             d.eur(in.alquilerLocal) });
-    t3.filaDatos({ QStringLiteral("Suministros"),                d.eur(in.suministros) });
-    t3.filaDatos({ QStringLiteral("Gastos asesoría"),            d.eur(in.asesoria) });
-    t3.filaDatos({ QStringLiteral("Mantenimiento informático"),  d.eur(in.mantenimiento) });
-    t3.filaDatos({ QStringLiteral("Robot"),                      d.eur(in.robot) });
-    t3.filaDatos({ QStringLiteral("Seguros"),                    d.eur(in.seguros) });
-    t3.filaDatos({ QStringLiteral("Otros gastos"),               d.eur(in.otrosGastos) });
-    t3.filaDatos({ QStringLiteral("Total otros gastos"),         d.eur(D.totalOtrosGastos) }, true);
+    d.sectionTitle(QStringLiteral("Otros gastos"));
+    Table t3 = kv(d);
+    t3.dataRow({ QStringLiteral("Alquiler local"),             d.eur(in.premisesRent) });
+    t3.dataRow({ QStringLiteral("Suministros"),                d.eur(in.utilities) });
+    t3.dataRow({ QStringLiteral("Gastos asesoría"),            d.eur(in.advisoryFees) });
+    t3.dataRow({ QStringLiteral("Mantenimiento informático"),  d.eur(in.maintenance) });
+    t3.dataRow({ QStringLiteral("Robot"),                      d.eur(in.robot) });
+    t3.dataRow({ QStringLiteral("Seguros"),                    d.eur(in.insurance) });
+    t3.dataRow({ QStringLiteral("Otros gastos"),               d.eur(in.otherExpenses) });
+    t3.dataRow({ QStringLiteral("Total otros gastos"),         d.eur(D.totalOtherExpenses) }, true);
 
-    // Resultado final destacado (banda verde).
-    d.asegurar(64);
+    // Highlighted final result (green band).
+    d.ensureSpace(64);
     d.y += 12;
     d.p.setPen(Qt::NoPen);
-    d.p.setBrush(kVerde);
-    d.p.drawRoundedRect(QRectF(d.xIzq(), d.y, d.ancho() - 2 * kMargen, 44), 10, 10);
+    d.p.setBrush(kGreen);
+    d.p.drawRoundedRect(QRectF(d.leftX(), d.y, d.pageWidth() - 2 * kMargin, 44), 10, 10);
     d.p.setPen(Qt::white);
     d.p.setFont(d.f(11, true));
-    d.p.drawText(QRectF(d.xIzq() + 18, d.y, 400, 44), Qt::AlignLeft | Qt::AlignVCenter,
+    d.p.drawText(QRectF(d.leftX() + 18, d.y, 400, 44), Qt::AlignLeft | Qt::AlignVCenter,
                  QStringLiteral("Bº antes de impuestos y amortizaciones"));
-    d.p.setPen(kAmarillo);
+    d.p.setPen(kYellow);
     d.p.setFont(d.f(15, true));
-    d.p.drawText(QRectF(d.xIzq(), d.y, d.ancho() - 2 * kMargen - 18, 44),
-                 Qt::AlignRight | Qt::AlignVCenter, d.eur(D.beneficioAntesImp));
+    d.p.drawText(QRectF(d.leftX(), d.y, d.pageWidth() - 2 * kMargin - 18, 44),
+                 Qt::AlignRight | Qt::AlignVCenter, d.eur(D.profitBeforeTax));
     d.y += 56;
 }
 
-// ---------------------------------------------------------------- financiación
-void hojaFinanciacion(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- financing
+void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
-    d.paginaNueva(QPageLayout::Portrait, QStringLiteral("2 · Financiación"));
-    d.tituloHoja(QStringLiteral("2. Estudio de financiación"));
+    d.newPage(QPageLayout::Portrait, QStringLiteral("2 · Financiación"));
+    d.sheetTitle(QStringLiteral("2. Estudio de financiación"));
 
-    const auto& F = r.financiacion;
+    const auto& F = r.financing;
 
-    d.tituloSeccion(QStringLiteral("Escenario de crecimiento"));
+    d.sectionTitle(QStringLiteral("Escenario de crecimiento"));
     {
-        Tabla t = kv(d);
-        t.filaDatos({ QStringLiteral("Escenario"),
-                      in.escenarioCrecimiento >= 0.5 ? QStringLiteral("Optimista") : QStringLiteral("Realista") });
-        if (in.escenarioCrecimiento >= 0.5)
-            t.filaDatos({ QStringLiteral("IPC"), d.pct(in.ipcOptimista) });
+        Table t = kv(d);
+        t.dataRow({ QStringLiteral("Escenario"),
+                      in.growthScenario >= 0.5 ? QStringLiteral("Optimista") : QStringLiteral("Realista") });
+        if (in.growthScenario >= 0.5)
+            t.dataRow({ QStringLiteral("IPC"), d.pct(in.ipcOptimistic) });
     }
 
-    d.tituloSeccion(QStringLiteral("Inversión operación"));
-    Tabla t2 = kv(d);
-    t2.filaDatos({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.coeficiente, 1) });
-    t2.filaDatos({ QStringLiteral("Fondo de comercio"),                 d.eur(F.fondoComercio) });
-    t2.filaDatos({ QStringLiteral("Local comercial"),                   d.eur(in.localComercial) });
-    t2.filaDatos({ QStringLiteral("Existencias"),                       d.eur(in.existencias) });
-    t2.filaDatos({ QStringLiteral("Honorarios (%1)").arg(d.pct(in.honorariosPct)), d.eur(F.honorarios) });
-    t2.filaDatos({ QStringLiteral("IVA (%1)").arg(d.pct(in.ivaPct)),               d.eur(F.iva) });
-    t2.filaDatos({ QStringLiteral("ITP (%1)").arg(d.pct(in.itpPct)),               d.eur(F.impuestoITP) });
-    t2.filaDatos({ QStringLiteral("AJD (%1)").arg(d.pct(in.ajdPct)),               d.eur(F.ajd) });
-    t2.filaDatos({ QStringLiteral("Impuestos"),                         d.eur(F.impuestos) });
-    t2.filaDatos({ QStringLiteral("Notario"),                           d.eur(in.notario) });
-    t2.filaDatos({ QStringLiteral("Registro"),                          d.eur(in.registro) });
-    t2.filaDatos({ QStringLiteral("Gastos varios operación"),           d.eur(in.gastosVarios) });
-    t2.filaDatos({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.gastosAperturaHipoteca) });
-    t2.filaDatos({ QStringLiteral("Total inversión"),                   d.eur(F.totalInversion) }, true);
+    d.sectionTitle(QStringLiteral("Inversión operación"));
+    Table t2 = kv(d);
+    t2.dataRow({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.goodwillMultiple, 1) });
+    t2.dataRow({ QStringLiteral("Fondo de comercio"),                 d.eur(F.goodwill) });
+    t2.dataRow({ QStringLiteral("Local comercial"),                   d.eur(in.premisesPrice) });
+    t2.dataRow({ QStringLiteral("Existencias"),                       d.eur(in.inventory) });
+    t2.dataRow({ QStringLiteral("Honorarios (%1)").arg(d.pct(in.feesPct)), d.eur(F.fees) });
+    t2.dataRow({ QStringLiteral("IVA (%1)").arg(d.pct(in.ivaPct)),               d.eur(F.iva) });
+    t2.dataRow({ QStringLiteral("ITP (%1)").arg(d.pct(in.itpPct)),               d.eur(F.itpTax) });
+    t2.dataRow({ QStringLiteral("AJD (%1)").arg(d.pct(in.ajdPct)),               d.eur(F.ajd) });
+    t2.dataRow({ QStringLiteral("Impuestos"),                         d.eur(F.taxes) });
+    t2.dataRow({ QStringLiteral("Notario"),                           d.eur(in.notaryFees) });
+    t2.dataRow({ QStringLiteral("Registro"),                          d.eur(in.registryFees) });
+    t2.dataRow({ QStringLiteral("Gastos varios operación"),           d.eur(in.miscExpenses) });
+    t2.dataRow({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.mortgageOpeningCost) });
+    t2.dataRow({ QStringLiteral("Total inversión"),                   d.eur(F.totalInvestment) }, true);
 
-    d.tituloSeccion(QStringLiteral("Tipos y plazos"));
+    d.sectionTitle(QStringLiteral("Tipos y plazos"));
     {
-        const qreal wl = d.ancho() - 2 * kMargen - 3 * 110;
-        Tabla t(d, { { QStringLiteral("Préstamo"), wl, Qt::AlignLeft },
+        const qreal wl = d.pageWidth() - 2 * kMargin - 3 * 110;
+        Table t(d, { { QStringLiteral("Préstamo"), wl, Qt::AlignLeft },
                      { QStringLiteral("Tipo interés"), 110 },
                      { QStringLiteral("Plazo"), 110 },
                      { QStringLiteral("% financiación"), 110 } });
-        t.filaDatos({ QStringLiteral("Banco (farmacia)"), d.pct(in.tipoBanco),
-                      QStringLiteral("%1 años").arg(in.plazoBanco), d.pct(in.pctFinFarmacia, 0) });
-        t.filaDatos({ QStringLiteral("Cooperativa"), d.pct(in.tipoCoop),
-                      QStringLiteral("%1 años").arg(in.plazoCoop), QStringLiteral("—") });
-        t.filaDatos({ QStringLiteral("Familiar"), d.pct(in.tipoFamiliar),
-                      QStringLiteral("%1 años").arg(in.plazoFamiliar), QStringLiteral("—") });
-        t.filaDatos({ QStringLiteral("Local"), d.pct(in.tipoBanco),
-                      QStringLiteral("%1 años").arg(in.plazoBanco), d.pct(in.pctFinLocal, 0) });
-        t.filaDatos({ QStringLiteral("Propiedades"), d.pct(in.tipoPropiedades),
-                      QStringLiteral("%1 años").arg(in.plazoPropiedades), d.pct(in.pctFinPropiedades, 0) });
+        t.dataRow({ QStringLiteral("Banco (farmacia)"), d.pct(in.bankRate),
+                      QStringLiteral("%1 años").arg(in.bankTermYears), d.pct(in.pharmacyFinancingPct, 0) });
+        t.dataRow({ QStringLiteral("Cooperativa"), d.pct(in.coopRate),
+                      QStringLiteral("%1 años").arg(in.coopTermYears), QStringLiteral("—") });
+        t.dataRow({ QStringLiteral("Familiar"), d.pct(in.familyRate),
+                      QStringLiteral("%1 años").arg(in.familyTermYears), QStringLiteral("—") });
+        t.dataRow({ QStringLiteral("Local"), d.pct(in.bankRate),
+                      QStringLiteral("%1 años").arg(in.bankTermYears), d.pct(in.premisesFinancingPct, 0) });
+        t.dataRow({ QStringLiteral("Propiedades"), d.pct(in.propertiesRate),
+                      QStringLiteral("%1 años").arg(in.propertiesTermYears), d.pct(in.propertiesFinancingPct, 0) });
     }
 
-    d.tituloSeccion(QStringLiteral("Financiación"));
-    Tabla t3 = kv(d);
-    t3.filaDatos({ QStringLiteral("Liquidez aportada"),                 d.eur(in.liquidezAportada) });
-    t3.filaDatos({ QStringLiteral("Aportación familiar"),               d.eur(in.aportacionFamiliar) });
-    t3.filaDatos({ QStringLiteral("Financiación bancaria farmacia"),    d.eur(F.finBancariaFarmacia) });
-    t3.filaDatos({ QStringLiteral("Financiación bancaria local"),       d.eur(F.finBancariaLocal) });
-    t3.filaDatos({ QStringLiteral("Total banco"),                       d.eur(F.finBancariaFarmacia + F.finBancariaLocal) }, true);
-    t3.filaDatos({ QStringLiteral("Financiación propiedades"),          d.eur(in.finPropiedades) });
-    t3.filaDatos({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.excesoAportacion) });
-    t3.filaDatos({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.pedidoInicial) });
-    t3.filaDatos({ QStringLiteral("Total financiación"),                d.eur(F.totalFinanciacion) }, true);
+    d.sectionTitle(QStringLiteral("Financiación"));
+    Table t3 = kv(d);
+    t3.dataRow({ QStringLiteral("Liquidez aportada"),                 d.eur(in.contributedCash) });
+    t3.dataRow({ QStringLiteral("Aportación familiar"),               d.eur(in.familyContribution) });
+    t3.dataRow({ QStringLiteral("Financiación bancaria farmacia"),    d.eur(F.pharmacyBankFinancing) });
+    t3.dataRow({ QStringLiteral("Financiación bancaria local"),       d.eur(F.premisesBankFinancing) });
+    t3.dataRow({ QStringLiteral("Total banco"),                       d.eur(F.pharmacyBankFinancing + F.premisesBankFinancing) }, true);
+    t3.dataRow({ QStringLiteral("Financiación propiedades"),          d.eur(in.propertiesFinancing) });
+    t3.dataRow({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.contributionExcess) });
+    t3.dataRow({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.initialOrder) });
+    t3.dataRow({ QStringLiteral("Total financiación"),                d.eur(F.totalFinancing) }, true);
 
-    d.nota(QStringLiteral("Inicio de los préstamos: %1/%2.")
-               .arg(in.inicioMes, 2, 10, QLatin1Char('0')).arg(in.inicioAnio));
+    d.note(QStringLiteral("Inicio de los préstamos: %1/%2.")
+               .arg(in.startMonth, 2, 10, QLatin1Char('0')).arg(in.startYear));
 }
 
-// ---------------------------------------------------------------- proyección
-QVector<Col> colsAnios(Doc& d, int n = 10)
+// ---------------------------------------------------------------- projection
+QVector<Col> yearColumns(Doc& d, int n = 10)
 {
     const qreal wVal = 81;
     QVector<Col> c{ { QStringLiteral("Concepto"),
-                      d.ancho() - 2 * kMargen - n * wVal, Qt::AlignLeft } };
+                      d.pageWidth() - 2 * kMargin - n * wVal, Qt::AlignLeft } };
     for (int k = 1; k <= n; ++k)
         c.append({ QStringLiteral("Año %1").arg(k), wVal });
     return c;
 }
 
-void hojaProyeccion(Doc& d, const sim::Results& r)
+void projectionSheet(Doc& d, const sim::Results& r)
 {
-    d.paginaNueva(QPageLayout::Landscape, QStringLiteral("3 · Proyección 10 años"));
-    d.tituloHoja(QStringLiteral("3. Proyección a 10 años"));
+    d.newPage(QPageLayout::Landscape, QStringLiteral("3 · Proyección 10 años"));
+    d.sheetTitle(QStringLiteral("3. Proyección a 10 años"));
 
-    const auto& Y = r.proyeccion;
-    struct Fila { QString label; const std::array<double,10>& v; bool eur; bool bold; };
-    const Fila filas[] = {
-        { QStringLiteral("Venta receta"),                     Y.ventaReceta,      true,  false },
-        { QStringLiteral("Venta libre"),                      Y.ventaLibre,       true,  false },
-        { QStringLiteral("Venta total"),                      Y.ventaTotal,       true,  true  },
-        { QStringLiteral("Coste mercancía"),                  Y.costeMercancia,   true,  false },
-        { QStringLiteral("M. comercial bruto"),               Y.mComBruto,        true,  false },
-        { QStringLiteral("Reales decretos"),                  Y.realesDecretos,   true,  false },
-        { QStringLiteral("M. comercial después de RDs"),      Y.mComDespuesRD,    true,  true  },
-        { QStringLiteral("Alquiler local"),                   Y.alquiler,         true,  false },
-        { QStringLiteral("Gastos personal + SS"),             Y.gastosPersonal,   true,  false },
-        { QStringLiteral("Cuota autónomos"),                  Y.cuotaAutonomos,   true,  false },
-        { QStringLiteral("Otros gastos"),                     Y.otrosGastos,      true,  false },
-        { QStringLiteral("Intereses de deudas"),              Y.intereses,        true,  false },
-        { QStringLiteral("Beneficio farmacia"),               Y.beneficio,        true,  true  },
-        { QStringLiteral("Pago impuestos"),                   Y.pagoImpuestos,    true,  false },
-        { QStringLiteral("Liquidez después de impuestos"),    Y.liquidez,         true,  true  },
-        { QStringLiteral("Devolución banco"),                 Y.devCapitalBanco,  true,  false },
-        { QStringLiteral("Devolución cooperativa"),           Y.devCooperativa,   true,  false },
-        { QStringLiteral("Salario neto anual titular"),       Y.salarioNetoAnual, true,  true  },
-        { QStringLiteral("Salario neto mensual titular"),     Y.salarioNetoMensual, true, true },
-        { QStringLiteral("% gasto personal s/ facturación"),  Y.pctGastoPersonal, false, false },
+    const auto& Y = r.projection;
+    struct Row { QString label; const std::array<double,10>& v; bool isEur; bool bold; };
+    const Row rows[] = {
+        { QStringLiteral("Venta receta"),                     Y.prescriptionSales, true,  false },
+        { QStringLiteral("Venta libre"),                      Y.otcSales,          true,  false },
+        { QStringLiteral("Venta total"),                      Y.totalSales,        true,  true  },
+        { QStringLiteral("Coste mercancía"),                  Y.costOfGoods,       true,  false },
+        { QStringLiteral("M. comercial bruto"),               Y.grossMargin,       true,  false },
+        { QStringLiteral("Reales decretos"),                  Y.rdDeduction,       true,  false },
+        { QStringLiteral("M. comercial después de RDs"),      Y.marginAfterRd,     true,  true  },
+        { QStringLiteral("Alquiler local"),                   Y.rent,              true,  false },
+        { QStringLiteral("Gastos personal + SS"),             Y.staffCost,         true,  false },
+        { QStringLiteral("Cuota autónomos"),                  Y.selfEmployedQuota, true,  false },
+        { QStringLiteral("Otros gastos"),                     Y.otherExpenses,     true,  false },
+        { QStringLiteral("Intereses de deudas"),              Y.interest,          true,  false },
+        { QStringLiteral("Beneficio farmacia"),                Y.profit,           true,  true  },
+        { QStringLiteral("Pago impuestos"),                   Y.taxPayment,        true,  false },
+        { QStringLiteral("Liquidez después de impuestos"),    Y.cashAfterTax,      true,  true  },
+        { QStringLiteral("Devolución banco"),                 Y.bankPrincipalRepayment, true, false },
+        { QStringLiteral("Devolución cooperativa"),           Y.coopPrincipalRepayment, true, false },
+        { QStringLiteral("Salario neto anual titular"),       Y.netAnnualSalary,   true,  true  },
+        { QStringLiteral("Salario neto mensual titular"),     Y.netMonthlySalary,  true, true },
+        { QStringLiteral("% gasto personal s/ facturación"),  Y.staffCostPct,      false, false },
     };
 
-    Tabla t(d, colsAnios(d), true, 19, 7.6);
-    for (const auto& fl : filas) {
-        QStringList celdas{ fl.label };
-        for (double v : fl.v)
-            celdas << (fl.eur ? d.eur(v) : d.pct(v, 1));
-        t.filaDatos(celdas, fl.bold);
+    Table t(d, yearColumns(d), true, 19, 7.6);
+    for (const auto& row : rows) {
+        QStringList cells{ row.label };
+        for (double v : row.v)
+            cells << (row.isEur ? d.eur(v) : d.pct(v, 1));
+        t.dataRow(cells, row.bold);
     }
 }
 
-// Etiqueta de un tramo de la escala IRPF (p. ej. "12.450 – 20.200 € (24%)" o,
-// para el último tramo, "> 300.000 € (47%)"), generada a partir del tramo
-// real (editable desde la hoja Configuración) en vez de un texto fijo.
-QString labelTramoIRPF(const sim::TramoIRPF& t, bool esUltimo)
+// Label of an IRPF bracket (e.g. "12.450 – 20.200 € (24%)" or, for the last
+// bracket, "> 300.000 € (47%)"), generated from the actual bracket (editable
+// from the Configuración sheet) instead of a fixed string.
+QString irpfBracketLabel(const sim::IrpfBracket& t, bool isLast)
 {
     static const QLocale loc(QLocale::Spanish, QLocale::Spain);
-    const double pct100 = t.tipo * 100.0;
+    const double pct100 = t.rate * 100.0;
     const int decPct = (std::abs(pct100 - std::round(pct100)) < 1e-6) ? 0 : 1;
     const QString pctStr = loc.toString(pct100, 'f', decPct) + QStringLiteral("%");
-    if (esUltimo)
-        return QStringLiteral("> ") + loc.toString(t.desde, 'f', 0)
+    if (isLast)
+        return QStringLiteral("> ") + loc.toString(t.from, 'f', 0)
              + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
-    return loc.toString(t.desde, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.hasta, 'f', 0)
+    return loc.toString(t.from, 'f', 0) + QStringLiteral(" – ") + loc.toString(t.to, 'f', 0)
          + QStringLiteral(" € (") + pctStr + QStringLiteral(")");
 }
 
-// ---------------------------------------------------------------- impuestos
-void hojaImpuestos(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- taxes
+void taxesSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
-    d.paginaNueva(QPageLayout::Landscape, QStringLiteral("4 · Impuestos (IRPF)"));
-    d.tituloHoja(QStringLiteral("4. Impuestos — IRPF por tramos (escala 2026)"));
+    d.newPage(QPageLayout::Landscape, QStringLiteral("4 · Impuestos (IRPF)"));
+    d.sheetTitle(QStringLiteral("4. Impuestos — IRPF por tramos (escala 2026)"));
 
-    const auto& I = r.impuestos;
+    const auto& I = r.taxes;
 
-    d.tituloSeccion(QStringLiteral("Base amortizable"));
-    Tabla t0 = kv(d);
-    t0.filaDatos({ QStringLiteral("Fondo de comercio"),        d.eur(I.fdc) });
-    t0.filaDatos({ QStringLiteral("Honorarios"),               d.eur(I.honorarios) });
-    t0.filaDatos({ QStringLiteral("AJD"),                      d.eur(I.ajd) });
-    t0.filaDatos({ QStringLiteral("Base amortizable"),         d.eur(I.baseAmortizable) }, true);
-    t0.filaDatos({ QStringLiteral("Coste del local"),          d.eur(I.costeLocal) });
-    t0.filaDatos({ QStringLiteral("Deducción mínimo personal (%1)").arg(d.pct(in.tramosIRPF[0].tipo)), d.eur(I.deduccionMinimo) });
+    d.sectionTitle(QStringLiteral("Base amortizable"));
+    Table t0 = kv(d);
+    t0.dataRow({ QStringLiteral("Fondo de comercio"),        d.eur(I.fdc) });
+    t0.dataRow({ QStringLiteral("Honorarios"),               d.eur(I.fees) });
+    t0.dataRow({ QStringLiteral("AJD"),                      d.eur(I.ajd) });
+    t0.dataRow({ QStringLiteral("Base amortizable"),         d.eur(I.depreciableBase) }, true);
+    t0.dataRow({ QStringLiteral("Coste del local"),          d.eur(I.premisesCost) });
+    t0.dataRow({ QStringLiteral("Deducción mínimo personal (%1)").arg(d.pct(in.irpfBrackets[0].rate)), d.eur(I.minimumDeduction) });
 
-    d.tituloSeccion(QStringLiteral("Cálculo del IRPF (10 años)"));
-    struct Fila { QString label; const std::array<double,10>& v; QString fmt; bool bold; };
-    const Fila filas[] = {
-        { QStringLiteral("Beneficio"),                 I.beneficio,     QStringLiteral("eur"),  false },
-        { QStringLiteral("Amortización local"),        I.amortLocal,    QStringLiteral("eur"),  false },
-        { QStringLiteral("% amort. FdC ajustado"),     I.pctAjustado,   QStringLiteral("pct2"), false },
-        { QStringLiteral("Amortización FdC"),          I.amortFdC,      QStringLiteral("eur"),  false },
-        { QStringLiteral("Base imponible"),            I.baseImponible, QStringLiteral("eur"),  true  },
-        { QStringLiteral("Cuota según escala"),        I.cuotaEscala,   QStringLiteral("eur"),  false },
-        { QStringLiteral("Pago impuestos"),            I.pago,          QStringLiteral("eur"),  true  },
+    d.sectionTitle(QStringLiteral("Cálculo del IRPF (10 años)"));
+    struct Row { QString label; const std::array<double,10>& v; QString fmt; bool bold; };
+    const Row rows[] = {
+        { QStringLiteral("Beneficio"),                 I.profit,               QStringLiteral("eur"),  false },
+        { QStringLiteral("Amortización local"),        I.premisesDepreciation, QStringLiteral("eur"),  false },
+        { QStringLiteral("% amort. FdC ajustado"),     I.adjustedPct,          QStringLiteral("pct2"), false },
+        { QStringLiteral("Amortización FdC"),          I.fdcDepreciation,      QStringLiteral("eur"),  false },
+        { QStringLiteral("Base imponible"),            I.taxableBase,          QStringLiteral("eur"),  true  },
+        { QStringLiteral("Cuota según escala"),        I.bracketQuota,         QStringLiteral("eur"),  false },
+        { QStringLiteral("Pago impuestos"),            I.payment,              QStringLiteral("eur"),  true  },
     };
-    Tabla t(d, colsAnios(d), true, 19, 7.6);
-    for (const auto& fl : filas) {
-        QStringList celdas{ fl.label };
-        for (double v : fl.v)
-            celdas << (fl.fmt == QLatin1String("pct2") ? d.pct(v, 2) : d.eur(v));
-        t.filaDatos(celdas, fl.bold);
+    Table t(d, yearColumns(d), true, 19, 7.6);
+    for (const auto& row : rows) {
+        QStringList cells{ row.label };
+        for (double v : row.v)
+            cells << (row.fmt == QLatin1String("pct2") ? d.pct(v, 2) : d.eur(v));
+        t.dataRow(cells, row.bold);
     }
 
-    d.tituloSeccion(QStringLiteral("Desglose por tramos de la escala"));
-    Tabla t2(d, colsAnios(d), true, 19, 7.6);
+    d.sectionTitle(QStringLiteral("Desglose por tramos de la escala"));
+    Table t2(d, yearColumns(d), true, 19, 7.6);
     for (int k = 0; k < 6; ++k) {
-        QStringList celdas{ labelTramoIRPF(in.tramosIRPF[k], k == 5) };
-        for (double v : I.tramos[k])
-            celdas << d.eur(v);
-        t2.filaDatos(celdas);
+        QStringList cells{ irpfBracketLabel(in.irpfBrackets[k], k == 5) };
+        for (double v : I.brackets[k])
+            cells << d.eur(v);
+        t2.dataRow(cells);
     }
 }
 
-// ---------------------------------------------------------------- análisis
-void hojaAnalisis(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- analysis
+void analysisSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
-    d.paginaNueva(QPageLayout::Landscape, QStringLiteral("5 · Análisis inversión"));
-    d.tituloHoja(QStringLiteral("5. Análisis de la inversión"));
+    d.newPage(QPageLayout::Landscape, QStringLiteral("5 · Análisis inversión"));
+    d.sheetTitle(QStringLiteral("5. Análisis de la inversión"));
 
-    const auto& A = r.analisis;
+    const auto& A = r.analysis;
     const qreal wVal = 150;
-    const qreal wLbl = d.ancho() - 2 * kMargen - 3 * wVal;
+    const qreal wLbl = d.pageWidth() - 2 * kMargin - 3 * wVal;
 
-    d.tituloSeccion(QStringLiteral("Valor del patrimonio en el año 10"));
+    d.sectionTitle(QStringLiteral("Valor del patrimonio en el año 10"));
     {
-        Tabla t(d, { { QStringLiteral("Concepto"), wLbl, Qt::AlignLeft },
+        Table t(d, { { QStringLiteral("Concepto"), wLbl, Qt::AlignLeft },
                      { QStringLiteral("Pesimista"), wVal },
                      { QStringLiteral("Neutral"),   wVal },
                      { QStringLiteral("Optimista"), wVal } });
-        auto f3 = [&](const QString& l, const std::array<double,3>& v,
+        auto row3 = [&](const QString& l, const std::array<double,3>& v,
                       const QString& fmt = QStringLiteral("eur"), bool bold = false) {
             QStringList c{ l };
             for (double x : v)
                 c << (fmt == QLatin1String("pct2") ? d.pct(x, 2)
                     : fmt == QLatin1String("num")  ? d.num(x, 1) : d.eur(x));
-            t.filaDatos(c, bold);
+            t.dataRow(c, bold);
         };
-        f3(QStringLiteral("Inversión inicial"),               A.inversionInicial);
-        f3(QStringLiteral("Factor de venta"),                 { in.factorVenta[0], in.factorVenta[1], in.factorVenta[2] }, QStringLiteral("num"));
-        f3(QStringLiteral("Valor venta FdC año 10"),          A.valorVentaFdC);
-        f3(QStringLiteral("Valor venta local (incr. IPC)"),   A.valorVentaLocal);
-        f3(QStringLiteral("Existencias (%1 factur.)").arg(d.pct(in.pctExistencias10)), A.existencias10);
-        f3(QStringLiteral("Fondo de comercio pendiente"),     A.fdcPendiente);
-        f3(QStringLiteral("Impuestos venta"),                 { in.impuestosVenta[0], in.impuestosVenta[1], in.impuestosVenta[2] });
-        f3(QStringLiteral("Deuda pendiente año 10"),          A.deuda);
-        f3(QStringLiteral("Patrimonio bruto año 10"),         A.patrimonioBruto, QStringLiteral("eur"), true);
-        f3(QStringLiteral("Patrimonio neto año 10"),          A.patrimonioNeto,  QStringLiteral("eur"), true);
-        f3(QStringLiteral("CAGR patrimonio"),                 A.cagr, QStringLiteral("pct2"), true);
-        f3(QStringLiteral("TIR inversión total"),             A.tir,  QStringLiteral("pct2"), true);
+        row3(QStringLiteral("Inversión inicial"),               A.initialInvestment);
+        row3(QStringLiteral("Factor de venta"),                 { in.saleFactor[0], in.saleFactor[1], in.saleFactor[2] }, QStringLiteral("num"));
+        row3(QStringLiteral("Valor venta FdC año 10"),          A.fdcSaleValue);
+        row3(QStringLiteral("Valor venta local (incr. IPC)"),   A.premisesSaleValue);
+        row3(QStringLiteral("Existencias (%1 factur.)").arg(d.pct(in.inventoryPctYear10)), A.inventoryYear10);
+        row3(QStringLiteral("Fondo de comercio pendiente"),     A.fdcOutstanding);
+        row3(QStringLiteral("Impuestos venta"),                 { in.saleTaxes[0], in.saleTaxes[1], in.saleTaxes[2] });
+        row3(QStringLiteral("Deuda pendiente año 10"),          A.debt);
+        row3(QStringLiteral("Patrimonio bruto año 10"),         A.grossEquity, QStringLiteral("eur"), true);
+        row3(QStringLiteral("Patrimonio neto año 10"),          A.netEquity,  QStringLiteral("eur"), true);
+        row3(QStringLiteral("CAGR patrimonio"),                 A.cagr, QStringLiteral("pct2"), true);
+        row3(QStringLiteral("TIR inversión total"),             A.irr,  QStringLiteral("pct2"), true);
     }
-    d.nota(QStringLiteral("CAGR: revalorización del capital al vender la farmacia a los 10 años, sin contar el salario. "
+    d.note(QStringLiteral("CAGR: revalorización del capital al vender la farmacia a los 10 años, sin contar el salario. "
                           "TIR: retorno total, incluye el salario neto cobrado cada año más el valor de venta."));
 
-    d.tituloSeccion(QStringLiteral("Liquidez mensual"));
+    d.sectionTitle(QStringLiteral("Liquidez mensual"));
     {
-        Tabla t(d, { { QStringLiteral("Concepto"), wLbl, Qt::AlignLeft },
+        Table t(d, { { QStringLiteral("Concepto"), wLbl, Qt::AlignLeft },
                      { QStringLiteral("Año 1"),  wVal },
                      { QStringLiteral("Año 5"),  wVal },
                      { QStringLiteral("Año 10"), wVal } });
-        auto f3 = [&](const QString& l, const std::array<double,3>& v, bool bold = false) {
+        auto row3 = [&](const QString& l, const std::array<double,3>& v, bool bold = false) {
             QStringList c{ l };
             for (double x : v) c << d.eur(x);
-            t.filaDatos(c, bold);
+            t.dataRow(c, bold);
         };
-        f3(QStringLiteral("Liquidez mensual"),     A.liqMensual);
-        f3(QStringLiteral("Devolución de capital"),A.devCapitalMensual);
-        f3(QStringLiteral("Intereses"),            A.interesesMensual);
-        f3(QStringLiteral("Neto titular"),         A.netoTitular, true);
+        row3(QStringLiteral("Liquidez mensual"),     A.monthlyCashFlow);
+        row3(QStringLiteral("Devolución de capital"),A.monthlyPrincipalRepayment);
+        row3(QStringLiteral("Intereses"),            A.monthlyInterest);
+        row3(QStringLiteral("Neto titular"),         A.ownerNetIncome, true);
     }
 
-    d.tituloSeccion(QStringLiteral("Simulación amortización del fondo de comercio"));
+    d.sectionTitle(QStringLiteral("Simulación amortización del fondo de comercio"));
     {
-        struct Fila { QString label; const std::array<double,10>& v; QString fmt; bool bold; };
-        const Fila filas[] = {
-            { QStringLiteral("Beneficio (antes amort.)"), A.benFarmacia,     QStringLiteral("eur"),  false },
-            { QStringLiteral("% amort. FdC (óptimo)"),    A.pctAmortFdC,     QStringLiteral("pct2"), false },
-            { QStringLiteral("Amort. fondo de comercio"), A.amortFdC,        QStringLiteral("eur"),  false },
-            { QStringLiteral("Amort. local comercial"),   A.amortLocal,      QStringLiteral("eur"),  false },
-            { QStringLiteral("Base imponible"),           A.baseImponible,   QStringLiteral("eur"),  true  },
-            { QStringLiteral("FdC pendiente"),            A.fdcPendienteSim, QStringLiteral("eur"),  false },
+        struct Row { QString label; const std::array<double,10>& v; QString fmt; bool bold; };
+        const Row rows[] = {
+            { QStringLiteral("Beneficio (antes amort.)"), A.pharmacyProfit,     QStringLiteral("eur"),  false },
+            { QStringLiteral("% amort. FdC (óptimo)"),    A.fdcDepreciationPct, QStringLiteral("pct2"), false },
+            { QStringLiteral("Amort. fondo de comercio"), A.fdcDepreciation,    QStringLiteral("eur"),  false },
+            { QStringLiteral("Amort. local comercial"),   A.premisesDepreciation, QStringLiteral("eur"),  false },
+            { QStringLiteral("Base imponible"),           A.taxableBase,        QStringLiteral("eur"),  true  },
+            { QStringLiteral("FdC pendiente"),            A.fdcOutstandingSim,  QStringLiteral("eur"),  false },
         };
-        Tabla t(d, colsAnios(d), true, 19, 7.6);
-        for (const auto& fl : filas) {
-            QStringList celdas{ fl.label };
-            for (double v : fl.v)
-                celdas << (fl.fmt == QLatin1String("pct2") ? d.pct(v, 2) : d.eur(v));
-            t.filaDatos(celdas, fl.bold);
+        Table t(d, yearColumns(d), true, 19, 7.6);
+        for (const auto& row : rows) {
+            QStringList cells{ row.label };
+            for (double v : row.v)
+                cells << (row.fmt == QLatin1String("pct2") ? d.pct(v, 2) : d.eur(v));
+            t.dataRow(cells, row.bold);
         }
     }
-    d.nota(QStringLiteral("Amortización del local comercial: %1/año (%2 del coste).")
-               .arg(d.eur(A.amortLocalAnual), d.pct(in.pctAmortLocal, 0)));
+    d.note(QStringLiteral("Amortización del local comercial: %1/año (%2 del coste).")
+               .arg(d.eur(A.annualPremisesDepreciation), d.pct(in.investmentPremisesDeprPct, 0)));
 }
 
-// ---------------------------------------------------------------- personal
-void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
+// ---------------------------------------------------------------- staff
+void staffSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
     Q_UNUSED(in)
-    d.paginaNueva(QPageLayout::Portrait, QStringLiteral("6 · Personal"));
-    d.tituloHoja(QStringLiteral("6. Personal"));
+    d.newPage(QPageLayout::Portrait, QStringLiteral("6 · Personal"));
+    d.sheetTitle(QStringLiteral("6. Personal"));
 
-    const auto& P = r.personal;
-    const qreal wTotal = d.ancho() - 2 * kMargen;
+    const auto& P = r.staff;
+    const qreal wTotal = d.pageWidth() - 2 * kMargin;
 
-    static const char* tiposDatos[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
-    d.tituloSeccion(QStringLiteral("Datos salariales"));
+    static const char* roleLabelsData[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
+    d.sectionTitle(QStringLiteral("Datos salariales"));
     {
         const qreal wP = wTotal - 6 * 88;
-        Tabla t(d, { { QStringLiteral("Puesto"),       wP, Qt::AlignLeft },
+        Table t(d, { { QStringLiteral("Puesto"),       wP, Qt::AlignLeft },
                      { QStringLiteral("Bruto FT"),     88 },
                      { QStringLiteral("Jornada"),      88 },
                      { QStringLiteral("% S.S."),       88 },
@@ -742,16 +743,16 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
                      { QStringLiteral("Salario real"), 88 },
                      { QStringLiteral("Coste total"),  88 } });
         for (int k = 0; k < 3; ++k) {
-            const auto& fila = P.datos[size_t(k)];
-            t.filaDatos({ QString::fromUtf8(tiposDatos[k]), d.eur(fila.brutoFT),
-                          d.num(fila.jornada, 2), d.pct(fila.pctSS, 0),
-                          d.eur(fila.costeSS), d.eur(fila.salReal), d.eur(fila.costeTotal) });
+            const auto& row = P.byRole[size_t(k)];
+            t.dataRow({ QString::fromUtf8(roleLabelsData[k]), d.eur(row.grossFte),
+                          d.num(row.fte, 2), d.pct(row.socialSecurityPct, 0),
+                          d.eur(row.socialSecurityCost), d.eur(row.actualSalary), d.eur(row.totalCost) });
         }
-        t.filaDatos({ QStringLiteral("Total"), QString(), QString(), QString(),
-                      d.eur(P.totCosteSS), d.eur(P.totSalReal), d.eur(P.totCoste) }, true);
+        t.dataRow({ QStringLiteral("Total"), QString(), QString(), QString(),
+                      d.eur(P.totalSocialSecurityCost), d.eur(P.totalActualSalary), d.eur(P.totalCost) }, true);
     }
 
-    static const char* tiposPlant[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
+    static const char* roleLabelsHeadcount[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
                                          "Auxiliar de farmacia", "Técnico especialista" };
     static const char* roles[4] = {
         "L-V 9:00–17:00 · 20% mostrador · 80% gestión/dirección",
@@ -759,10 +760,10 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
         "Turnos escalonados · Apoyo en mostrador en hora punta",
         "Media jornada · Stock, pedidos, administración" };
 
-    d.tituloSeccion(QStringLiteral("Plantilla recomendada"));
+    d.sectionTitle(QStringLiteral("Plantilla recomendada"));
     {
         const qreal wP = wTotal - 6 * 88;
-        Tabla t(d, { { QStringLiteral("Puesto"),        wP, Qt::AlignLeft },
+        Table t(d, { { QStringLiteral("Puesto"),        wP, Qt::AlignLeft },
                      { QStringLiteral("Jornada"),       88 },
                      { QStringLiteral("Personas"),      88 },
                      { QStringLiteral("Bruto real"),    88 },
@@ -770,75 +771,75 @@ void hojaPersonal(Doc& d, const sim::Inputs& in, const sim::Results& r)
                      { QStringLiteral("Coste/persona"), 88 },
                      { QStringLiteral("Coste total"),   88 } });
         for (int k = 0; k < 4; ++k) {
-            const auto& fila = P.plantilla[size_t(k)];
-            t.filaDatos({ QString::fromUtf8(tiposPlant[k]), d.num(fila.jornada, 2),
-                          d.num(fila.personas, 0), d.eur(fila.brutoReal),
-                          d.eur(fila.costeSS), d.eur(fila.costePersona), d.eur(fila.costeTotal) });
+            const auto& row = P.headcountPlan[size_t(k)];
+            t.dataRow({ QString::fromUtf8(roleLabelsHeadcount[k]), d.num(row.fte, 2),
+                          d.num(row.headcount, 0), d.eur(row.actualGross),
+                          d.eur(row.socialSecurityCost), d.eur(row.costPerPerson), d.eur(row.totalCost) });
         }
-        t.filaDatos({ QStringLiteral("Total"), QString(), d.num(P.totPersonas, 0),
-                      d.eur(P.totBrutoReal), d.eur(P.totSS), QString(),
-                      d.eur(P.totPlantilla) }, true);
+        t.dataRow({ QStringLiteral("Total"), QString(), d.num(P.totalHeadcount, 0),
+                      d.eur(P.totalActualGross), d.eur(P.totalSocialSecurity), QString(),
+                      d.eur(P.totalHeadcountCost) }, true);
     }
 
-    d.tituloSeccion(QStringLiteral("Organización orientativa"));
+    d.sectionTitle(QStringLiteral("Organización orientativa"));
     for (int k = 0; k < 4; ++k)
-        d.nota(QStringLiteral("%1 — %2").arg(QString::fromUtf8(tiposPlant[k]),
+        d.note(QStringLiteral("%1 — %2").arg(QString::fromUtf8(roleLabelsHeadcount[k]),
                                              QString::fromUtf8(roles[k])));
 
     d.y += 8;
-    d.asegurar(52);
+    d.ensureSpace(52);
     d.p.setPen(Qt::NoPen);
-    d.p.setBrush(kVerdeSuave);
-    d.p.drawRoundedRect(QRectF(d.xIzq(), d.y, wTotal, 40), 10, 10);
-    d.p.setPen(kVerde);
+    d.p.setBrush(kGreenSoft);
+    d.p.drawRoundedRect(QRectF(d.leftX(), d.y, wTotal, 40), 10, 10);
+    d.p.setPen(kGreen);
     d.p.setFont(d.f(10.5, true));
-    d.p.drawText(QRectF(d.xIzq() + 16, d.y, wTotal - 32, 40), Qt::AlignLeft | Qt::AlignVCenter,
+    d.p.drawText(QRectF(d.leftX() + 16, d.y, wTotal - 32, 40), Qt::AlignLeft | Qt::AlignVCenter,
                  QStringLiteral("Salario neto mensual del titular (año 1)"));
-    d.p.drawText(QRectF(d.xIzq() + 16, d.y, wTotal - 32, 40), Qt::AlignRight | Qt::AlignVCenter,
-                 d.eur(P.salarioNetoMensualAnio1));
+    d.p.drawText(QRectF(d.leftX() + 16, d.y, wTotal - 32, 40), Qt::AlignRight | Qt::AlignVCenter,
+                 d.eur(P.netMonthlySalaryYear1));
     d.y += 52;
 }
 
-// ---------------------------------------------------------------- comparación
-// Dibuja una página (tabla comparativa de un año). Se llama una vez por cada
-// año pedido, cada una en su propia página (todas en apaisado).
-void paginaComparacion(Doc& d, const QVariantList& filas, const QStringList& nombres, int anio)
+// ---------------------------------------------------------------- comparison
+// Draws one page (comparison table for one year). Called once per requested
+// year, each on its own page (all landscape).
+void comparisonPage(Doc& d, const QVariantList& rows, const QStringList& names, int year)
 {
-    d.paginaNueva(QPageLayout::Landscape, QStringLiteral("Comparación de escenarios"));
-    if (d.numPag == 1) {   // sin portada previa: esta página sí lleva cabecera/pie
-        d.cabecera();
-        d.pie();
+    d.newPage(QPageLayout::Landscape, QStringLiteral("Comparación de escenarios"));
+    if (d.pageNum == 1) {   // no prior cover page: this page does get a header/footer
+        d.header();
+        d.footer();
     }
-    d.tituloHoja(QStringLiteral("Comparación de escenarios — Año %1").arg(anio));
+    d.sheetTitle(QStringLiteral("Comparación de escenarios — Año %1").arg(year));
 
     const qreal wLabel = 220;
-    const qreal wTotal = d.ancho() - 2 * kMargen;
-    const int n = std::max(1, int(nombres.size()));
+    const qreal wTotal = d.pageWidth() - 2 * kMargin;
+    const int n = std::max(1, int(names.size()));
     const qreal wVal = (wTotal - wLabel) / n;
 
     QVector<Col> cols{ { QStringLiteral("Concepto"), wLabel, Qt::AlignLeft } };
-    for (const QString& nombre : nombres)
-        cols.append({ nombre, wVal });
+    for (const QString& name : names)
+        cols.append({ name, wVal });
 
-    Tabla t(d, cols, true, 19, 8.5);
-    for (const QVariant& fv : filas) {
-        const QVariantMap f = fv.toMap();
-        if (f.value(QStringLiteral("separator")).toBool()) {
-            t.filaSeparador(f.value(QStringLiteral("label")).toString());
+    Table t(d, cols, true, 19, 8.5);
+    for (const QVariant& rv : rows) {
+        const QVariantMap row = rv.toMap();
+        if (row.value(QStringLiteral("separator")).toBool()) {
+            t.separatorRow(row.value(QStringLiteral("label")).toString());
             continue;
         }
-        const QString fmt = f.value(QStringLiteral("fmt")).toString();
-        QStringList celdas{ f.value(QStringLiteral("label")).toString() };
-        for (const QVariant& v : f.value(QStringLiteral("values")).toList()) {
+        const QString fmt = row.value(QStringLiteral("fmt")).toString();
+        QStringList cells{ row.value(QStringLiteral("label")).toString() };
+        for (const QVariant& v : row.value(QStringLiteral("values")).toList()) {
             const double val = v.toDouble();
-            if (fmt == QLatin1String("pct1"))      celdas << d.pct(val, 1);
-            else if (fmt == QLatin1String("pct2")) celdas << d.pct(val, 2);
-            else if (fmt == QLatin1String("num"))  celdas << d.num(val, 1);
-            else                                    celdas << d.eur(val);
+            if (fmt == QLatin1String("pct1"))      cells << d.pct(val, 1);
+            else if (fmt == QLatin1String("pct2")) cells << d.pct(val, 2);
+            else if (fmt == QLatin1String("num"))  cells << d.num(val, 1);
+            else                                    cells << d.eur(val);
         }
-        t.filaDatos(celdas, f.value(QStringLiteral("bold")).toBool(),
-                    f.value(QStringLiteral("grupo")).toBool(),
-                    f.value(QStringLiteral("groupEnd")).toBool());
+        t.dataRow(cells, row.value(QStringLiteral("bold")).toBool(),
+                    row.value(QStringLiteral("group")).toBool(),
+                    row.value(QStringLiteral("groupEnd")).toBool());
     }
 }
 
@@ -847,29 +848,29 @@ void paginaComparacion(Doc& d, const QVariantList& filas, const QStringList& nom
 // ---------------------------------------------------------------- API
 namespace pdf {
 
-bool escribirInforme(QIODevice* dev, const sim::Inputs& in, const sim::Results& r)
+bool writeReport(QIODevice* dev, const sim::Inputs& in, const sim::Results& r)
 {
     Doc d(dev);
 
-    portada(d, in, r);
-    hojaDatosBase(d, in, r);
-    hojaFinanciacion(d, in, r);
-    hojaProyeccion(d, r);
-    hojaImpuestos(d, in, r);
-    hojaAnalisis(d, in, r);
-    hojaPersonal(d, in, r);
+    coverPage(d, in, r);
+    baseDataSheet(d, in, r);
+    financingSheet(d, in, r);
+    projectionSheet(d, r);
+    taxesSheet(d, in, r);
+    analysisSheet(d, in, r);
+    staffSheet(d, in, r);
 
     return d.p.end();
 }
 
-bool escribirComparacion(QIODevice* dev, const QVariantList& paginas,
-                          const QStringList& nombresEscenarios)
+bool writeComparison(QIODevice* dev, const QVariantList& pages,
+                      const QStringList& scenarioNames)
 {
     Doc d(dev);
-    for (const QVariant& pv : paginas) {
-        const QVariantMap pagina = pv.toMap();
-        paginaComparacion(d, pagina.value(QStringLiteral("filas")).toList(), nombresEscenarios,
-                           pagina.value(QStringLiteral("anio")).toInt());
+    for (const QVariant& pv : pages) {
+        const QVariantMap page = pv.toMap();
+        comparisonPage(d, page.value(QStringLiteral("rows")).toList(), scenarioNames,
+                           page.value(QStringLiteral("year")).toInt());
     }
     return d.p.end();
 }

@@ -1,7 +1,7 @@
 #include "amortmodel.h"
 
-AmortModel::AmortModel(const QString& titulo, QObject* parent)
-    : QAbstractTableModel(parent), m_titulo(titulo)
+AmortModel::AmortModel(const QString& title, QObject* parent)
+    : QAbstractTableModel(parent), m_title(title)
 {
 }
 
@@ -9,12 +9,12 @@ void AmortModel::setResult(const sim::AmortResult& r)
 {
     beginResetModel();
     m_r = r;
-    // Mostrar hasta la fila donde el saldo final llega a 0 (préstamo
-    // liquidado), inclusive; el resto se oculta. Se recalcula en cada
-    // reset, así que al cambiar el plazo se muestran/ocultan solas.
+    // Show up to (and including) the row where the ending balance reaches 0
+    // (loan paid off); the rest is hidden. Recomputed on every reset, so
+    // changing the term shows/hides rows automatically.
     m_visibleRows = int(m_r.rows.size());
     for (size_t i = 0; i < m_r.rows.size(); ++i) {
-        if (m_r.rows[i].saldoFin < 0.005) { // llega a 0 (tolerancia flotante)
+        if (m_r.rows[i].endingBalance < 0.005) { // reaches 0 (float tolerance)
             m_visibleRows = int(i) + 1;
             break;
         }
@@ -29,14 +29,14 @@ QVariantMap AmortModel::info() const
         return m_loc.toString(v, 'f', dec) + QStringLiteral(" €");
     };
     QVariantMap m;
-    m["principal"]      = eur(m_r.principal);
-    m["tasaAnual"]      = m_loc.toString(m_r.tasaAnual * 100.0, 'f', 1) + " %";
-    m["plazoAnios"]     = QString::number(m_r.plazoAnios) + " años";
-    m["pagoMensual"]    = eur(m_r.pagoMensual, 2);
-    m["pagoAnual"]      = eur(m_r.pagoAnual, 2);
-    m["numPagos"]       = QString::number(m_r.numPagos);
-    m["totalIntereses"] = eur(m_r.totalIntereses);
-    m["costeTotal"]     = eur(m_r.costeTotal);
+    m["principal"]     = eur(m_r.principal);
+    m["annualRate"]    = m_loc.toString(m_r.annualRate * 100.0, 'f', 1) + " %";
+    m["termYears"]     = QString::number(m_r.termYears) + " años";
+    m["monthlyPayment"]= eur(m_r.monthlyPayment, 2);
+    m["annualPayment"] = eur(m_r.annualPayment, 2);
+    m["numPayments"]   = QString::number(m_r.numPayments);
+    m["totalInterest"] = eur(m_r.totalInterest);
+    m["totalCost"]     = eur(m_r.totalCost);
     return m;
 }
 
@@ -61,14 +61,14 @@ QVariant AmortModel::data(const QModelIndex& idx, int role) const
             return m_loc.toString(v, 'f', 0) + QStringLiteral(" €");
         };
         switch (idx.column()) {
-        case 0: return r.num;
+        case 0: return r.paymentNum;
         case 1: return QStringLiteral("%1/%2")
-                    .arg(r.mes, 2, 10, QLatin1Char('0')).arg(r.anio);
-        case 2: return eur(r.saldoIni);
-        case 3: return eur(r.cuota);
-        case 4: return eur(r.capital);
-        case 5: return eur(r.interes);
-        case 6: return eur(r.saldoFin);
+                    .arg(r.month, 2, 10, QLatin1Char('0')).arg(r.year);
+        case 2: return eur(r.startingBalance);
+        case 3: return eur(r.payment);
+        case 4: return eur(r.principalPaid);
+        case 5: return eur(r.interest);
+        case 6: return eur(r.endingBalance);
         }
     }
     return {};

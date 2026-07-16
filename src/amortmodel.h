@@ -6,22 +6,22 @@
 #include <QtQml/qqmlregistration.h>
 #include "simcore.h"
 
-// Modelo de tabla para un cuadro de amortización (300 filas).
+// Table model for an amortization schedule (300 rows).
 class AmortModel : public QAbstractTableModel
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_UNCREATABLE("Lo crea Engine")
-    Q_PROPERTY(QString titulo READ titulo CONSTANT)
+    QML_UNCREATABLE("Created by Engine")
+    Q_PROPERTY(QString title READ title CONSTANT)
     Q_PROPERTY(QVariantMap info READ info NOTIFY infoChanged)
     Q_PROPERTY(double principal READ principal NOTIFY infoChanged)
 
 public:
-    explicit AmortModel(const QString& titulo, QObject* parent = nullptr);
+    explicit AmortModel(const QString& title, QObject* parent = nullptr);
 
     void setResult(const sim::AmortResult& r);
 
-    QString titulo() const { return m_titulo; }
+    QString title() const { return m_title; }
     QVariantMap info() const;
     double principal() const { return m_r.principal; }
 
@@ -35,8 +35,8 @@ signals:
     void infoChanged();
 
 private:
-    QString m_titulo;
+    QString m_title;
     sim::AmortResult m_r;
-    int m_visibleRows = 0; // filas con saldo inicial >= 0 (el resto se oculta)
+    int m_visibleRows = 0; // rows with a non-negative starting balance (the rest are hidden)
     QLocale m_loc { QLocale::Spanish, QLocale::Spain };
 };
