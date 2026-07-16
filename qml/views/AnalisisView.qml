@@ -98,30 +98,30 @@ Flickable {
                         }
                     }
 
-                    Row3 { label: "Inversión inicial"; vals: Engine.analisis.inversionInicial }
+                    Row3 { label: "Inversión inicial"; vals: Engine.analysis.initialInvestment }
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Factor venta"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios }
-                        NumField { k: "factorVenta0"; decimals: 1; Layout.preferredWidth: page.wCell }
-                        NumField { k: "factorVenta1"; decimals: 1; Layout.preferredWidth: page.wCell }
-                        NumField { k: "factorVenta2"; decimals: 1; Layout.preferredWidth: page.wCell }
+                        NumField { k: "saleFactor0"; decimals: 1; Layout.preferredWidth: page.wCell }
+                        NumField { k: "saleFactor1"; decimals: 1; Layout.preferredWidth: page.wCell }
+                        NumField { k: "saleFactor2"; decimals: 1; Layout.preferredWidth: page.wCell }
                     }
-                    Row3 { label: "Valor venta FdC año 10"; vals: Engine.analisis.valorVentaFdC }
-                    Row3 { label: "Valor venta local (incr. IPC)"; vals: Engine.analisis.valorVentaLocal }
-                    Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.pctExistencias10) + " factur.)"; vals: Engine.analisis.existencias10 }
-                    Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analisis.fdcPendiente }
+                    Row3 { label: "Valor venta FdC año 10"; vals: Engine.analysis.fdcSaleValue }
+                    Row3 { label: "Valor venta local (incr. IPC)"; vals: Engine.analysis.premisesSaleValue }
+                    Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.inventoryPctYear10) + " factur.)"; vals: Engine.analysis.inventoryYear10 }
+                    Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analysis.fdcOutstanding }
                     RowLayout {
                         Layout.fillWidth: true
                         Text { text: "Impuestos venta"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios }
-                        MoneyField { k: "impuestosVenta0"; Layout.preferredWidth: page.wCell }
-                        MoneyField { k: "impuestosVenta1"; Layout.preferredWidth: page.wCell }
-                        MoneyField { k: "impuestosVenta2"; Layout.preferredWidth: page.wCell }
+                        MoneyField { k: "saleTaxes0"; Layout.preferredWidth: page.wCell }
+                        MoneyField { k: "saleTaxes1"; Layout.preferredWidth: page.wCell }
+                        MoneyField { k: "saleTaxes2"; Layout.preferredWidth: page.wCell }
                     }
-                    Row3 { label: "Deuda pendiente año 10"; vals: Engine.analisis.deuda }
-                    Row3 { label: "Patrimonio bruto año 10"; vals: Engine.analisis.patrimonioBruto; destacada: true }
-                    Row3 { label: "Patrimonio neto año 10"; vals: Engine.analisis.patrimonioNeto; destacada: true }
-                    Row3 { label: "CAGR patrimonio"; vals: Engine.analisis.cagr; fmt: "pct2"; destacada: true }
-                    Row3 { label: "TIR inversión total"; vals: Engine.analisis.tir; fmt: "pct2"; destacada: true }
+                    Row3 { label: "Deuda pendiente año 10"; vals: Engine.analysis.debt }
+                    Row3 { label: "Patrimonio bruto año 10"; vals: Engine.analysis.grossEquity; destacada: true }
+                    Row3 { label: "Patrimonio neto año 10"; vals: Engine.analysis.netEquity; destacada: true }
+                    Row3 { label: "CAGR patrimonio"; vals: Engine.analysis.cagr; fmt: "pct2"; destacada: true }
+                    Row3 { label: "TIR inversión total"; vals: Engine.analysis.irr; fmt: "pct2"; destacada: true }
                 }
             }
 
@@ -171,10 +171,10 @@ Flickable {
                             }
                         }
                     }
-                    Row3 { label: "Liquidez mensual"; vals: Engine.analisis.liqMensual }
-                    Row3 { label: "Devolución capital"; vals: Engine.analisis.devCapitalMensual }
-                    Row3 { label: "Intereses"; vals: Engine.analisis.interesesMensual }
-                    Row3 { label: "Neto titular"; vals: Engine.analisis.netoTitular; destacada: true }
+                    Row3 { label: "Liquidez mensual"; vals: Engine.analysis.monthlyCashFlow }
+                    Row3 { label: "Devolución capital"; vals: Engine.analysis.monthlyPrincipalRepayment }
+                    Row3 { label: "Intereses"; vals: Engine.analysis.monthlyInterest }
+                    Row3 { label: "Neto titular"; vals: Engine.analysis.ownerNetIncome; destacada: true }
                 }
             }
         }

@@ -159,22 +159,22 @@ ApplicationWindow {
             ImpuestosView {}
             AnalisisView {}
             AmortView {
-                loan: Engine.banco
+                loan: Engine.bank
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg"
             }
             AmortView {
-                loan: Engine.cooperativa
+                loan: Engine.cooperative
                 emptyTexto: "No hay préstamo de cooperativa.\nAñádelo en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg"
                 emptyTabIndex: 2
-                emptyFocusKey: "pedidoInicial"
+                emptyFocusKey: "initialOrder"
             }
             AmortView {
-                loan: Engine.propiedades
+                loan: Engine.properties
                 emptyTexto: "No hay financiación de propiedades.\nAñádela en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg"
                 emptyTabIndex: 2
-                emptyFocusKey: "finPropiedades"
+                emptyFocusKey: "propertiesFinancing"
             }
             PersonalView {}
             ComparacionView {}

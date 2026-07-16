@@ -69,21 +69,21 @@ Flickable {
                     spacing: 8
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    CalcRow { label: "Fondo de comercio farmacia"; value: Engine.impuestos.fdc }
-                    CalcRow { label: "Honorarios"; value: Engine.impuestos.honorarios }
-                    CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.impuestos.ajd }
-                    CalcRow { label: "Base amortizable farmacia"; value: Engine.impuestos.baseAmortizable; destacada: true }
-                    CalcRow { label: "Coste local comercial"; value: Engine.impuestos.costeLocal }
+                    CalcRow { label: "Fondo de comercio farmacia"; value: Engine.taxes.fdc }
+                    CalcRow { label: "Honorarios"; value: Engine.taxes.fees }
+                    CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.taxes.ajd }
+                    CalcRow { label: "Base amortizable farmacia"; value: Engine.taxes.depreciableBase; destacada: true }
+                    CalcRow { label: "Coste local comercial"; value: Engine.taxes.premisesCost }
                 }
                 ColumnLayout {
                     spacing: 8
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    CalcRow { label: "% amort. local"; value: Engine.inputs.impAmortLocalPct; fmt: "pct1" }
-                    CalcRow { label: "% amort. farmacia mín."; value: Engine.inputs.impAmortMinPct; fmt: "pct1" }
-                    CalcRow { label: "% amort. farmacia máx."; value: Engine.inputs.impAmortMaxPct; fmt: "pct1" }
-                    CalcRow { label: "Mínimo personal exento (IRPF)"; value: Engine.inputs.minimoPersonal }
-                    CalcRow { label: "Deducción mín. personal (" + Fmt.pct(Engine.inputs.irpfTipo0) + ")"; value: Engine.impuestos.deduccionMinimo }
+                    CalcRow { label: "% amort. local"; value: Engine.inputs.taxPremisesDeprPct; fmt: "pct1" }
+                    CalcRow { label: "% amort. farmacia mín."; value: Engine.inputs.taxMinGoodwillDeprPct; fmt: "pct1" }
+                    CalcRow { label: "% amort. farmacia máx."; value: Engine.inputs.taxMaxGoodwillDeprPct; fmt: "pct1" }
+                    CalcRow { label: "Mínimo personal exento (IRPF)"; value: Engine.inputs.personalAllowance }
+                    CalcRow { label: "Deducción mín. personal (" + Fmt.pct(Engine.inputs.irpfRate0) + ")"; value: Engine.taxes.minimumDeduction }
                 }
             }
         }
@@ -103,7 +103,7 @@ Flickable {
                 flickableDirection: Flickable.HorizontalFlick
                 fallback: page
                 model: {
-                    const I = Engine.impuestos
+                    const I = Engine.taxes
                     function cumSum(arr) {
                         let sum = 0
                         const out = []
@@ -111,18 +111,18 @@ Flickable {
                         return out
                     }
                     let filas = [
-                        { label: "Beneficio farmacia", values: I.beneficio, fmt: "eur", bold: false },
-                        { label: "Amortización local", values: I.amortLocal, fmt: "eur", bold: false },
-                        { label: "Suma amortización local", values: cumSum(I.amortLocal), fmt: "eur", bold: false },
-                        { label: "% amort. farmacia ajustado", values: I.pctAjustado, fmt: "pct2", bold: false },
-                        { label: "Amortización FdC farmacia", values: I.amortFdC, fmt: "eur", bold: false },
-                        { label: "Suma amortización farmacia", values: cumSum(I.amortFdC), fmt: "eur", bold: false },
-                        { label: "Base imponible", values: I.baseImponible, fmt: "eur", bold: true }
+                        { label: "Beneficio farmacia", values: I.profit, fmt: "eur", bold: false },
+                        { label: "Amortización local", values: I.premisesDepreciation, fmt: "eur", bold: false },
+                        { label: "Suma amortización local", values: cumSum(I.premisesDepreciation), fmt: "eur", bold: false },
+                        { label: "% amort. farmacia ajustado", values: I.adjustedPct, fmt: "pct2", bold: false },
+                        { label: "Amortización FdC farmacia", values: I.fdcDepreciation, fmt: "eur", bold: false },
+                        { label: "Suma amortización farmacia", values: cumSum(I.fdcDepreciation), fmt: "eur", bold: false },
+                        { label: "Base imponible", values: I.taxableBase, fmt: "eur", bold: true }
                     ]
-                    for (const t of I.tramos)
+                    for (const t of I.brackets)
                         filas.push({ label: t.label, values: t.values, fmt: "eur", bold: false })
-                    filas.push({ label: "Cuota escala (suma de tramos)", values: I.cuotaEscala, fmt: "eur", bold: true })
-                    filas.push({ label: "Pago impuestos", values: I.pago, fmt: "eur", bold: true })
+                    filas.push({ label: "Cuota escala (suma de tramos)", values: I.bracketQuota, fmt: "eur", bold: true })
+                    filas.push({ label: "Pago impuestos", values: I.payment, fmt: "eur", bold: true })
                     return filas
                 }
             }

@@ -42,7 +42,7 @@ Item {
         spacing: 12
 
         Text {
-            text: page.loan.titulo;
+            text: page.loan.title;
             font.pixelSize: 22;
             font.bold: true;
             color: "#14523f"
@@ -113,13 +113,13 @@ Item {
                 rowSpacing: 10
 
                 Dato { etiqueta: "Importe del préstamo"; valor: page.loan.info.principal }
-                Dato { etiqueta: "Tasa de interés anual"; valor: page.loan.info.tasaAnual }
-                Dato { etiqueta: "Plazo"; valor: page.loan.info.plazoAnios }
-                Dato { etiqueta: "Número de pagos"; valor: page.loan.info.numPagos }
-                Dato { etiqueta: "Pago mensual"; valor: page.loan.info.pagoMensual }
-                Dato { etiqueta: "Pago anual"; valor: page.loan.info.pagoAnual }
-                Dato { etiqueta: "Total intereses"; valor: page.loan.info.totalIntereses }
-                Dato { etiqueta: "Coste total del préstamo"; valor: page.loan.info.costeTotal }
+                Dato { etiqueta: "Tasa de interés anual"; valor: page.loan.info.annualRate }
+                Dato { etiqueta: "Plazo"; valor: page.loan.info.termYears }
+                Dato { etiqueta: "Número de pagos"; valor: page.loan.info.numPayments }
+                Dato { etiqueta: "Pago mensual"; valor: page.loan.info.monthlyPayment }
+                Dato { etiqueta: "Pago anual"; valor: page.loan.info.annualPayment }
+                Dato { etiqueta: "Total intereses"; valor: page.loan.info.totalInterest }
+                Dato { etiqueta: "Coste total del préstamo"; valor: page.loan.info.totalCost }
             }
         }
 

@@ -8,6 +8,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -85,25 +86,177 @@ void Engine::saveToDisk() const
 #endif
 }
 
+// Maps every pre-"Change to English" (Spanish) JSON key to its current
+// English key, so sessions saved before that rename still load correctly.
+// Covers the flat sim::Inputs keys, the top-level scenarios key and the
+// financing-comparison sub-keys (nombre/proyeccion/financiacion are handled
+// separately in translateLegacyObject()).
+static const QHash<QString, QString>& legacyKeyMap()
+{
+    static const QHash<QString, QString> map = [] {
+        QHash<QString, QString> m;
+        m[QStringLiteral("ventaReceta")]    = QStringLiteral("prescriptionSales");
+        m[QStringLiteral("ventaLibre")]     = QStringLiteral("otcSales");
+        m[QStringLiteral("margenPct")]      = QStringLiteral("marginPct");
+        m[QStringLiteral("alquilerLocal")]  = QStringLiteral("premisesRent");
+        m[QStringLiteral("suministros")]    = QStringLiteral("utilities");
+        m[QStringLiteral("asesoria")]       = QStringLiteral("advisoryFees");
+        m[QStringLiteral("mantenimiento")]  = QStringLiteral("maintenance");
+        m[QStringLiteral("seguros")]        = QStringLiteral("insurance");
+        m[QStringLiteral("otrosGastos")]    = QStringLiteral("otherExpenses");
+        m[QStringLiteral("escenarioCrecimiento")] = QStringLiteral("growthScenario");
+        m[QStringLiteral("ipcOptimista")]         = QStringLiteral("ipcOptimistic");
+        m[QStringLiteral("margenOptimistaAnio1")] = QStringLiteral("optimisticMarginYear1");
+        m[QStringLiteral("margenOptimistaAnio2")] = QStringLiteral("optimisticMarginYear2");
+        m[QStringLiteral("margenOptimistaAnio3")] = QStringLiteral("optimisticMarginYear3");
+        m[QStringLiteral("coeficiente")]    = QStringLiteral("goodwillMultiple");
+        m[QStringLiteral("localComercial")] = QStringLiteral("premisesPrice");
+        m[QStringLiteral("existencias")]    = QStringLiteral("inventory");
+        m[QStringLiteral("notario")]        = QStringLiteral("notaryFees");
+        m[QStringLiteral("registro")]       = QStringLiteral("registryFees");
+        m[QStringLiteral("gastosVarios")]   = QStringLiteral("miscExpenses");
+        m[QStringLiteral("honorariosPct")]  = QStringLiteral("feesPct");
+        m[QStringLiteral("tipoBanco")]      = QStringLiteral("bankRate");
+        m[QStringLiteral("tipoCoop")]       = QStringLiteral("coopRate");
+        m[QStringLiteral("tipoFamiliar")]   = QStringLiteral("familyRate");
+        m[QStringLiteral("tipoPropiedades")] = QStringLiteral("propertiesRate");
+        m[QStringLiteral("plazoBanco")]       = QStringLiteral("bankTermYears");
+        m[QStringLiteral("plazoCoop")]        = QStringLiteral("coopTermYears");
+        m[QStringLiteral("plazoFamiliar")]    = QStringLiteral("familyTermYears");
+        m[QStringLiteral("plazoPropiedades")] = QStringLiteral("propertiesTermYears");
+        m[QStringLiteral("pctFinFarmacia")]      = QStringLiteral("pharmacyFinancingPct");
+        m[QStringLiteral("pctFinLocal")]         = QStringLiteral("premisesFinancingPct");
+        m[QStringLiteral("pctAperturaHipoteca")] = QStringLiteral("mortgageOpeningPct");
+        m[QStringLiteral("pctFinPropiedades")]   = QStringLiteral("propertiesFinancingPct");
+        m[QStringLiteral("liquidezAportada")]    = QStringLiteral("contributedCash");
+        m[QStringLiteral("aportacionFamiliar")]  = QStringLiteral("familyContribution");
+        m[QStringLiteral("finPropiedades")]      = QStringLiteral("propertiesFinancing");
+        m[QStringLiteral("excesoAportacion")]    = QStringLiteral("contributionExcess");
+        m[QStringLiteral("pedidoInicial")]       = QStringLiteral("initialOrder");
+        m[QStringLiteral("salFarmaceutico")]  = QStringLiteral("pharmacistSalary");
+        m[QStringLiteral("jornFarmaceutico")] = QStringLiteral("pharmacistFte");
+        m[QStringLiteral("pctSS")]            = QStringLiteral("socialSecurityPct");
+        m[QStringLiteral("subidaPct")]        = QStringLiteral("raisePct");
+        m[QStringLiteral("salAuxiliar")]      = QStringLiteral("assistantSalary");
+        m[QStringLiteral("jornAuxiliar")]     = QStringLiteral("assistantFte");
+        m[QStringLiteral("salTecnico")]       = QStringLiteral("technicianSalary");
+        m[QStringLiteral("jornTecnico")]      = QStringLiteral("technicianFte");
+        for (int k = 0; k < 4; ++k) {
+            m[QStringLiteral("plJornada%1").arg(k)]  = QStringLiteral("staffFte%1").arg(k);
+            m[QStringLiteral("plPersonas%1").arg(k)] = QStringLiteral("staffCount%1").arg(k);
+        }
+        for (int k = 0; k < 3; ++k) {
+            m[QStringLiteral("factorVenta%1").arg(k)]    = QStringLiteral("saleFactor%1").arg(k);
+            m[QStringLiteral("impuestosVenta%1").arg(k)] = QStringLiteral("saleTaxes%1").arg(k);
+        }
+        m[QStringLiteral("fdcInicialSim")]    = QStringLiteral("fdcInitialSim");
+        m[QStringLiteral("pctMaxFdC")]        = QStringLiteral("fdcMaxPct");
+        m[QStringLiteral("pctAmortLocal")]    = QStringLiteral("investmentPremisesDeprPct");
+        m[QStringLiteral("pctExistencias10")] = QStringLiteral("inventoryPctYear10");
+        m[QStringLiteral("impAmortLocalPct")] = QStringLiteral("taxPremisesDeprPct");
+        m[QStringLiteral("impAmortMinPct")]   = QStringLiteral("taxMinGoodwillDeprPct");
+        m[QStringLiteral("impAmortMaxPct")]   = QStringLiteral("taxMaxGoodwillDeprPct");
+        m[QStringLiteral("minimoPersonal")]   = QStringLiteral("personalAllowance");
+        for (int k = 0; k < 6; ++k) {
+            m[QStringLiteral("irpfDesde%1").arg(k)] = QStringLiteral("irpfFrom%1").arg(k);
+            m[QStringLiteral("irpfHasta%1").arg(k)] = QStringLiteral("irpfTo%1").arg(k);
+            m[QStringLiteral("irpfTipo%1").arg(k)]  = QStringLiteral("irpfRate%1").arg(k);
+        }
+        for (int k = 0; k < 9; ++k)
+            m[QStringLiteral("rdDesde%1").arg(k)] = QStringLiteral("rdFrom%1").arg(k);
+        for (int k = 0; k < 15; ++k) {
+            m[QStringLiteral("retaDesde%1").arg(k)] = QStringLiteral("retaFrom%1").arg(k);
+            m[QStringLiteral("retaCuota%1").arg(k)] = QStringLiteral("retaQuota%1").arg(k);
+        }
+        m[QStringLiteral("tarifaPlanaMensual")] = QStringLiteral("retaFlatMonthlyFee");
+        for (int k = 0; k < 10; ++k) {
+            m[QStringLiteral("ipcHistorico%1").arg(k)]       = QStringLiteral("ipcHistorical%1").arg(k);
+            m[QStringLiteral("margenComercialSim%1").arg(k)] = QStringLiteral("realisticMarginSeries%1").arg(k);
+        }
+        // Financing-comparison sub-keys (not otherwise reachable from the flat map above).
+        m[QStringLiteral("finBancariaFarmacia")] = QStringLiteral("pharmacyBankFinancing");
+        m[QStringLiteral("finBancariaLocal")]    = QStringLiteral("premisesBankFinancing");
+        // Top-level scenarios array.
+        m[QStringLiteral("escenariosComparacion")] = QStringLiteral("comparisonScenarios");
+        return m;
+    }();
+    return map;
+}
+
+// Translates a loaded JSON object's keys from the pre-rename Spanish scheme
+// to the current English one. Keys already in English pass through
+// unchanged, so this is safe to call unconditionally on any saved session.
+static QJsonObject translateLegacyObject(const QJsonObject& in)
+{
+    static const QHash<QString, QString> scenarioKeyMap{
+        { QStringLiteral("nombre"),       QStringLiteral("name") },
+        { QStringLiteral("proyeccion"),   QStringLiteral("projection") },
+        { QStringLiteral("financiacion"), QStringLiteral("financing") },
+    };
+    const auto& map = legacyKeyMap();
+    QJsonObject out;
+    for (auto it = in.constBegin(); it != in.constEnd(); ++it) {
+        const QString newKey = map.value(it.key(), it.key());
+        if (newKey == QStringLiteral("comparisonScenarios") && it.value().isArray()) {
+            QJsonArray scenarios;
+            for (const QJsonValue& sv : it.value().toArray()) {
+                if (!sv.isObject()) { scenarios.append(sv); continue; }
+                QJsonObject scenario;
+                const QJsonObject so = sv.toObject();
+                for (auto sit = so.constBegin(); sit != so.constEnd(); ++sit) {
+                    const QString sKey = scenarioKeyMap.value(sit.key(), sit.key());
+                    if (sKey == QStringLiteral("financing") && sit.value().isObject()) {
+                        QJsonObject fin;
+                        const QJsonObject fo = sit.value().toObject();
+                        for (auto fit = fo.constBegin(); fit != fo.constEnd(); ++fit)
+                            fin[map.value(fit.key(), fit.key())] = fit.value();
+                        scenario[sKey] = fin;
+                    } else {
+                        scenario[sKey] = sit.value();
+                    }
+                }
+                scenarios.append(scenario);
+            }
+            out[newKey] = scenarios;
+        } else {
+            out[newKey] = it.value();
+        }
+    }
+    return out;
+}
+
 void Engine::loadFromDisk()
 {
     QByteArray data;
 #ifdef Q_OS_WASM
-    const emscripten::val v = emscripten::val::global("localStorage")
+    emscripten::val v = emscripten::val::global("localStorage")
         .call<emscripten::val>("getItem", std::string("farmaciasim_data"));
-    if (v.isNull() || v.isUndefined())
-        return;                                // first run: defaults
+    if (v.isNull() || v.isUndefined()) {
+        // Fall back to the pre-rename localStorage key (Spanish field names).
+        v = emscripten::val::global("localStorage")
+            .call<emscripten::val>("getItem", std::string("farmaciasim_datos"));
+        if (v.isNull() || v.isUndefined())
+            return;                            // first run: defaults
+    }
     data = QByteArray::fromStdString(v.as<std::string>());
 #else
     QFile f(m_dataPath);
-    if (!f.exists() || !f.open(QIODevice::ReadOnly))
-        return;                                // first run: defaults
-    data = f.readAll();
+    if (!f.exists() || !f.open(QIODevice::ReadOnly)) {
+        // Fall back to the pre-rename file name (Spanish field names).
+        const QString legacyPath = QFileInfo(m_dataPath).absolutePath()
+                                  + QStringLiteral("/farmaciasim_datos.json");
+        QFile legacy(legacyPath);
+        if (!legacy.exists() || !legacy.open(QIODevice::ReadOnly))
+            return;                            // first run: defaults
+        data = legacy.readAll();
+    } else {
+        data = f.readAll();
+    }
 #endif
     const QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject())
         return;
-    const QJsonObject o = doc.object();
+    const QJsonObject o = translateLegacyObject(doc.object());
     for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
         if (!it.value().isDouble())
             continue;

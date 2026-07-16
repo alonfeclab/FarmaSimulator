@@ -61,7 +61,7 @@ Flickable {
                     font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap
                 }
                 Text {
-                    text: Fmt.eur(Engine.datosBase.cuotaAutonomos)
+                    text: Fmt.eur(Engine.baseData.selfEmployedQuota)
                     font.pixelSize: 15; font.bold: true; color: "#14523f"
                 }
             }
@@ -85,7 +85,7 @@ Flickable {
                 fallback: page
                 model: {
                     function rowByLabel(label) {
-                        for (const r of Engine.proyeccion)
+                        for (const r of Engine.projection)
                             if (r.label === label) return r.values
                         return []
                     }
@@ -143,36 +143,36 @@ Flickable {
                         Layout.fillWidth: true
                         spacing: 8
                         Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
-                        MoneyField { k: "salFarmaceutico"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "jornFarmaceutico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[0].costeSS) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[0].salReal) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[0].costeTotal) }
+                        MoneyField { k: "pharmacistSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "pharmacistFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[0].socialSecurityCost) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[0].actualSalary) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[0].totalCost) }
                     }
                     // Auxiliar
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
                         Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
-                        MoneyField { k: "salAuxiliar"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "jornAuxiliar"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[1].costeSS) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[1].salReal) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[1].costeTotal) }
+                        MoneyField { k: "assistantSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "assistantFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].socialSecurityCost) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].actualSalary) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].totalCost) }
                     }
                     // Técnico
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
                         Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
-                        MoneyField { k: "salTecnico"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "jornTecnico"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.pctSS, 0) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[2].costeSS) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[2].salReal) }
-                        Celda { text: Fmt.eur(Engine.personal.datos[2].costeTotal) }
+                        MoneyField { k: "technicianSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "technicianFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[2].socialSecurityCost) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[2].actualSalary) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[2].totalCost) }
                     }
                     // Total
                     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
@@ -183,9 +183,9 @@ Flickable {
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
-                        Celda { text: Fmt.eur(Engine.personal.totCosteSS); negrita: true }
-                        Celda { text: Fmt.eur(Engine.personal.totSalReal); negrita: true }
-                        Celda { text: Fmt.eur(Engine.personal.totCoste); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalSocialSecurityCost); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalActualSalary); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalCost); negrita: true }
                     }
                 }
             }
@@ -213,7 +213,7 @@ Flickable {
                     color: "#3c4a46"
                     Layout.fillWidth: true
                 }
-                PctField { k: "subidaPct"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                PctField { k: "raisePct"; Layout.preferredWidth: 108; implicitWidth: 108 }
             }
 
             Text {
@@ -265,11 +265,11 @@ Flickable {
                         RowLayout {
                             id: filaPl
                             required property int index
-                            readonly property var r: Engine.personal.plantilla[index]
+                            readonly property var r: Engine.staff.headcountPlan[index]
                             Layout.fillWidth: true
                             spacing: 8
-                            Text { text: filaPl.r.tipo; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
-                            PctField { k: "plJornada" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
+                            Text { text: filaPl.r.role; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                            PctField { k: "staffFte" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
                             Text {
                                 visible: filaPl.index === 0
                                 text: "1"
@@ -280,14 +280,14 @@ Flickable {
                             }
                             NumField {
                                 visible: filaPl.index !== 0
-                                k: "plPersonas" + filaPl.index
+                                k: "staffCount" + filaPl.index
                                 Layout.preferredWidth: 80
                                 implicitWidth: 80
                             }
-                            Celda { text: Fmt.eur(filaPl.r.brutoFT) }
-                            Celda { text: Fmt.eur(filaPl.r.brutoReal) }
-                            Celda { text: Fmt.eur(filaPl.r.costeSS) }
-                            Celda { text: Fmt.eur(filaPl.r.costeTotal) }
+                            Celda { text: Fmt.eur(filaPl.r.grossFte) }
+                            Celda { text: Fmt.eur(filaPl.r.actualGross) }
+                            Celda { text: Fmt.eur(filaPl.r.socialSecurityCost) }
+                            Celda { text: Fmt.eur(filaPl.r.totalCost) }
                         }
                     }
 
@@ -297,11 +297,11 @@ Flickable {
                         spacing: 8
                         Text { text: "Total plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
-                        Celda { text: Fmt.num(Engine.personal.totPersonas) + " pers."; negrita: true; Layout.preferredWidth: 80 }
+                        Celda { text: Fmt.num(Engine.staff.totalHeadcount) + " pers."; negrita: true; Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 108 }
-                        Celda { text: Fmt.eur(Engine.personal.totBrutoReal); negrita: true }
-                        Celda { text: Fmt.eur(Engine.personal.totSS); negrita: true }
-                        Celda { text: Fmt.eur(Engine.personal.totPlantilla); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalActualGross); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalSocialSecurity); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalHeadcountCost); negrita: true }
                         Item { Layout.preferredWidth: 150 }
                     }
                 }
@@ -336,7 +336,7 @@ Flickable {
                     wrapMode: Text.WordWrap
                 }
                 Text {
-                    text: Fmt.eur(Engine.personal.salarioNetoMensualAnio1)
+                    text: Fmt.eur(Engine.staff.netMonthlySalaryYear1)
                     color: "#ffe9a8"; font.pixelSize: 20; font.bold: true
                 }
             }

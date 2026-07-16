@@ -13,17 +13,17 @@ Item {
     readonly property int wCell: 170
     readonly property int hRow: 30
 
-    readonly property bool vacio: Engine.escenariosComparacion.length === 0
+    readonly property bool vacio: Engine.comparisonScenarios.length === 0
 
     // Se recalcula cuando cambian los escenarios guardados o el año elegido:
-    // referenciar Engine.escenariosComparacion aquí es necesario para que el
-    // binding se re-evalúe (comparacionAnio es invocable, no una Q_PROPERTY).
-    readonly property var filas: Engine.escenariosComparacion.length > 0
-                                  ? Engine.comparacionAnio(anioCombo.currentIndex) : []
+    // referenciar Engine.comparisonScenarios aquí es necesario para que el
+    // binding se re-evalúe (comparisonForYear es invocable, no una Q_PROPERTY).
+    readonly property var filas: Engine.comparisonScenarios.length > 0
+                                  ? Engine.comparisonForYear(anioCombo.currentIndex) : []
 
     // Grupo "Financiación" de la vista completa: valores fijos, no dependen del año.
-    readonly property var filasFinanciacion: Engine.escenariosComparacion.length > 0
-                                              ? Engine.comparacionFinanciacion() : []
+    readonly property var filasFinanciacion: Engine.comparisonScenarios.length > 0
+                                              ? Engine.financingComparison() : []
 
     // Inserta el grupo "Financiación" justo después de la fila "Venta total"
     // en vez de al final de la tabla. Las filas del grupo llevan "grupo: true"
@@ -281,10 +281,10 @@ Item {
                     wLabel: page.wLabel
                     wCell: page.wCell
                     hRow: page.hRow
-                    headerLabels: Engine.escenariosComparacion.map(e => e.nombre)
+                    headerLabels: Engine.comparisonScenarios.map(e => e.name)
                     closableColumns: true
                     model: page.filasTabla
-                    onCloseColumn: (index) => Engine.quitarEscenarioComparacion(index)
+                    onCloseColumn: (index) => Engine.removeComparisonScenario(index)
                     ScrollBar.vertical: ScrollBar {}
                 }
             }
@@ -308,7 +308,7 @@ Item {
         }
 
         function exportar(anio) {
-            const destino = Engine.exportarPdfComparacion(anio)
+            const destino = Engine.exportComparisonPdf(anio)
             avisoPdfComparacion.mostrar(destino.length > 0
                 ? "PDF guardado en: " + destino
                 : "No se pudo crear el PDF")

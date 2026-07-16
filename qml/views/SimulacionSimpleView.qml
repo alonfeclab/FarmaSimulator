@@ -29,35 +29,35 @@ Flickable {
     // actuales, pero al editarlo aquí deja de seguir a Engine.inputs.
     QtObject {
         id: local
-        property real ventaReceta:       Engine.inputs.ventaReceta
-        property real ventaLibre:        Engine.inputs.ventaLibre
-        property real existencias:       Engine.inputs.existencias
-        property real liquidezAportada:  Engine.inputs.liquidezAportada
-        property real finPropiedades:    Engine.inputs.finPropiedades
-        property real pedidoInicial:     Engine.inputs.pedidoInicial
-        property real alquilerLocal:     Engine.inputs.alquilerLocal
+        property real ventaReceta:       Engine.inputs.prescriptionSales
+        property real ventaLibre:        Engine.inputs.otcSales
+        property real existencias:       Engine.inputs.inventory
+        property real liquidezAportada:  Engine.inputs.contributedCash
+        property real finPropiedades:    Engine.inputs.propertiesFinancing
+        property real pedidoInicial:     Engine.inputs.initialOrder
+        property real alquilerLocal:     Engine.inputs.premisesRent
     }
 
     // Proyección "de bolsillo": se recalcula con los valores locales sin
-    // tocar el motor compartido. escenarioCrecimiento/ipcOptimista se leen
-    // aquí (aunque simularSimple los toma de m_in, no de este mapa) solo
+    // tocar el motor compartido. growthScenario/ipcOptimistic se leen
+    // aquí (aunque simulateQuick los toma de m_in, no de este mapa) solo
     // para que el binding dependa de Engine.inputs y se reevalúe cuando el
     // escenario cambie en Datos Base.
-    readonly property var preview: Engine.simularSimple({
-        ventaReceta:          local.ventaReceta,
-        ventaLibre:           local.ventaLibre,
-        existencias:          local.existencias,
-        liquidezAportada:     local.liquidezAportada,
-        finPropiedades:       local.finPropiedades,
-        pedidoInicial:        local.pedidoInicial,
-        alquilerLocal:        local.alquilerLocal,
-        escenarioCrecimiento: Engine.inputs.escenarioCrecimiento,
-        ipcOptimista:         Engine.inputs.ipcOptimista,
-        margenOptimistaAnio1: Engine.inputs.margenOptimistaAnio1,
-        margenOptimistaAnio2: Engine.inputs.margenOptimistaAnio2,
-        margenOptimistaAnio3: Engine.inputs.margenOptimistaAnio3,
+    readonly property var preview: Engine.simulateQuick({
+        prescriptionSales:    local.ventaReceta,
+        otcSales:             local.ventaLibre,
+        inventory:            local.existencias,
+        contributedCash:      local.liquidezAportada,
+        propertiesFinancing:  local.finPropiedades,
+        initialOrder:         local.pedidoInicial,
+        premisesRent:         local.alquilerLocal,
+        growthScenario:       Engine.inputs.growthScenario,
+        ipcOptimistic:        Engine.inputs.ipcOptimistic,
+        optimisticMarginYear1: Engine.inputs.optimisticMarginYear1,
+        optimisticMarginYear2: Engine.inputs.optimisticMarginYear2,
+        optimisticMarginYear3: Engine.inputs.optimisticMarginYear3,
     })
-    readonly property var filasEsenciales: page.preview.proyeccion
+    readonly property var filasEsenciales: page.preview.projection
 
     // Campo editable ligado al estado LOCAL de esta hoja (no a Engine).
     component LocalField: TextField {
@@ -177,15 +177,15 @@ Flickable {
             SectionTitle { text: "Valores básicos" }
             EditRow { label: "Venta receta"; value: local.ventaReceta; onCommitted: (v) => local.ventaReceta = v }
             EditRow { label: "Venta libre"; value: local.ventaLibre; onCommitted: (v) => local.ventaLibre = v }
-            CalcRow { label: "Venta total"; value: page.preview.ventaTotal; destacada: true }
+            CalcRow { label: "Venta total"; value: page.preview.totalSales; destacada: true }
             EditRow { label: "Existencias"; value: local.existencias; onCommitted: (v) => local.existencias = v }
             EditRow {
                 label: "Aportación liquidez";
                 value: local.liquidezAportada;
                 onCommitted: (v) => local.liquidezAportada = v
                 infoLabel.text: "Aportación mínima"
-                invalid: page.preview.liquidezInvalida
-                infoValue.text: Fmt.eur(page.preview.minimoLiquidez)
+                invalid: page.preview.cashBelowMinimum
+                infoValue.text: Fmt.eur(page.preview.minimumCash)
             }
             EditRow { label: "Aportación propiedad hipotecada"; value: local.finPropiedades; onCommitted: (v) => local.finPropiedades = v }
             EditRow { label: "Aportación cooperativa"; value: local.pedidoInicial; onCommitted: (v) => local.pedidoInicial = v }

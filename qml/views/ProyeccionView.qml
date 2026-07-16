@@ -36,7 +36,7 @@ Item {
                 wLabel: page.wLabel
                 wCell: page.wCell
                 hRow: page.hRow
-                model: Engine.proyeccion
+                model: Engine.projection
                 ScrollBar.vertical: ScrollBar {}
             }
         }

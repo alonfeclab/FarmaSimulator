@@ -77,12 +77,12 @@ Flickable {
                     implicitHeight: 40
                     model: ["Realista", "Optimista"]
 
-                    readonly property real value: Engine.inputs.escenarioCrecimiento !== undefined
-                                                   ? Engine.inputs.escenarioCrecimiento : 0
+                    readonly property real value: Engine.inputs.growthScenario !== undefined
+                                                   ? Engine.inputs.growthScenario : 0
 
                     Component.onCompleted: currentIndex = Math.round(value)
                     onValueChanged: currentIndex = Math.round(value)
-                    onActivated: (idx) => Engine.set("escenarioCrecimiento", idx)
+                    onActivated: (idx) => Engine.set("growthScenario", idx)
 
                     background: Rectangle {
                         radius: 5
@@ -158,7 +158,7 @@ Flickable {
                     visible: escenarioCombo.currentIndex === 1
                 }
                 PctField {
-                    k: "ipcOptimista"
+                    k: "ipcOptimistic"
                     visible: escenarioCombo.currentIndex === 1
                 }
             }
@@ -189,17 +189,17 @@ Flickable {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { text: "Año 1"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "margenOptimistaAnio1" }
+                    PctField { k: "optimisticMarginYear1" }
                 }
                 RowLayout {
                     Layout.fillWidth: true
                     Text { text: "Año 2"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "margenOptimistaAnio2" }
+                    PctField { k: "optimisticMarginYear2" }
                 }
                 RowLayout {
                     Layout.fillWidth: true
                     Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "margenOptimistaAnio3" }
+                    PctField { k: "optimisticMarginYear3" }
                 }
             }
         }
@@ -207,22 +207,22 @@ Flickable {
         // ---------------- Ventas
         Card {
             SectionTitle { text: "Ventas" }
-            EditRow { label: "Venta receta";  k: "ventaReceta" }
-            EditRow { label: "Venta libre";   k: "ventaLibre" }
-            CalcRow { label: "Venta total";   value: Engine.datosBase.ventaTotal; destacada: true }
+            EditRow { label: "Venta receta";  k: "prescriptionSales" }
+            EditRow { label: "Venta libre";   k: "otcSales" }
+            CalcRow { label: "Venta total";   value: Engine.baseData.totalSales; destacada: true }
         }
 
         // ---------------- Otros gastos
         Card {
             SectionTitle { text: "Otros gastos" }
-            EditRow { label: "Alquiler local"; k: "alquilerLocal" }
-            EditRow { label: "Suministros"; k: "suministros" }
-            EditRow { label: "Gastos asesoría"; k: "asesoria" }
-            EditRow { label: "Mantenimiento informático"; k: "mantenimiento" }
+            EditRow { label: "Alquiler local"; k: "premisesRent" }
+            EditRow { label: "Suministros"; k: "utilities" }
+            EditRow { label: "Gastos asesoría"; k: "advisoryFees" }
+            EditRow { label: "Mantenimiento informático"; k: "maintenance" }
             EditRow { label: "Robot"; k: "robot" }
-            EditRow { label: "Seguros"; k: "seguros" }
-            EditRow { label: "Otros gastos"; k: "otrosGastos" }
-            CalcRow { label: "Total otros gastos"; value: Engine.datosBase.totalOtrosGastos; destacada: true }
+            EditRow { label: "Seguros"; k: "insurance" }
+            EditRow { label: "Otros gastos"; k: "otherExpenses" }
+            CalcRow { label: "Total otros gastos"; value: Engine.baseData.totalOtherExpenses; destacada: true }
         }
 
         // ---------------- Comparación de escenarios
@@ -235,7 +235,7 @@ Flickable {
             font.pixelSize: 13
             font.bold: true
             onClicked: {
-                Engine.anadirEscenarioComparacion()
+                Engine.addComparisonScenario()
                 avisoComparar.mostrar("Escenario añadido a la comparación")
             }
             background: Rectangle {

@@ -144,9 +144,9 @@ Flickable {
                         Row {
                             id: filaIrpf
                             required property int index
-                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfDesde" + filaIrpf.index; decimals: 0 } }
-                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfHasta" + filaIrpf.index; decimals: 0 } }
-                            Celda { par: filaIrpf.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "irpfTipo"  + filaIrpf.index; decimals: 1 } }
+                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfFrom" + filaIrpf.index; decimals: 0 } }
+                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfTo" + filaIrpf.index; decimals: 0 } }
+                            Celda { par: filaIrpf.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "irpfRate"  + filaIrpf.index; decimals: 1 } }
                         }
                     }
                 }
@@ -168,7 +168,7 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 Text { text: "Tarifa plana (mensual)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                MoneyField { k: "tarifaPlanaMensual"; decimals: 2 }
+                MoneyField { k: "retaFlatMonthlyFee"; decimals: 2 }
             }
             Flickable {
                 id: scroll2
@@ -190,8 +190,8 @@ Flickable {
                         Row {
                             id: filaReta
                             required property int index
-                            Celda { wCell: 160; par: filaReta.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "retaDesde" + filaReta.index; decimals: 2 } }
-                            Celda { wCell: 160; par: filaReta.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "retaCuota" + filaReta.index; decimals: 2 } }
+                            Celda { wCell: 160; par: filaReta.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "retaFrom" + filaReta.index; decimals: 2 } }
+                            Celda { wCell: 160; par: filaReta.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "retaQuota" + filaReta.index; decimals: 2 } }
                         }
                     }
                 }
@@ -228,7 +228,7 @@ Flickable {
                         Row {
                             id: filaRd
                             required property int index
-                            Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdDesde" + filaRd.index; decimals: 0 } }
+                            Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdFrom" + filaRd.index; decimals: 0 } }
                             Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdBase"  + filaRd.index; decimals: 2 } }
                             Celda { wCell: 160; par: filaRd.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "rdPct"   + filaRd.index; decimals: 1 } }
                         }
@@ -251,7 +251,7 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 Text { text: "Honorarios (% s/ fondo de comercio + local)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                PctField { k: "honorariosPct"; decimals: 1 }
+                PctField { k: "feesPct"; decimals: 1 }
             }
             RowLayout {
                 Layout.fillWidth: true
@@ -275,7 +275,7 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 Text { text: "Existencias a 10 años (% s/ venta total año 10)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                PctField { k: "pctExistencias10"; decimals: 1 }
+                PctField { k: "inventoryPctYear10"; decimals: 1 }
             }
         }
 
@@ -300,7 +300,7 @@ Flickable {
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                 FastWheel { flick: scroll4; fallback: page }
-                SerieAnualEdit { id: serieIpc; prefix: "ipcHistorico" }
+                SerieAnualEdit { id: serieIpc; prefix: "ipcHistorical" }
             }
             Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: "#3c4a46"; Layout.topMargin: 8 }
             Flickable {
@@ -313,7 +313,7 @@ Flickable {
                 boundsBehavior: Flickable.StopAtBounds
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                 FastWheel { flick: scroll5; fallback: page }
-                SerieAnualEdit { id: serieMargen; prefix: "margenComercialSim" }
+                SerieAnualEdit { id: serieMargen; prefix: "realisticMarginSeries" }
             }
         }
 

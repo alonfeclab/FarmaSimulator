@@ -106,7 +106,7 @@ Rectangle {
             font.pixelSize: 12
             font.bold: true
             onClicked: {
-                const destino = Engine.exportarPdf()
+                const destino = Engine.exportPdf()
                 avisoPdf.mostrar(destino.length > 0
                     ? "Informe guardado en:\n" + destino
                     : "No se pudo crear el PDF")
@@ -156,7 +156,7 @@ Rectangle {
             Layout.preferredHeight: 44
             text: "Restaurar valores"
             font.pixelSize: 12
-            onClicked: Engine.restaurarValoresIniciales()
+            onClicked: Engine.resetToDefaults()
             background: Rectangle {
                 radius: 8
                 color: btnRestaurar.down ? "#0e3226" : "#1a5a45"
@@ -190,7 +190,7 @@ Rectangle {
 
             ToolTip.visible: zonaTip.containsMouse
             ToolTip.delay: 300
-            ToolTip.text: "Se guardan en:\n" + Engine.rutaDatos
+            ToolTip.text: "Se guardan en:\n" + Engine.dataPath
             MouseArea { id: zonaTip; anchors.fill: parent; hoverEnabled: true }
         }
     }
