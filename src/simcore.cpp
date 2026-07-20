@@ -256,10 +256,9 @@ Results compute(const Inputs& in)
             : in.realisticMarginSeries;
 
         for (int i = 0; i < 10; ++i) {
-            // Year 1 starts from the initial values as-is (IPC not applied);
-            // growth starts counting from year 2.
+            // IPC is applied from year 1 onward (including year 1 itself).
             // Negative IPC is treated as 0% (no deflation applied in the projection).
-            const double ipc = (i == 0) ? 0.0 : std::max(0.0, annualIpc[i]);
+            const double ipc = std::max(0.0, annualIpc[i]);
             P.ipcApplied[i]         = ipc;
             P.commercialMarginPct[i] = annualCommercialMargin[i];
 
@@ -272,12 +271,12 @@ Results compute(const Inputs& in)
             P.rdDeduction[i] = (i == 0 ? R.baseData.rdDeduction : P.rdDeduction[i-1]) * (1.0 + ipc); // row 11
             P.marginAfterRd[i]  = P.grossMargin[i] - P.rdDeduction[i];        // row 12
             P.rent[i] = 0;                                                 // row 13 (constant 0)
-            P.staffCost[i] = (i == 0)
+            P.staffCost[i] = (i == 0
                 ? R.baseData.staffCost + R.baseData.socialSecurity     // B14 = SUM(D18:E19)
-                : P.staffCost[i-1] * (1.0 + ipc);                         // row 14
-            P.otherExpenses[i] = (i == 0)
+                : P.staffCost[i-1]) * (1.0 + ipc);                         // row 14
+            P.otherExpenses[i] = (i == 0
                 ? R.baseData.totalOtherExpenses                                 // B15 = D29
-                : P.otherExpenses[i-1] * (1.0 + ipc);                            // row 15
+                : P.otherExpenses[i-1]) * (1.0 + ipc);                            // row 15
             P.interest[i] = annualSum(R.bankAmort, i, true)
                            + annualSum(R.propertiesAmort,  i, true);                 // row 16 (negative)
             const double profitBeforeQuota = P.marginAfterRd[i] - P.rent[i]

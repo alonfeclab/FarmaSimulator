@@ -145,22 +145,10 @@ Flickable {
                         Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "pharmacistSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "pharmacistFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
+                        PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].socialSecurityCost) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].actualSalary) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].totalCost) }
-                    }
-                    // Auxiliar
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-                        Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
-                        MoneyField { k: "assistantSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "assistantFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
-                        Celda { text: Fmt.eur(Engine.staff.byRole[1].socialSecurityCost) }
-                        Celda { text: Fmt.eur(Engine.staff.byRole[1].actualSalary) }
-                        Celda { text: Fmt.eur(Engine.staff.byRole[1].totalCost) }
                     }
                     // Técnico
                     RowLayout {
@@ -169,10 +157,22 @@ Flickable {
                         Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "technicianSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "technicianFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        Celda { text: Fmt.pct(Engine.inputs.socialSecurityPct, 0) }
+                        PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].socialSecurityCost) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].actualSalary) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].totalCost) }
+                    }
+                    // Auxiliar
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        MoneyField { k: "assistantSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "assistantFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].socialSecurityCost) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].actualSalary) }
+                        Celda { text: Fmt.eur(Engine.staff.byRole[1].totalCost) }
                     }
                     // Total
                     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }

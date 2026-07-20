@@ -16,12 +16,11 @@ Flickable {
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
 
-    // Fila calculada (solo lectura)
-    component CalcRow: RowLayout {
+    // Fila calculada (solo lectura). El estilo de la caja (fondo/borde) vive
+    // en RowCard; aquí solo se define el contenido de esta hoja.
+    component CalcRow: RowCard {
         property string label
         property real value
-        property bool destacada: false
-        Layout.fillWidth: true
         Text {
             text: label
             font.pixelSize: 13
@@ -38,13 +37,13 @@ Flickable {
         }
     }
 
-    // Fila editable
-    component EditRow: RowLayout {
+    // Fila editable. Mismo RowCard que CalcRow, para que ambas se lean igual.
+    component EditRow: RowCard {
+        id: editRow
         property string label
         property string k
-        Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        MoneyField { k: parent.k }
+        Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        MoneyField { k: editRow.k }
     }
 
     ColumnLayout {
@@ -186,18 +185,15 @@ Flickable {
                     font.bold: true
                     color: "#14523f"
                 }
-                RowLayout {
-                    Layout.fillWidth: true
+                RowCard {
                     Text { text: "Año 1"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear1" }
                 }
-                RowLayout {
-                    Layout.fillWidth: true
+                RowCard {
                     Text { text: "Año 2"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear2" }
                 }
-                RowLayout {
-                    Layout.fillWidth: true
+                RowCard {
                     Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear3" }
                 }

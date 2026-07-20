@@ -102,7 +102,9 @@ Flickable {
         }
     }
 
-    component EditRow: RowLayout {
+    // El estilo de la caja (fondo/borde) vive en RowCard; aquí solo se
+    // define el contenido propio de esta hoja.
+    component EditRow: RowCard {
         id: editRoot
         property string label
         property real value
@@ -110,7 +112,6 @@ Flickable {
         property alias infoLabel : subLabel
         property alias infoValue : subLabelValue
         signal committed(real v)
-        Layout.fillWidth: true
         Text { text: editRoot.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         ColumnLayout {
             LocalField {
@@ -136,19 +137,18 @@ Flickable {
         }
     }
 
-    component CalcRow: RowLayout {
+    component CalcRow: RowCard {
+        id: calcRow
         property string label
         property real value
-        property bool destacada: false
-        Layout.fillWidth: true
         Text {
-            text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
+            color: calcRow.destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
         Text {
-            text: Fmt.eur(value); font.pixelSize: 14; font.bold: true
-            color: destacada ? "#14523f" : "#1e2b28"
+            text: Fmt.eur(calcRow.value); font.pixelSize: 14; font.bold: true
+            color: calcRow.destacada ? "#14523f" : "#1e2b28"
         }
     }
 

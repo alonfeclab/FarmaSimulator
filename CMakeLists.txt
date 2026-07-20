@@ -90,6 +90,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/components/FastWheel.qml
         qml/components/Card.qml
         qml/components/ConceptTable.qml
+        qml/components/RowCard.qml
     RESOURCES
         qml/icons/datos_base.svg
         qml/icons/financiacion.svg

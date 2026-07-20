@@ -18,21 +18,22 @@ Flickable {
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
 
-    component CalcRow: RowLayout {
+    // El estilo de la caja (fondo/borde) vive en RowCard; aquí solo se
+    // define el contenido propio de esta hoja.
+    component CalcRow: RowCard {
+        id: calcRow
         property string label
         property real value
-        property bool destacada: false
         property bool indent: false
-        Layout.fillWidth: true
         Text {
-            text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
-            Layout.leftMargin: indent ? 16 : 0
+            text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
+            color: calcRow.destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            Layout.leftMargin: calcRow.indent ? 16 : 0
             wrapMode: Text.WordWrap
         }
         Text {
-            text: Fmt.eur(value); font.pixelSize: 14; font.bold: true
-            color: destacada ? "#14523f" : "#1e2b28"
+            text: Fmt.eur(calcRow.value); font.pixelSize: 14; font.bold: true
+            color: calcRow.destacada ? "#14523f" : "#1e2b28"
         }
     }
 
@@ -45,8 +46,7 @@ Flickable {
         property real minimo: 0
         Layout.fillWidth: true
         spacing: 2
-        RowLayout {
-            Layout.fillWidth: true
+        RowCard {
             Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
             MoneyField { k: editRow.k; invalid: editRow.invalid }
         }
@@ -59,20 +59,20 @@ Flickable {
         }
     }
 
-    component PctRow: RowLayout {
+    component PctRow: RowCard {
+        id: pctRow
         property string label
         property string k
-        Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        PctField { k: parent.k }
+        Text { text: pctRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        PctField { k: pctRow.k }
     }
 
-    component PlazoRow: RowLayout {
+    component PlazoRow: RowCard {
+        id: plazoRow
         property string label
         property string k
-        Layout.fillWidth: true
-        Text { text: label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        NumField { k: parent.k; suffix: " años" }
+        Text { text: plazoRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        NumField { k: plazoRow.k; suffix: " años" }
     }
 
     // Agrupa visualmente todos los valores relacionados con una misma fuente de financiación
@@ -117,8 +117,7 @@ Flickable {
         // ---------------- Inversión operación
         Card {
             SectionTitle { text: "Inversión operación" }
-            RowLayout {
-                Layout.fillWidth: true
+            RowCard {
                 Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 NumField { k: "goodwillMultiple"; decimals: 1 }
             }

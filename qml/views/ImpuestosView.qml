@@ -20,23 +20,24 @@ Flickable {
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
 
-    component CalcRow: RowLayout {
+    // El estilo de la caja (fondo/borde) vive en RowCard; aquí solo se
+    // define el contenido propio de esta hoja.
+    component CalcRow: RowCard {
+        id: calcRow
         property string label
         property real value
         property string fmt: "eur"
-        property bool destacada: false
-        Layout.fillWidth: true
         Text {
-            text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46";
+            text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
+            color: calcRow.destacada ? "#14523f" : "#3c4a46";
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
         Text {
-            text: Fmt.byFmt(value, fmt);
+            text: Fmt.byFmt(calcRow.value, calcRow.fmt);
             font.pixelSize: 14;
             font.bold: true
-            color: destacada ? "#14523f" : "#1e2b28"
+            color: calcRow.destacada ? "#14523f" : "#1e2b28"
         }
     }
 

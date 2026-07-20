@@ -24,6 +24,9 @@ compile_commands.json
 *.js.map
 emsdk/
 
+# Empaquetado MSIX (generado por packaging/msix/build-msix.ps1; out/ ya cubierto arriba)
+packaging/msix/staging/
+
 # Claude Code (config local, no compartir)
 .claude/settings.local.json
 
