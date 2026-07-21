@@ -149,14 +149,16 @@ Flickable {
                                   : ("Año " + (hdrCell.index + 1))
                             color: "white"; font.bold: true; font.pixelSize: root.fontSize
                         }
-                        Text {
+                        Image {
                             id: btnOjo
                             visible: root.collapsibleColumns
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "👁"
+                            source: "qrc:/qt/qml/FarmaciaSim/icons/eye.svg"
+                            sourceSize.width: root.fontSize + 3
+                            sourceSize.height: root.fontSize + 3
+                            width: root.fontSize + 3
+                            height: root.fontSize + 3
                             opacity: hdrCell.colapsada ? 0.55 : 1
-                            color: "white"
-                            font.pixelSize: root.fontSize + 1
                             HoverHandler {
                                 id: ojoHover
                                 onHoveredChanged: {
