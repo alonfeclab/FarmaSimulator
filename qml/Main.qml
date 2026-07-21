@@ -22,7 +22,6 @@ ApplicationWindow {
     readonly property bool compact: width < breakpointCompacto
 
     readonly property var hojas: [
-        { nombre: "Simulación simple",   icono: "qrc:/qt/qml/FarmaciaSim/icons/simple.svg" },
         { nombre: "Datos base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
         { nombre: "Proyección 10 años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
@@ -30,9 +29,11 @@ ApplicationWindow {
         { nombre: "Análisis inversión",  icono: "qrc:/qt/qml/FarmaciaSim/icons/analisis.svg" },
         { nombre: "Amort. banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
         { nombre: "Amort. cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
+        { nombre: "Amort. familiar",     icono: "qrc:/qt/qml/FarmaciaSim/icons/familiar.svg" },
         { nombre: "Amort. propiedades",  icono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg" },
         { nombre: "Personal",            icono: "qrc:/qt/qml/FarmaciaSim/icons/personal.svg" },
         { nombre: "Comparación",         icono: "qrc:/qt/qml/FarmaciaSim/icons/comparacion.svg" },
+        { nombre: "Simulación",          icono: "qrc:/qt/qml/FarmaciaSim/icons/simulacion.svg" },
         { nombre: "Configuración",       icono: "qrc:/qt/qml/FarmaciaSim/icons/configuracion.svg" }
     ]
 
@@ -62,7 +63,7 @@ ApplicationWindow {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: mouse.accepted = false
+                    onPressed: (mouse) => mouse.accepted = false
                 }
             }
             RowLayout {
@@ -152,7 +153,6 @@ ApplicationWindow {
                 else if (item.contentY !== undefined) item.contentY = 0
             }
 
-            SimulacionSimpleView {}
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}
@@ -166,18 +166,23 @@ ApplicationWindow {
                 loan: Engine.cooperative
                 emptyTexto: "No hay préstamo de cooperativa.\nAñádelo en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg"
-                emptyTabIndex: 2
                 emptyFocusKey: "initialOrder"
+            }
+            AmortView {
+                loan: Engine.family
+                emptyTexto: "No hay préstamo familiar.\nAñádelo en Financiación."
+                emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/familiar.svg"
+                emptyFocusKey: "familyContribution"
             }
             AmortView {
                 loan: Engine.properties
                 emptyTexto: "No hay financiación de propiedades.\nAñádela en Financiación."
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/propiedades.svg"
-                emptyTabIndex: 2
                 emptyFocusKey: "propertiesFinancing"
             }
             PersonalView {}
             ComparacionView {}
+            SimulacionView {}
             ConfiguracionView {}
         }
     }

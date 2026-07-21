@@ -20,6 +20,32 @@ Flickable {
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
 
+    // Listas de claves por grupo, usadas por los botones "Restaurar valores
+    // por defecto" (cada uno solo toca las claves de su propio grupo).
+    function irpfKeys() {
+        var ks = []
+        for (var k = 0; k < 6; k++) { ks.push("irpfFrom" + k); ks.push("irpfTo" + k); ks.push("irpfRate" + k) }
+        return ks
+    }
+    function retaKeys() {
+        var ks = ["retaFlatMonthlyFee"]
+        for (var k = 0; k < 15; k++) { ks.push("retaFrom" + k); ks.push("retaQuota" + k) }
+        return ks
+    }
+    function rdKeys() {
+        var ks = []
+        for (var k = 0; k < 9; k++) { ks.push("rdFrom" + k); ks.push("rdBase" + k); ks.push("rdPct" + k) }
+        return ks
+    }
+    function fixedPctKeys() {
+        return ["feesPct", "ivaPct", "itpPct", "ajdPct", "inventoryPctYear10"]
+    }
+    function historicalSeriesKeys() {
+        var ks = []
+        for (var k = 0; k < 10; k++) { ks.push("ipcHistorical" + k); ks.push("realisticMarginSeries" + k) }
+        return ks
+    }
+
     // Cabecera de columnas de una tabla de tramos.
     component CabeceraTabla: Row {
         id: cabecera
@@ -116,7 +142,12 @@ Flickable {
 
         // ---------------- IRPF
         Card {
-            SectionTitle { text: "IRPF — escala general 2026" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "IRPF — escala general 2026"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.irpfKeys() }
+            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -144,8 +175,8 @@ Flickable {
                         Row {
                             id: filaIrpf
                             required property int index
-                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfFrom" + filaIrpf.index; decimals: 0 } }
-                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfTo" + filaIrpf.index; decimals: 0 } }
+                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfFrom" + filaIrpf.index } }
+                            Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfTo" + filaIrpf.index } }
                             Celda { par: filaIrpf.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "irpfRate"  + filaIrpf.index; decimals: 1 } }
                         }
                     }
@@ -155,7 +186,12 @@ Flickable {
 
         // ---------------- RETA autónomos
         Card {
-            SectionTitle { text: "RETA — cuota de autónomos" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "RETA — cuota de autónomos"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.retaKeys() }
+            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -200,7 +236,12 @@ Flickable {
 
         // ---------------- Reales Decretos
         Card {
-            SectionTitle { text: "Reales decretos (RD 823/2008, art. 2.5)" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "Reales decretos (RD 823/2008, art. 2.5)"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.rdKeys() }
+            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -228,7 +269,7 @@ Flickable {
                         Row {
                             id: filaRd
                             required property int index
-                            Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdFrom" + filaRd.index; decimals: 0 } }
+                            Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdFrom" + filaRd.index } }
                             Celda { wCell: 160; par: filaRd.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "rdBase"  + filaRd.index; decimals: 2 } }
                             Celda { wCell: 160; par: filaRd.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "rdPct"   + filaRd.index; decimals: 1 } }
                         }
@@ -239,7 +280,12 @@ Flickable {
 
         // ---------------- Porcentajes fijos de la compraventa
         Card {
-            SectionTitle { text: "Compraventa de la farmacia — porcentajes fijos" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "Compraventa de la farmacia — porcentajes fijos"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.fixedPctKeys() }
+            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -281,7 +327,12 @@ Flickable {
 
         // ---------------- IPC histórico y margen comercial (escenario Realista)
         Card {
-            SectionTitle { text: "Escenario realista — series históricas" }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "Escenario realista — series históricas"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.historicalSeriesKeys() }
+            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap

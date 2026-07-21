@@ -7,11 +7,20 @@
 
 namespace sim {
 
+// Max number of individually-editable employees per headcount-plan role
+// (rows 13-16 of "Plantilla"). Headcount beyond this reuses the last slot's
+// jornada % — plenty of room for any realistic pharmacy staff.
+inline constexpr int kMaxStaffPerRole = 20;
+
 // Official scale brackets (IRPF, Reales Decretos, RETA): editable defaults
 // from the "Configuración" sheet (part of Inputs).
 struct IrpfBracket { double from, to, rate; };
 struct RdBracket   { double from, base, pct; };
 struct RetaBracket { double from, monthlyQuota; };
+
+// One day of the pharmacy's opening schedule, in 24h decimal hours (e.g. 9.5
+// = 9:30). A closed day is represented as closeHour <= openHour (0 hours).
+struct ScheduleDay { double openHour, closeHour; };
 
 // ---------------------------------------------------------------- Inputs
 struct Inputs {
@@ -63,6 +72,10 @@ struct Inputs {
     int    bankTermYears    = 20;       // D31 (years)
     int    coopTermYears    = 8;        // D32
     int    familyTermYears  = 10;       // D33
+    // Periodo de carencia del préstamo familiar, en meses: durante estos
+    // primeros meses solo se paga interés (el capital no se amortiza).
+    // double (no int) para poder ponerlo a 0 desde la UI (ver Engine::set).
+    double familyGraceMonths = 0;
     double pharmacyFinancingPct  = 0.8; // D34
     double premisesFinancingPct  = 0.7; // D35 (the Excel uses literal 0,7 in D44)
     double mortgageOpeningPct = 0.01;  // opening-fee % on bank financing (pharmacy+premises+properties mortgage)
@@ -73,7 +86,7 @@ struct Inputs {
     // ---- Financiación: contributions (v2 rows)
     double contributedCash    = 400000; // D43
     double familyContribution = 0;      // D44
-    double propertiesFinancing = 1000000;// D47
+    double propertiesFinancing = 0;      // D47
     double contributionExcess  = 0;      // D48
     double initialOrder        = 0;      // D49 (cooperative; empty in the v2 Excel)
 
@@ -87,7 +100,6 @@ struct Inputs {
     double pharmacistSalary  = 32000;    // B6
     double pharmacistFte     = 1;        // C6
     double socialSecurityPct = 0.3;      // D6 (same for everyone)
-    double raisePct          = 0.1;      // H6 (% raise over base salary)
     double assistantSalary   = 19189;    // B7
     double assistantFte      = 1;        // C7
     double technicianSalary  = 21102;    // B8
@@ -95,8 +107,61 @@ struct Inputs {
 
     // ---- Personal: recommended headcount (rows 13-16)
     // 0=Owner, 1=Employed pharmacist, 2=Assistant, 3=Technician
-    std::array<double,4> staffFte   {1, 1, 1, 0.5}; // B13:B16
+    // Per-employee jornada %: staffFteEach[role][j] is employee #j+1 of that
+    // role (was a single B13:B16 value shared by the whole headcount).
+    std::array<std::array<double, kMaxStaffPerRole>, 4> staffFteEach = []{
+        std::array<std::array<double, kMaxStaffPerRole>, 4> a{};
+        a[0].fill(1);
+        a[1].fill(1);
+        a[2].fill(1);
+        a[3].fill(0.5);
+        return a;
+    }();
     std::array<double,4> staffCount {1, 2, 0, 1};   // C13:C16
+    // Annual salary raise %, per headcount-plan role (was a single H6 value
+    // shared by every role). Index 0 (Owner) is unused: the owner's
+    // reference salary (D13) never carries the raise.
+    std::array<double,4> raisePct {0, 0.1, 0.1, 0.1};
+    // Year each employee starts working (Plantilla only; the owner and the
+    // vacation-cover reinforcements aren't staggered). Costs for years before
+    // an employee's start year are excluded from the 10-year Proyección.
+    // Index 0 (Owner) is unused: the owner is always active from year 1.
+    std::array<std::array<int, kMaxStaffPerRole>, 4> staffHireYearEach = []{
+        std::array<std::array<int, kMaxStaffPerRole>, 4> a{};
+        for (auto& role : a) role.fill(2027);
+        return a;
+    }();
+
+    // ---- Personal: vacation-cover headcount (temp staff hired to cover the
+    // regular plantilla's vacations). Same 3 roles as byRole (0=Farmacéutico,
+    // 1=Auxiliar, 2=Técnico); reuses each role's base salary. Per-employee
+    // jornada % and months worked per year (they typically don't work the
+    // full year).
+    std::array<std::array<double, kMaxStaffPerRole>, 3> vacationStaffFteEach = []{
+        std::array<std::array<double, kMaxStaffPerRole>, 3> a{};
+        a[0].fill(1);
+        a[1].fill(1);
+        a[2].fill(0.5);
+        return a;
+    }();
+    std::array<std::array<double, kMaxStaffPerRole>, 3> vacationStaffMonthsEach = []{
+        std::array<std::array<double, kMaxStaffPerRole>, 3> a{};
+        for (auto& role : a) role.fill(1.0);
+        return a;
+    }();
+    std::array<double,3> vacationStaffCount {0, 0, 0};
+    std::array<double,3> vacationRaisePct   {0, 0, 0};
+
+    // ---- Personal: horario de apertura, usado para estimar las horas
+    // semanales de cobertura necesarias frente a las horas contratadas.
+    // Índice 0=Lunes ... 6=Domingo.
+    std::array<ScheduleDay,7> schedule = []{
+        std::array<ScheduleDay,7> a{};
+        for (int d = 0; d < 5; ++d) a[d] = { 9, 21 };   // Lunes-Viernes 9-21
+        a[5] = { 10, 14 };                               // Sábado 10-14
+        a[6] = { 0, 0 };                                 // Domingo cerrado
+        return a;
+    }();
 
     // ---- Análisis Inversión
     std::array<double,3> saleFactor {1.8, 2.0, 2.2};                     // B8:D8
@@ -195,7 +260,13 @@ struct AmortResult {
 };
 
 struct StaffRow { double grossFte, fte, socialSecurityPct, socialSecurityCost, actualSalary, totalCost; };
+// fte here is the SUM of every employee's jornada % for that role (not the
+// average): e.g. two full-time employees (100% each) add up to fte=2.0.
 struct HeadcountRow { double fte, headcount, grossFte, actualGross, socialSecurityCost, costPerPerson, totalCost; };
+// Vacation-cover headcount row: like HeadcountRow, but the cost is prorated
+// by each employee's months worked per year (avgMonths is informational,
+// weighted by headcount).
+struct VacationStaffRow { double fte, headcount, grossFte, actualGross, socialSecurityCost, totalCost, avgMonths; };
 
 struct StaffResult {
     std::array<StaffRow,3> byRole;     // rows 6-8
@@ -203,6 +274,23 @@ struct StaffResult {
     std::array<HeadcountRow,4> headcountPlan;// rows 13-16
     double totalHeadcount=0, totalActualGross=0, totalSocialSecurity=0, totalHeadcountCost=0; // row 17
     double netMonthlySalaryYear1=0;    // B19
+    std::array<VacationStaffRow,3> vacationStaffPlan; // refuerzos de vacaciones
+    double totalVacationHeadcount=0, totalVacationActualGross=0,
+           totalVacationSocialSecurity=0, totalVacationCost=0;
+};
+
+// Weekly coverage: hours the pharmacy is open vs. hours contracted, derived
+// from the schedule and the headcount plan (kWeeklyFullTimeHours = 8h/día x
+// 5 días). Purely informational — no pass/fail semantics: the titular
+// pharmacist always covers any gap in legally-required presence.
+struct ScheduleResult {
+    std::array<double,7> dailyHours{};     // horas que abre cada día (0 = cerrado)
+    double weeklyOpenHours=0;              // total horas/semana abierta
+    double pharmacistWeeklyHours=0;        // horas/semana: propietario + farmacéutico empleado
+    double supportWeeklyHours=0;           // horas/semana: auxiliar + técnico
+    double totalStaffWeeklyHours=0;        // pharmacistWeeklyHours + supportWeeklyHours
+    double pharmacistHoursGap=0;           // weeklyOpenHours - pharmacistWeeklyHours (puede ser negativo)
+    double totalHoursGap=0;                // weeklyOpenHours - totalStaffWeeklyHours
 };
 
 struct BaseDataResult {
@@ -218,7 +306,7 @@ struct FinancingResult {
     double taxes=0;          // D23 (v2): ITP + AJD
     double mortgageOpeningCost=0; // % on bank financing (pharmacy+premises+properties mortgage)
     double pharmacyBankFinancing=0, premisesBankFinancing=0, totalFinancing=0;
-    double minimumCash=0;    // Recommended minimum contribution = totalInvestment - (propertiesFinancing*propertiesFinancingPct) - initialOrder
+    double minimumCash=0;    // Recommended minimum contribution = max(0, (totalInvestment-premisesPrice)*(1-pharmacyFinancingPct) - propertiesFinancing*propertiesFinancingPct - initialOrder) + premisesPrice*(1-premisesFinancingPct)
     bool   cashBelowMinimum=false; // contributedCash < minimumCash
 };
 
@@ -267,9 +355,10 @@ struct AnalysisResult {
 
 struct Results {
     StaffResult      staff;
+    ScheduleResult   schedule;
     BaseDataResult   baseData;
     FinancingResult  financing;
-    AmortResult      bankAmort, coopAmort, propertiesAmort;
+    AmortResult      bankAmort, coopAmort, familyAmort, propertiesAmort;
     ProjectionResult projection;
     TaxResult        taxes;
     AnalysisResult   analysis;

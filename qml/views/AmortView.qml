@@ -89,7 +89,7 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onPressed:  mouse.accepted = false
+                    onPressed: (mouse) => mouse.accepted = false
                 }
             }
             Item { Layout.fillHeight: true }

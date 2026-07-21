@@ -28,18 +28,18 @@ TestCase {
         verify(field !== null)
 
         compare(field.value, Engine.inputs["otcSales"])
-        compare(field.text, Fmt.num(Engine.inputs["otcSales"], 0) + " €")
+        compare(field.text, Fmt.num(Engine.inputs["otcSales"], 2) + " €")
     }
 
     function test_editingFinishedUpdatesEngineAndRedisplays() {
         const field = createTemporaryObject(moneyFieldComponent, testCase, { k: "otcSales" })
         verify(field !== null)
 
-        field.text = "999.999"
+        field.text = "999.999,50"
         field.editingFinished()
 
-        compare(Engine.inputs["otcSales"], 999999)
-        compare(field.text, Fmt.num(999999, 0) + " €")
+        compare(Engine.inputs["otcSales"], 999999.50)
+        compare(field.text, Fmt.num(999999.50, 2) + " €")
     }
 
     function test_invalidTextIsIgnoredAndKeepsPreviousValue() {
@@ -51,6 +51,6 @@ TestCase {
         field.editingFinished()
 
         compare(Engine.inputs["otcSales"], previo)
-        compare(field.text, Fmt.num(previo, 0) + " €")
+        compare(field.text, Fmt.num(previo, 2) + " €")
     }
 }

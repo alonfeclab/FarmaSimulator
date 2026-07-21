@@ -42,8 +42,9 @@ Flickable {
         id: editRow
         property string label
         property string k
+        property real multiplier: 1
         Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        MoneyField { k: editRow.k }
+        MoneyField { k: editRow.k; multiplier: editRow.multiplier }
     }
 
     ColumnLayout {
@@ -208,10 +209,15 @@ Flickable {
             CalcRow { label: "Venta total";   value: Engine.baseData.totalSales; destacada: true }
         }
 
+        // ---------------- Alquiler
+        Card {
+            SectionTitle { text: "Alquiler" }
+            EditRow { label: "Alquiler local (mensual)"; k: "premisesRent"; multiplier: 12 }
+        }
+
         // ---------------- Otros gastos
         Card {
             SectionTitle { text: "Otros gastos" }
-            EditRow { label: "Alquiler local"; k: "premisesRent" }
             EditRow { label: "Suministros"; k: "utilities" }
             EditRow { label: "Gastos asesoría"; k: "advisoryFees" }
             EditRow { label: "Mantenimiento informático"; k: "maintenance" }
@@ -249,7 +255,7 @@ Flickable {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onPressed: mouse.accepted = false
+                onPressed: (mouse) => mouse.accepted = false
             }
         }
         Text {

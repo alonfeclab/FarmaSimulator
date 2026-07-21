@@ -30,7 +30,7 @@ QVariantMap AmortModel::info() const
     };
     QVariantMap m;
     m["principal"]     = eur(m_r.principal);
-    m["annualRate"]    = m_loc.toString(m_r.annualRate * 100.0, 'f', 1) + " %";
+    m["annualRate"]    = m_loc.toString(m_r.annualRate * 100.0, 'f', 3) + " %";
     m["termYears"]     = QString::number(m_r.termYears) + " años";
     m["monthlyPayment"]= eur(m_r.monthlyPayment, 2);
     m["annualPayment"] = eur(m_r.annualPayment, 2);

@@ -31,6 +31,7 @@ QtObject {
         if (f === "pct1") return pct(v, 1)
         if (f === "pct2") return pct(v, 2)
         if (f === "num")  return num(v, 1)
+        if (f === "years") return num(v, 0) + " años"
         return eur(v)
     }
 }

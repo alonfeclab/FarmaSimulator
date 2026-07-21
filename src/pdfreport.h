@@ -21,4 +21,13 @@ bool writeReport(QIODevice* dev, const sim::Inputs& in, const sim::Results& r);
 bool writeComparison(QIODevice* dev, const QVariantList& pages,
                       const QStringList& scenarioNames);
 
+// Writes the "Simulación" sheet to 'dev': one page per entry of 'years'
+// (QVariantMap with "year" (1-10) and "groups", the latter shaped like
+// Engine::simulationForYear()'s return value, but with the columns collapsed
+// in the UI already removed from every row's "values"). 'combinacionLabels'
+// names the remaining columns, in order (see Engine::exportSimulationPdf).
+// Returns false on failure.
+bool writeSimulation(QIODevice* dev, const QVariantList& years,
+                      const QStringList& combinacionLabels);
+
 } // namespace pdf

@@ -7,11 +7,14 @@ TextField {
     id: root
 
     required property string k
-    property int decimals: 0
+    property int decimals: 2
     property string suffix: " €"
     property bool invalid: false
+    // Factor entre el valor mostrado/editado y el valor almacenado en el motor
+    // (p.ej. 12 para editar en mensual un campo que el motor guarda en anual).
+    property real multiplier: 1
 
-    readonly property real value: Engine.inputs[k] !== undefined ? Engine.inputs[k] : 0
+    readonly property real value: Engine.inputs[k] !== undefined ? Engine.inputs[k] / multiplier : 0
 
     function display() { return Fmt.num(value, decimals) + suffix }
 
@@ -51,7 +54,7 @@ TextField {
     onEditingFinished: {
         const v = Fmt.parse(text)
         if (!isNaN(v))
-            Engine.set(k, v)
+            Engine.set(k, v * multiplier)
         text = display()
     }
 }

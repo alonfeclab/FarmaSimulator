@@ -14,6 +14,7 @@
 #include <QJsonObject>
 #include <QLocale>
 #include <QSaveFile>
+#include <QSet>
 #include <QStandardPaths>
 #include <QUrl>
 
@@ -28,6 +29,7 @@ Engine::Engine(QObject* parent)
 {
     m_bank = new AmortModel(QStringLiteral("Amortización préstamo bancario"), this);
     m_coop  = new AmortModel(QStringLiteral("Amortización cooperativa"), this);
+    m_family  = new AmortModel(QStringLiteral("Amortización préstamo familiar"), this);
     m_properties  = new AmortModel(QStringLiteral("Amortización propiedades"), this);
     registerInputs();
     resolveDataPath();
@@ -225,6 +227,40 @@ static QJsonObject translateLegacyObject(const QJsonObject& in)
     return out;
 }
 
+// Migrates pre-per-employee "staffFteN" (one % applied to the whole
+// headcount of role N) into the new "staffFteN_J" per-employee keys, so
+// sessions saved before this change keep the same total jornada until the
+// user starts customizing individual employees.
+static QJsonObject expandLegacyStaffFte(QJsonObject o)
+{
+    for (int k = 0; k < 4; ++k) {
+        const QString oldKey = QStringLiteral("staffFte%1").arg(k);
+        const auto it = o.constFind(oldKey);
+        if (it == o.constEnd() || !it->isDouble())
+            continue;
+        const double v = it->toDouble();
+        o.remove(oldKey);
+        for (int j = 0; j < sim::kMaxStaffPerRole; ++j)
+            o[QStringLiteral("staffFte%1_%2").arg(k).arg(j)] = v;
+    }
+    return o;
+}
+
+// Migrates the pre-per-role "raisePct" (one % shared by every headcount
+// role) into "raisePct1"/"raisePct2"/"raisePct3" (role 0, the Owner, never
+// carried the raise, so it's left at its default).
+static QJsonObject expandLegacyRaisePct(QJsonObject o)
+{
+    const auto it = o.constFind(QStringLiteral("raisePct"));
+    if (it != o.constEnd() && it->isDouble()) {
+        const double v = it->toDouble();
+        o.remove(QStringLiteral("raisePct"));
+        for (int k = 1; k < 4; ++k)
+            o[QStringLiteral("raisePct%1").arg(k)] = v;
+    }
+    return o;
+}
+
 void Engine::loadFromDisk()
 {
     QByteArray data;
@@ -256,7 +292,7 @@ void Engine::loadFromDisk()
     const QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject())
         return;
-    const QJsonObject o = translateLegacyObject(doc.object());
+    const QJsonObject o = expandLegacyRaisePct(expandLegacyStaffFte(translateLegacyObject(doc.object())));
     for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
         if (!it.value().isDouble())
             continue;
@@ -275,101 +311,124 @@ void Engine::loadFromDisk()
     }
 }
 
-void Engine::registerInputs()
+// Binds every input key to its field in 'i'. Shared by registerInputs()
+// (binds to the live m_in) and resetKeysToDefaults() (binds to a throwaway
+// default-constructed Inputs, to read the factory value of each key).
+static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QString, int*>& intMap)
 {
-    auto& i = m_in;
     // ---- Datos Base
-    m_dbl["prescriptionSales"] = &i.prescriptionSales;
-    m_dbl["otcSales"]          = &i.otcSales;
-    m_dbl["marginPct"]         = &i.marginPct;
-    m_dbl["premisesRent"]      = &i.premisesRent;
-    m_dbl["utilities"]         = &i.utilities;
-    m_dbl["advisoryFees"]      = &i.advisoryFees;
-    m_dbl["maintenance"]       = &i.maintenance;
-    m_dbl["robot"]             = &i.robot;
-    m_dbl["insurance"]         = &i.insurance;
-    m_dbl["otherExpenses"]     = &i.otherExpenses;
+    dbl["prescriptionSales"] = &i.prescriptionSales;
+    dbl["otcSales"]          = &i.otcSales;
+    dbl["marginPct"]         = &i.marginPct;
+    dbl["premisesRent"]      = &i.premisesRent;
+    dbl["utilities"]         = &i.utilities;
+    dbl["advisoryFees"]      = &i.advisoryFees;
+    dbl["maintenance"]       = &i.maintenance;
+    dbl["robot"]             = &i.robot;
+    dbl["insurance"]         = &i.insurance;
+    dbl["otherExpenses"]     = &i.otherExpenses;
     // ---- Financiación: growth scenario
-    m_dbl["growthScenario"]       = &i.growthScenario;
-    m_dbl["ipcOptimistic"]        = &i.ipcOptimistic;
-    m_dbl["optimisticMarginYear1"] = &i.optimisticMarginYear1;
-    m_dbl["optimisticMarginYear2"] = &i.optimisticMarginYear2;
-    m_dbl["optimisticMarginYear3"] = &i.optimisticMarginYear3;
+    dbl["growthScenario"]       = &i.growthScenario;
+    dbl["ipcOptimistic"]        = &i.ipcOptimistic;
+    dbl["optimisticMarginYear1"] = &i.optimisticMarginYear1;
+    dbl["optimisticMarginYear2"] = &i.optimisticMarginYear2;
+    dbl["optimisticMarginYear3"] = &i.optimisticMarginYear3;
     // ---- Financiación: investment, rates, contributions
-    m_dbl["goodwillMultiple"]  = &i.goodwillMultiple;
-    m_dbl["premisesPrice"]     = &i.premisesPrice;
-    m_dbl["inventory"]         = &i.inventory;
-    m_dbl["notaryFees"]        = &i.notaryFees;
-    m_dbl["registryFees"]      = &i.registryFees;
-    m_dbl["miscExpenses"]      = &i.miscExpenses;
-    m_dbl["feesPct"]           = &i.feesPct;
-    m_dbl["ivaPct"]            = &i.ivaPct;
-    m_dbl["itpPct"]            = &i.itpPct;
-    m_dbl["ajdPct"]            = &i.ajdPct;
-    m_dbl["bankRate"]          = &i.bankRate;
-    m_dbl["coopRate"]          = &i.coopRate;
-    m_dbl["familyRate"]        = &i.familyRate;
-    m_dbl["propertiesRate"]    = &i.propertiesRate;
-    m_int["bankTermYears"]       = &i.bankTermYears;
-    m_int["coopTermYears"]       = &i.coopTermYears;
-    m_int["familyTermYears"]     = &i.familyTermYears;
-    m_int["propertiesTermYears"] = &i.propertiesTermYears;
-    m_dbl["pharmacyFinancingPct"]  = &i.pharmacyFinancingPct;
-    m_dbl["premisesFinancingPct"]  = &i.premisesFinancingPct;
-    m_dbl["mortgageOpeningPct"]    = &i.mortgageOpeningPct;
-    m_dbl["propertiesFinancingPct"] = &i.propertiesFinancingPct;
-    m_dbl["contributedCash"]     = &i.contributedCash;
-    m_dbl["familyContribution"]  = &i.familyContribution;
-    m_dbl["propertiesFinancing"] = &i.propertiesFinancing;
-    m_dbl["contributionExcess"]  = &i.contributionExcess;
-    m_dbl["initialOrder"]        = &i.initialOrder;
+    dbl["goodwillMultiple"]  = &i.goodwillMultiple;
+    dbl["premisesPrice"]     = &i.premisesPrice;
+    dbl["inventory"]         = &i.inventory;
+    dbl["notaryFees"]        = &i.notaryFees;
+    dbl["registryFees"]      = &i.registryFees;
+    dbl["miscExpenses"]      = &i.miscExpenses;
+    dbl["feesPct"]           = &i.feesPct;
+    dbl["ivaPct"]            = &i.ivaPct;
+    dbl["itpPct"]            = &i.itpPct;
+    dbl["ajdPct"]            = &i.ajdPct;
+    dbl["bankRate"]          = &i.bankRate;
+    dbl["coopRate"]          = &i.coopRate;
+    dbl["familyRate"]        = &i.familyRate;
+    dbl["propertiesRate"]    = &i.propertiesRate;
+    intMap["bankTermYears"]       = &i.bankTermYears;
+    intMap["coopTermYears"]       = &i.coopTermYears;
+    intMap["familyTermYears"]     = &i.familyTermYears;
+    intMap["propertiesTermYears"] = &i.propertiesTermYears;
+    dbl["familyGraceMonths"]   = &i.familyGraceMonths;
+    dbl["pharmacyFinancingPct"]  = &i.pharmacyFinancingPct;
+    dbl["premisesFinancingPct"]  = &i.premisesFinancingPct;
+    dbl["mortgageOpeningPct"]    = &i.mortgageOpeningPct;
+    dbl["propertiesFinancingPct"] = &i.propertiesFinancingPct;
+    dbl["contributedCash"]     = &i.contributedCash;
+    dbl["familyContribution"]  = &i.familyContribution;
+    dbl["propertiesFinancing"] = &i.propertiesFinancing;
+    dbl["contributionExcess"]  = &i.contributionExcess;
+    dbl["initialOrder"]        = &i.initialOrder;
     // ---- Personal
-    m_dbl["pharmacistSalary"]  = &i.pharmacistSalary;
-    m_dbl["pharmacistFte"]     = &i.pharmacistFte;
-    m_dbl["socialSecurityPct"] = &i.socialSecurityPct;
-    m_dbl["raisePct"]          = &i.raisePct;
-    m_dbl["assistantSalary"]   = &i.assistantSalary;
-    m_dbl["assistantFte"]      = &i.assistantFte;
-    m_dbl["technicianSalary"]  = &i.technicianSalary;
-    m_dbl["technicianFte"]     = &i.technicianFte;
+    dbl["pharmacistSalary"]  = &i.pharmacistSalary;
+    dbl["pharmacistFte"]     = &i.pharmacistFte;
+    dbl["socialSecurityPct"] = &i.socialSecurityPct;
+    dbl["assistantSalary"]   = &i.assistantSalary;
+    dbl["assistantFte"]      = &i.assistantFte;
+    dbl["technicianSalary"]  = &i.technicianSalary;
+    dbl["technicianFte"]     = &i.technicianFte;
     for (int k = 0; k < 4; ++k) {
-        m_dbl[QStringLiteral("staffFte%1").arg(k)]   = &i.staffFte[k];
-        m_dbl[QStringLiteral("staffCount%1").arg(k)] = &i.staffCount[k];
+        dbl[QStringLiteral("staffCount%1").arg(k)] = &i.staffCount[k];
+        dbl[QStringLiteral("raisePct%1").arg(k)]   = &i.raisePct[k];
+        for (int j = 0; j < sim::kMaxStaffPerRole; ++j) {
+            dbl[QStringLiteral("staffFte%1_%2").arg(k).arg(j)] = &i.staffFteEach[k][j];
+            intMap[QStringLiteral("staffHireYear%1_%2").arg(k).arg(j)] = &i.staffHireYearEach[k][j];
+        }
+    }
+    for (int k = 0; k < 3; ++k) {
+        dbl[QStringLiteral("vacationStaffCount%1").arg(k)] = &i.vacationStaffCount[k];
+        dbl[QStringLiteral("vacationRaisePct%1").arg(k)]   = &i.vacationRaisePct[k];
+        for (int j = 0; j < sim::kMaxStaffPerRole; ++j) {
+            dbl[QStringLiteral("vacationStaffFte%1_%2").arg(k).arg(j)]    = &i.vacationStaffFteEach[k][j];
+            dbl[QStringLiteral("vacationStaffMonths%1_%2").arg(k).arg(j)] = &i.vacationStaffMonthsEach[k][j];
+        }
+    }
+    for (int d = 0; d < 7; ++d) {
+        dbl[QStringLiteral("scheduleOpen%1").arg(d)]  = &i.schedule[d].openHour;
+        dbl[QStringLiteral("scheduleClose%1").arg(d)] = &i.schedule[d].closeHour;
     }
     // ---- Análisis
     for (int k = 0; k < 3; ++k) {
-        m_dbl[QStringLiteral("saleFactor%1").arg(k)] = &i.saleFactor[k];
-        m_dbl[QStringLiteral("saleTaxes%1").arg(k)]  = &i.saleTaxes[k];
+        dbl[QStringLiteral("saleFactor%1").arg(k)] = &i.saleFactor[k];
+        dbl[QStringLiteral("saleTaxes%1").arg(k)]  = &i.saleTaxes[k];
     }
-    m_dbl["fdcInitialSim"]     = &i.fdcInitialSim;
-    m_dbl["fdcMaxPct"]         = &i.fdcMaxPct;
-    m_dbl["investmentPremisesDeprPct"] = &i.investmentPremisesDeprPct;
-    m_dbl["inventoryPctYear10"]  = &i.inventoryPctYear10;
+    dbl["fdcInitialSim"]     = &i.fdcInitialSim;
+    dbl["fdcMaxPct"]         = &i.fdcMaxPct;
+    dbl["investmentPremisesDeprPct"] = &i.investmentPremisesDeprPct;
+    dbl["inventoryPctYear10"]  = &i.inventoryPctYear10;
     // ---- Hoja Impuestos (v2)
-    m_dbl["taxPremisesDeprPct"]    = &i.taxPremisesDeprPct;
-    m_dbl["taxMinGoodwillDeprPct"] = &i.taxMinGoodwillDeprPct;
-    m_dbl["taxMaxGoodwillDeprPct"] = &i.taxMaxGoodwillDeprPct;
-    m_dbl["personalAllowance"]     = &i.personalAllowance;
+    dbl["taxPremisesDeprPct"]    = &i.taxPremisesDeprPct;
+    dbl["taxMinGoodwillDeprPct"] = &i.taxMinGoodwillDeprPct;
+    dbl["taxMaxGoodwillDeprPct"] = &i.taxMaxGoodwillDeprPct;
+    dbl["personalAllowance"]     = &i.personalAllowance;
     // ---- Configuración: official scales and series (editable)
     for (int k = 0; k < 6; ++k) {
-        m_dbl[QStringLiteral("irpfFrom%1").arg(k)] = &i.irpfBrackets[k].from;
-        m_dbl[QStringLiteral("irpfTo%1").arg(k)]   = &i.irpfBrackets[k].to;
-        m_dbl[QStringLiteral("irpfRate%1").arg(k)] = &i.irpfBrackets[k].rate;
+        dbl[QStringLiteral("irpfFrom%1").arg(k)] = &i.irpfBrackets[k].from;
+        dbl[QStringLiteral("irpfTo%1").arg(k)]   = &i.irpfBrackets[k].to;
+        dbl[QStringLiteral("irpfRate%1").arg(k)] = &i.irpfBrackets[k].rate;
     }
     for (int k = 0; k < 9; ++k) {
-        m_dbl[QStringLiteral("rdFrom%1").arg(k)] = &i.rdBrackets[k].from;
-        m_dbl[QStringLiteral("rdBase%1").arg(k)] = &i.rdBrackets[k].base;
-        m_dbl[QStringLiteral("rdPct%1").arg(k)]  = &i.rdBrackets[k].pct;
+        dbl[QStringLiteral("rdFrom%1").arg(k)] = &i.rdBrackets[k].from;
+        dbl[QStringLiteral("rdBase%1").arg(k)] = &i.rdBrackets[k].base;
+        dbl[QStringLiteral("rdPct%1").arg(k)]  = &i.rdBrackets[k].pct;
     }
     for (int k = 0; k < 15; ++k) {
-        m_dbl[QStringLiteral("retaFrom%1").arg(k)]  = &i.retaBrackets[k].from;
-        m_dbl[QStringLiteral("retaQuota%1").arg(k)] = &i.retaBrackets[k].monthlyQuota;
+        dbl[QStringLiteral("retaFrom%1").arg(k)]  = &i.retaBrackets[k].from;
+        dbl[QStringLiteral("retaQuota%1").arg(k)] = &i.retaBrackets[k].monthlyQuota;
     }
-    m_dbl["retaFlatMonthlyFee"] = &i.retaFlatMonthlyFee;
+    dbl["retaFlatMonthlyFee"] = &i.retaFlatMonthlyFee;
     for (int k = 0; k < 10; ++k) {
-        m_dbl[QStringLiteral("ipcHistorical%1").arg(k)]        = &i.ipcHistorical[k];
-        m_dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
+        dbl[QStringLiteral("ipcHistorical%1").arg(k)]        = &i.ipcHistorical[k];
+        dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
+}
+
+void Engine::registerInputs()
+{
+    bindInputMaps(m_in, m_dbl, m_int);
 }
 
 void Engine::set(const QString& key, double value)
@@ -395,6 +454,35 @@ void Engine::resetToDefaults()
 {
     m_in = sim::Inputs{};
     recalc();
+}
+
+// Restores just the given keys to their factory value, leaving every other
+// input untouched (unlike resetToDefaults(), which resets everything). Used
+// by the per-group "Restaurar" buttons in Configuración.
+void Engine::resetKeysToDefaults(const QStringList& keys)
+{
+    sim::Inputs def{};
+    QHash<QString, double*> defDbl;
+    QHash<QString, int*> defInt;
+    bindInputMaps(def, defDbl, defInt);
+
+    bool changed = false;
+    for (const QString& key : keys) {
+        if (auto it = defDbl.find(key); it != defDbl.end()) {
+            auto mine = m_dbl.find(key);
+            if (mine != m_dbl.end() && **mine != **it) {
+                **mine = **it;
+                changed = true;
+            }
+        } else if (auto it = defInt.find(key); it != defInt.end()) {
+            auto mine = m_int.find(key);
+            if (mine != m_int.end() && **mine != **it) {
+                **mine = **it;
+                changed = true;
+            }
+        }
+    }
+    if (changed) recalc();
 }
 
 // ---------------------------------------------------------------- export PDF
@@ -516,11 +604,66 @@ QString Engine::exportComparisonPdf(int year)
     return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
 }
 
+QString Engine::exportSimulationPdf(const QVariantList& hiddenColumns)
+{
+    QSet<int> hidden;
+    for (const QVariant& v : hiddenColumns)
+        hidden.insert(v.toInt());
+
+    // Nº total de combinaciones (columnas), igual en todo grupo/año: se lee
+    // de las filas del primer grupo del año 1.
+    int totalCombinaciones = 0;
+    {
+        const QVariantList sample = simulationForYear(0);
+        if (!sample.isEmpty()) {
+            const QVariantList rows = sample.first().toMap().value(QStringLiteral("rows")).toList();
+            if (!rows.isEmpty())
+                totalCombinaciones = rows.first().toMap().value(QStringLiteral("values")).toList().size();
+        }
+    }
+
+    QStringList combinacionLabels;
+    for (int i = 0; i < totalCombinaciones; ++i)
+        if (!hidden.contains(i))
+            combinacionLabels << QStringLiteral("Combinación %1").arg(i + 1);
+
+    QVariantList years;
+    for (int a = 0; a < 10; ++a) {
+        QVariantList groups = simulationForYear(a);
+        for (QVariant& gv : groups) {
+            QVariantMap group = gv.toMap();
+            QVariantList rows = group.value(QStringLiteral("rows")).toList();
+            for (QVariant& rv : rows) {
+                QVariantMap row = rv.toMap();
+                const QVariantList values = row.value(QStringLiteral("values")).toList();
+                QVariantList filtered;
+                for (int i = 0; i < values.size(); ++i)
+                    if (!hidden.contains(i))
+                        filtered << values.at(i);
+                row[QStringLiteral("values")] = filtered;
+                rv = row;
+            }
+            group[QStringLiteral("rows")] = rows;
+            gv = group;
+        }
+        years << QVariantMap{ { "year", a + 1 }, { "groups", groups } };
+    }
+
+    QBuffer buf;
+    buf.open(QIODevice::WriteOnly);
+    if (!pdf::writeSimulation(&buf, years, combinacionLabels))
+        return {};
+    buf.close();
+
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Simulacion"));
+}
+
 void Engine::recalc()
 {
     m_r = sim::compute(m_in);
     m_bank->setResult(m_r.bankAmort);
     m_coop ->setResult(m_r.coopAmort);
+    m_family ->setResult(m_r.familyAmort);
     m_properties ->setResult(m_r.propertiesAmort);
     buildMaps();
     saveToDisk();
@@ -554,6 +697,13 @@ static QVariantList toList10(const std::array<double,10>& a)
 }
 
 static QVariantList toList3(const std::array<double,3>& a)
+{
+    QVariantList l;
+    for (double v : a) l << v;
+    return l;
+}
+
+static QVariantList toList7(const std::array<double,7>& a)
 {
     QVariantList l;
     for (double v : a) l << v;
@@ -632,6 +782,17 @@ void Engine::buildMaps()
             { "socialSecurityCost", r.socialSecurityCost }, { "costPerPerson", r.costPerPerson },
             { "totalCost", r.totalCost }};
     }
+    static const char* vacationRoleLabels[3] = { "Farmacéutico sustituto", "Auxiliar sustituto", "Técnico sustituto" };
+    QVariantList vacationStaffPlan;
+    for (int k = 0; k < 3; ++k) {
+        const auto& r = P.vacationStaffPlan[k];
+        vacationStaffPlan << QVariantMap{
+            { "role", QString::fromUtf8(vacationRoleLabels[k]) },
+            { "fte", r.fte }, { "headcount", r.headcount },
+            { "grossFte", r.grossFte }, { "actualGross", r.actualGross },
+            { "socialSecurityCost", r.socialSecurityCost },
+            { "totalCost", r.totalCost }, { "avgMonths", r.avgMonths } };
+    }
     m_staff = QVariantMap{
         { "byRole", byRole },
         { "totalSocialSecurityCost", P.totalSocialSecurityCost }, { "totalActualSalary", P.totalActualSalary },
@@ -640,6 +801,21 @@ void Engine::buildMaps()
         { "totalHeadcount", P.totalHeadcount }, { "totalActualGross", P.totalActualGross },
         { "totalSocialSecurity", P.totalSocialSecurity }, { "totalHeadcountCost", P.totalHeadcountCost },
         { "netMonthlySalaryYear1", P.netMonthlySalaryYear1 },
+        { "vacationStaffPlan", vacationStaffPlan },
+        { "totalVacationHeadcount", P.totalVacationHeadcount }, { "totalVacationActualGross", P.totalVacationActualGross },
+        { "totalVacationSocialSecurity", P.totalVacationSocialSecurity }, { "totalVacationCost", P.totalVacationCost },
+    };
+
+    // ---- Horario (cobertura semanal)
+    const auto& S = m_r.schedule;
+    m_schedule = QVariantMap{
+        { "dailyHours",             toList7(S.dailyHours) },
+        { "weeklyOpenHours",        S.weeklyOpenHours },
+        { "pharmacistWeeklyHours",  S.pharmacistWeeklyHours },
+        { "supportWeeklyHours",     S.supportWeeklyHours },
+        { "totalStaffWeeklyHours",  S.totalStaffWeeklyHours },
+        { "pharmacistHoursGap",     S.pharmacistHoursGap },
+        { "totalHoursGap",          S.totalHoursGap },
     };
 
     // ---- Proyección (rows as in the sheet)
@@ -721,22 +897,39 @@ void Engine::buildMaps()
 }
 
 // ---------------------------------------------------------------- comparación de escenarios
+
+// Full snapshot of every currently registered input (same keys as
+// registerInputs()/saveToDisk()), saved alongside each frozen scenario so it
+// can later be restored wholesale by applyComparisonScenario().
+QVariantMap Engine::inputsSnapshot() const
+{
+    QVariantMap snap;
+    for (auto it = m_dbl.cbegin(); it != m_dbl.cend(); ++it)
+        snap[it.key()] = *it.value();
+    for (auto it = m_int.cbegin(); it != m_int.cend(); ++it)
+        snap[it.key()] = *it.value();
+    return snap;
+}
+
 void Engine::addComparisonScenario()
 {
     // Values from the Financiación sheet for the "full view" group: they
     // don't vary by year, so they're saved as a fixed value per scenario.
     const QVariantMap fin{
+        { "goodwill",              m_financing.value(QStringLiteral("goodwill")) },
         { "contributedCash",       m_inputs.value(QStringLiteral("contributedCash")) },
         { "pharmacyBankFinancing", m_financing.value(QStringLiteral("pharmacyBankFinancing")) },
         { "premisesBankFinancing", m_financing.value(QStringLiteral("premisesBankFinancing")) },
         { "initialOrder",          m_inputs.value(QStringLiteral("initialOrder")) },
         { "propertiesFinancing",   m_inputs.value(QStringLiteral("propertiesFinancing")) },
+        { "propertiesTermYears",   m_inputs.value(QStringLiteral("propertiesTermYears")) },
     };
     const QVariantMap esc{
         { "id",         QDateTime::currentMSecsSinceEpoch() },
         { "name",       QStringLiteral("Escenario %1").arg(m_comparisonScenarios.size() + 1) },
         { "projection", m_projection },
         { "financing",  fin },
+        { "inputs",     inputsSnapshot() },
     };
     m_comparisonScenarios.append(esc);
     saveToDisk();
@@ -750,6 +943,28 @@ void Engine::removeComparisonScenario(int index)
     m_comparisonScenarios.removeAt(index);
     saveToDisk();
     emit comparisonScenariosChanged();
+}
+
+bool Engine::applyComparisonScenario(int index)
+{
+    if (index < 0 || index >= m_comparisonScenarios.size())
+        return false;
+    const QVariantMap snap = m_comparisonScenarios[index].toMap()
+                                .value(QStringLiteral("inputs")).toMap();
+    if (snap.isEmpty())
+        return false; // scenario frozen before the "inputs" snapshot existed
+
+    for (auto it = snap.cbegin(); it != snap.cend(); ++it) {
+        if (auto d = m_dbl.find(it.key()); d != m_dbl.end())
+            **d = it.value().toDouble();
+        else if (auto n = m_int.find(it.key()); n != m_int.end()) {
+            const int v = it.value().toInt();
+            if (v > 0) **n = v;
+        }
+    }
+    m_in.staffCount[0] = 1; // Owner pharmacist: always 1 person, not editable
+    recalc();
+    return true;
 }
 
 // Pivots "scenario -> rows(concept, 10 years)" into "rows(concept) -> scenarios",
@@ -787,12 +1002,14 @@ QVariantList Engine::comparisonForYear(int year) const
 
 QVariantList Engine::financingComparison() const
 {
-    static const struct { const char* key; const char* label; } kRows[] = {
-        { "contributedCash",       "Liquidez aportada" },
-        { "pharmacyBankFinancing", "Financiación farmacia" },
-        { "premisesBankFinancing", "Financiación local" },
-        { "initialOrder",          "Cooperativa" },
-        { "propertiesFinancing",   "Hipoteca propiedad" },
+    static const struct { const char* key; const char* label; const char* fmt; } kRows[] = {
+        { "goodwill",              "Valor farmacia total",  "eur" },
+        { "contributedCash",       "Liquidez aportada",     "eur" },
+        { "pharmacyBankFinancing", "Financiación farmacia", "eur" },
+        { "premisesBankFinancing", "Financiación local",    "eur" },
+        { "initialOrder",          "Cooperativa",           "eur" },
+        { "propertiesFinancing",   "Hipoteca propiedad",    "eur" },
+        { "propertiesTermYears",   "Años de hipoteca",      "years" },
     };
 
     QVariantList rows;
@@ -809,50 +1026,85 @@ QVariantList Engine::financingComparison() const
         rows << QVariantMap{
             { "label", QString::fromUtf8(row.label) },
             { "values", values },
-            { "fmt", QStringLiteral("eur") },
+            { "fmt", QString::fromUtf8(row.fmt) },
             { "bold", false },
         };
     }
     return rows;
 }
 
-// ---------------------------------------------------------------- simulación aislada
-// Computes a "quick" projection with some inputs substituted, from a copy of
-// the current inputs. Doesn't touch m_in nor trigger recalc()/saveToDisk():
-// this way changes on the "Simulación simple" sheet don't propagate to the
-// other sheets nor get saved.
-QVariantMap Engine::simulateQuick(const QVariantMap& overrides) const
-{
-    sim::Inputs workingCopy = m_in;
-    if (overrides.contains(QStringLiteral("prescriptionSales")))
-        workingCopy.prescriptionSales = overrides[QStringLiteral("prescriptionSales")].toDouble();
-    if (overrides.contains(QStringLiteral("otcSales")))
-        workingCopy.otcSales = overrides[QStringLiteral("otcSales")].toDouble();
-    if (overrides.contains(QStringLiteral("inventory")))
-        workingCopy.inventory = overrides[QStringLiteral("inventory")].toDouble();
-    if (overrides.contains(QStringLiteral("contributedCash")))
-        workingCopy.contributedCash = overrides[QStringLiteral("contributedCash")].toDouble();
-    if (overrides.contains(QStringLiteral("propertiesFinancing")))
-        workingCopy.propertiesFinancing = overrides[QStringLiteral("propertiesFinancing")].toDouble();
-    if (overrides.contains(QStringLiteral("initialOrder")))
-        workingCopy.initialOrder = overrides[QStringLiteral("initialOrder")].toDouble();
-    if (overrides.contains(QStringLiteral("premisesRent")))
-        workingCopy.premisesRent = overrides[QStringLiteral("premisesRent")].toDouble();
+// ---------------------------------------------------------------- simulación (todas las combinaciones)
 
-    const sim::Results r = sim::compute(workingCopy);
-    const auto& Y = r.projection;
-    const QVariantList projection{
-        projectionRow("Venta total",                   Y.totalSales, "eur"),
-        projectionRow("M. Comercial después de RDs",   Y.marginAfterRd, "eur"),
-        projectionRow("Beneficio farmacia",            Y.profit, "eur"),
-        projectionRow("Liquidez después de imp.",      Y.cashAfterTax, "eur"),
-        projectionRow("Salario neto anual titular",    Y.netAnnualSalary, "eur", true),
-        projectionRow("Salario neto mensual titular",  Y.netMonthlySalary, "eur", true),
-    };
-    return QVariantMap{
-        { "totalSales", r.baseData.totalSales },
-        { "projection", projection },
-        { "minimumCash", r.financing.minimumCash },
-        { "cashBelowMinimum", r.financing.cashBelowMinimum },
-    };
+// Un grupo por cada Facturación Total (-20% / igual / +20%): dentro de cada
+// grupo, las 8 combinaciones (2×2×2) de aportación inicial, plazo e interés
+// de hipoteca comparten esa misma facturación, así que se muestran juntas y
+// los grupos se apilan uno debajo de otro (ver SimulacionView.qml).
+QVariantList Engine::simulationForYear(int year) const
+{
+    // Ejes de variación. Facturación Total se aplica como factor sobre venta
+    // receta+libre (conserva su proporción). El plazo y el interés se
+    // aplican a la vez a la hipoteca mobiliaria (banco) e inmobiliaria
+    // (propiedades): ambas toman siempre el mismo valor dentro de cada
+    // combinación (no hay escenarios "mixtos" con tipos distintos).
+    static const std::array<double,3> kFacturacionFactor { 0.8, 1.0, 1.2 };
+    static const std::array<int,2>    kPlazoHipoteca     { 20, 25 };
+    static const std::array<double,2> kTipoHipoteca      { 0.035, 0.03 };
+    static const std::array<double,2> kAportacionInicial { 400000.0, 450000.0 };
+
+    QVariantList groups;
+
+    for (double facFactor : kFacturacionFactor) {
+        QVariantList aniosMobiliaria, tipoMobiliaria,
+                     aniosInmobiliaria, tipoInmobiliaria, aportacion, beneficio;
+        double facturacionTotal = 0;
+
+        // Aportación es el eje más externo (tras Facturación) para que, dentro
+        // de cada grupo, todas las columnas de 400.000 € queden antes que las
+        // de 450.000 €.
+        for (double cash : kAportacionInicial)
+        for (int plazoYears : kPlazoHipoteca)
+        for (double tipo : kTipoHipoteca) {
+            sim::Inputs in = m_in;
+            in.prescriptionSales   = m_in.prescriptionSales * facFactor;
+            in.otcSales             = m_in.otcSales * facFactor;
+            in.bankTermYears        = plazoYears;
+            in.bankRate              = tipo;
+            in.propertiesTermYears  = plazoYears;
+            in.propertiesRate        = tipo;
+            in.contributedCash      = cash;
+
+            const sim::Results r = sim::compute(in);
+            facturacionTotal = r.baseData.totalSales; // igual para toda combinación de este grupo
+            const double netMonthly = (year >= 0 && year < 10) ? r.projection.netMonthlySalary[year] : 0.0;
+
+            aniosMobiliaria    << plazoYears;
+            tipoMobiliaria      << tipo;
+            aniosInmobiliaria  << plazoYears;
+            tipoInmobiliaria    << tipo;
+            aportacion          << cash;
+            beneficio            << netMonthly;
+        }
+
+        const QVariantList rows{
+            QVariantMap{ { "label", QStringLiteral("Años hipoteca mobiliaria") },
+                         { "values", aniosMobiliaria }, { "fmt", QStringLiteral("years") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Interés hipoteca mobiliaria") },
+                         { "values", tipoMobiliaria }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Años hipoteca inmobiliaria") },
+                         { "values", aniosInmobiliaria }, { "fmt", QStringLiteral("years") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Interés hipoteca inmobiliaria") },
+                         { "values", tipoInmobiliaria }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Aportación inicial") },
+                         { "values", aportacion }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Beneficio neto mensual") },
+                         { "values", beneficio }, { "fmt", QStringLiteral("eur") }, { "bold", true } },
+        };
+
+        groups << QVariantMap{
+            { "facturacion", facturacionTotal },
+            { "rows",        rows },
+        };
+    }
+
+    return groups;
 }

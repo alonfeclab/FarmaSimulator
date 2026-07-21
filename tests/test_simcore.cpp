@@ -27,6 +27,7 @@ private slots:
     void cuotaAutonomos_matchesTramoTable();
     void compute_datosBaseInvariants();
     void compute_amortBancoFullyAmortizes();
+    void compute_familyAmortGracePeriod();
     void compute_personalTotalsSumRows();
     void compute_goldenValues();
 };
@@ -156,6 +157,36 @@ void TestSimCore::compute_amortBancoFullyAmortizes()
     QVERIFY(std::fabs(a.rows[a.numPayments - 1].endingBalance) < a.principal * 1e-6);
 }
 
+void TestSimCore::compute_familyAmortGracePeriod()
+{
+    Inputs in;
+    in.familyContribution = 100000.0;
+    in.familyRate         = 0.03;
+    in.familyTermYears    = 10;
+    in.familyGraceMonths  = 12;
+
+    const Results r = compute(in);
+    const auto& a = r.familyAmort;
+
+    QCOMPARE(int(a.rows.size()), 300);
+    QCOMPARE(a.numPayments, in.familyTermYears * 12);
+
+    // Durante la carencia (primeros 12 meses): ni capital ni interés se pagan.
+    for (int i = 0; i < 12; ++i) {
+        QVERIFY(std::fabs(a.rows[i].principalPaid) < 1e-9);
+        QVERIFY(std::fabs(a.rows[i].interest) < 1e-9);
+        QVERIFY(std::fabs(a.rows[i].payment) < 1e-9);
+        QVERIFY(std::fabs(a.rows[i].endingBalance - a.principal) < 1e-6);
+    }
+
+    // Tras la carencia, el préstamo se sigue amortizando por completo dentro del plazo.
+    double capitalPagado = 0;
+    for (int i = 0; i < a.numPayments; ++i)
+        capitalPagado += a.rows[i].principalPaid;
+    QVERIFY(std::fabs(-capitalPagado - a.principal) < a.principal * 1e-6);
+    QVERIFY(std::fabs(a.rows[a.numPayments - 1].endingBalance) < a.principal * 1e-6);
+}
+
 void TestSimCore::compute_personalTotalsSumRows()
 {
     const Inputs in;
@@ -194,11 +225,11 @@ void TestSimCore::compute_goldenValues()
     const Results r = compute(in);
 
     QVERIFY(std::fabs(r.baseData.profitBeforeTax - 169851.78448) < 1e-3);
-    QVERIFY(std::fabs(r.financing.totalInvestment - 2489296.48) < 1e-2);
-    QVERIFY(std::fabs(r.bankAmort.monthlyPayment - (-7705.0049051490)) < 1e-6);
-    QVERIFY(std::fabs(r.projection.profit[9] - 196200.0530834275) < 1e-4);
+    QVERIFY(std::fabs(r.financing.totalInvestment - 2512177.0505050505) < 1e-2);
+    QVERIFY(std::fabs(r.bankAmort.monthlyPayment - (-10937.6465475271)) < 1e-6);
+    QVERIFY(std::fabs(r.projection.profit[9] - 197557.796236802) < 1e-4);
     QVERIFY(std::fabs(r.taxes.payment[0] - 0.0) < 1e-6);
-    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1691787702) < 1e-6);
+    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1610866688) < 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)

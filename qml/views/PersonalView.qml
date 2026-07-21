@@ -131,7 +131,6 @@ Flickable {
                         spacing: 8
                         Text { text: "Tipo"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
                         CabeceraCol { text: "Sal. bruto anual (FT)" }
-                        CabeceraCol { text: "Jornada" }
                         CabeceraCol { text: "% SS empresa" }
                         CabeceraCol { text: "Coste SS/año" }
                         CabeceraCol { text: "Sal. real pagado/año" }
@@ -144,7 +143,6 @@ Flickable {
                         spacing: 8
                         Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "pharmacistSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "pharmacistFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].socialSecurityCost) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].actualSalary) }
@@ -156,7 +154,6 @@ Flickable {
                         spacing: 8
                         Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "technicianSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "technicianFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].socialSecurityCost) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].actualSalary) }
@@ -168,7 +165,6 @@ Flickable {
                         spacing: 8
                         Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
                         MoneyField { k: "assistantSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
-                        PctField { k: "assistantFte"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[1].socialSecurityCost) }
                         Celda { text: Fmt.eur(Engine.staff.byRole[1].actualSalary) }
@@ -180,7 +176,6 @@ Flickable {
                         Layout.fillWidth: true
                         spacing: 8
                         Text { text: "Total"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
-                        Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.totalSocialSecurityCost); negrita: true }
@@ -195,25 +190,82 @@ Flickable {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: "#6b7a76"
-                text: "Salario bruto a jornada completa; la jornada reduce el coste. El % SS empresa es igual "
-                    + "para todos. Cambiar aquí actualiza Datos base y la Proyección."
+                text: "Salario bruto a jornada completa. El % SS empresa es igual para todos. "
+                    + "Cambiar aquí actualiza Datos base y la Proyección."
             }
         }
 
-        // ---------------- Subida salarial anual
+        // ---------------- Horario de apertura
         Card {
-            SectionTitle { text: "Subida salarial anual" }
+            SectionTitle { text: "Horario de apertura" }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+                    Text { text: "Día"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 100 }
+                    CabeceraCol { text: "Abre"; Layout.preferredWidth: 90 }
+                    CabeceraCol { text: "Cierra"; Layout.preferredWidth: 90 }
+                    CabeceraCol { text: "Horas"; Layout.preferredWidth: 90 }
+                }
+
+                Repeater {
+                    model: 7
+                    RowLayout {
+                        id: filaHorario
+                        required property int index
+                        readonly property string dia: ["Lunes", "Martes", "Miércoles", "Jueves",
+                            "Viernes", "Sábado", "Domingo"][index]
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: filaHorario.dia; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 100 }
+                        NumField {
+                            k: "scheduleOpen" + filaHorario.index
+                            decimals: 1
+                            suffix: " h"
+                            Layout.preferredWidth: 90
+                            implicitWidth: 90
+                        }
+                        NumField {
+                            k: "scheduleClose" + filaHorario.index
+                            decimals: 1
+                            suffix: " h"
+                            Layout.preferredWidth: 90
+                            implicitWidth: 90
+                        }
+                        Celda { text: Fmt.num(Engine.schedule.dailyHours[filaHorario.index], 1) + " h"; Layout.preferredWidth: 90 }
+                    }
+                }
+            }
+
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; Layout.topMargin: 4; color: "#dde5e1" }
 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text {
-                    text: "% Subida s/ base"
-                    font.pixelSize: 13
-                    color: "#3c4a46"
-                    Layout.fillWidth: true
-                }
-                PctField { k: "raisePct"; Layout.preferredWidth: 108; implicitWidth: 108 }
+                Text { text: "Horas de apertura semanales"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.weeklyOpenHours, 1) + " h"; font.pixelSize: 13; font.bold: true; color: "#14523f" }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Text { text: "Cubiertas por farmacéuticos (titular + empleado)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.pharmacistWeeklyHours, 1) + " h"; font.pixelSize: 13; color: "#1e2b28" }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Text { text: "Cubiertas por auxiliar y técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.supportWeeklyHours, 1) + " h"; font.pixelSize: 13; color: "#1e2b28" }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Text { text: "Total horas cubiertas por la plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.totalStaffWeeklyHours, 1) + " h"; font.pixelSize: 15; font.bold: true; color: "#14523f" }
             }
 
             Text {
@@ -221,7 +273,8 @@ Flickable {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: "#6b7a76"
-                text: "Porcentaje de subida anual aplicado sobre el salario base de todo el personal."
+                text: "Horas orientativas asumiendo una persona en mostrador a la vez. La farmacéutica titular cubre "
+                    + "cualquier hueco de presencia que no llegue a cubrir el resto de la plantilla contratada."
             }
         }
 
@@ -252,8 +305,9 @@ Flickable {
                         Layout.fillWidth: true
                         spacing: 8
                         Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
-                        CabeceraCol { text: "Jornada"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Jornada (h)"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Subida %"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Sal. bruto FT/año" }
                         CabeceraCol { text: "Sal. bruto real/año" }
                         CabeceraCol { text: "Coste SS/año" }
@@ -269,7 +323,28 @@ Flickable {
                             Layout.fillWidth: true
                             spacing: 8
                             Text { text: filaPl.r.role; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
-                            PctField { k: "staffFte" + filaPl.index; decimals: 0; Layout.preferredWidth: 80; implicitWidth: 80 }
+                            Button {
+                                id: btnJornada
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                                implicitHeight: 40
+                                text: Fmt.num(filaPl.r.fte * 8, 1) + " h"
+                                font.pixelSize: 13
+                                onClicked: dlgJornada.abrir(filaPl.index, filaPl.r.role)
+                                background: Rectangle {
+                                    radius: 5
+                                    color: "#fffbe8"
+                                    border.color: (btnJornada.hovered || btnJornada.down) ? "#1a7a5e" : "#e0d6ac"
+                                    border.width: 1
+                                }
+                                contentItem: Text {
+                                    text: btnJornada.text
+                                    color: "#1e2b28"
+                                    font: btnJornada.font
+                                    horizontalAlignment: Text.AlignRight
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
                             Text {
                                 visible: filaPl.index === 0
                                 text: "1"
@@ -281,6 +356,21 @@ Flickable {
                             NumField {
                                 visible: filaPl.index !== 0
                                 k: "staffCount" + filaPl.index
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                            }
+                            Text {
+                                visible: filaPl.index === 0
+                                text: "—"
+                                Layout.preferredWidth: 80
+                                horizontalAlignment: Text.AlignRight
+                                font.pixelSize: 13
+                                color: "#1e2b28"
+                            }
+                            PctField {
+                                visible: filaPl.index !== 0
+                                k: "raisePct" + filaPl.index
+                                decimals: 0
                                 Layout.preferredWidth: 80
                                 implicitWidth: 80
                             }
@@ -298,6 +388,7 @@ Flickable {
                         Text { text: "Total plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
                         Celda { text: Fmt.num(Engine.staff.totalHeadcount) + " pers."; negrita: true; Layout.preferredWidth: 80 }
+                        Item { Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.totalActualGross); negrita: true }
                         Celda { text: Fmt.eur(Engine.staff.totalSocialSecurity); negrita: true }
@@ -312,7 +403,125 @@ Flickable {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: "#6b7a76"
-                text: "El propietario cubre la presencia legal; coste 0 € (se retribuye vía beneficio)."
+                text: "El propietario cubre la presencia legal; coste 0 € (se retribuye vía beneficio) y no lleva subida salarial. "
+                    + "Pulsa el botón de Jornada para asignar las horas/día y el año de inicio a cada empleado por separado "
+                    + "(8 h = jornada completa). Mientras el año de inicio de un empleado no haya llegado, su coste no se "
+                    + "incluye en la Proyección a 10 años. La subida % se aplica cada año sobre el salario base de cada tipo de trabajador."
+            }
+        }
+
+        // ---------------- Refuerzos de vacaciones
+        Card {
+            SectionTitle { text: "Refuerzos de vacaciones" }
+
+            Flickable {
+                id: flickVacaciones
+                Layout.fillWidth: true
+                implicitHeight: vacacionesCol.height
+                contentWidth: vacacionesCol.width
+                contentHeight: vacacionesCol.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.HorizontalFlick
+                pressDelay: 150
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                FastWheel { flick: flickVacaciones; fallback: page }
+
+                ColumnLayout {
+                    id: vacacionesCol
+                    width: Math.max(implicitWidth, flickVacaciones.width)
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
+                        CabeceraCol { text: "Jornada (h)"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Subida %"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Meses/año"; Layout.preferredWidth: 80 }
+                        CabeceraCol { text: "Sal. bruto FT/año" }
+                        CabeceraCol { text: "Sal. bruto real/año" }
+                        CabeceraCol { text: "Coste SS/año" }
+                        CabeceraCol { text: "Coste total tipo" }
+                    }
+
+                    Repeater {
+                        model: 3
+                        RowLayout {
+                            id: filaVac
+                            required property int index
+                            readonly property var r: Engine.staff.vacationStaffPlan[index]
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Text { text: filaVac.r.role; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                            Button {
+                                id: btnJornadaVac
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                                implicitHeight: 40
+                                text: Fmt.num(filaVac.r.fte * 8, 1) + " h"
+                                font.pixelSize: 13
+                                onClicked: dlgJornada.abrir(filaVac.index, filaVac.r.role, true)
+                                background: Rectangle {
+                                    radius: 5
+                                    color: "#fffbe8"
+                                    border.color: (btnJornadaVac.hovered || btnJornadaVac.down) ? "#1a7a5e" : "#e0d6ac"
+                                    border.width: 1
+                                }
+                                contentItem: Text {
+                                    text: btnJornadaVac.text
+                                    color: "#1e2b28"
+                                    font: btnJornadaVac.font
+                                    horizontalAlignment: Text.AlignRight
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+                            NumField {
+                                k: "vacationStaffCount" + filaVac.index
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                            }
+                            PctField {
+                                k: "vacationRaisePct" + filaVac.index
+                                decimals: 0
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                            }
+                            Celda { text: Fmt.num(filaVac.r.avgMonths, 1) + " m"; Layout.preferredWidth: 80 }
+                            Celda { text: Fmt.eur(filaVac.r.grossFte) }
+                            Celda { text: Fmt.eur(filaVac.r.actualGross) }
+                            Celda { text: Fmt.eur(filaVac.r.socialSecurityCost) }
+                            Celda { text: Fmt.eur(filaVac.r.totalCost) }
+                        }
+                    }
+
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        Text { text: "Total refuerzos"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Item { Layout.preferredWidth: 80 }
+                        Celda { text: Fmt.num(Engine.staff.totalVacationHeadcount) + " pers."; negrita: true; Layout.preferredWidth: 80 }
+                        Item { Layout.preferredWidth: 80 }
+                        Item { Layout.preferredWidth: 80 }
+                        Item { Layout.preferredWidth: 108 }
+                        Celda { text: Fmt.eur(Engine.staff.totalVacationActualGross); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalVacationSocialSecurity); negrita: true }
+                        Celda { text: Fmt.eur(Engine.staff.totalVacationCost); negrita: true }
+                    }
+                }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: "#6b7a76"
+                text: "Personal contratado temporalmente para cubrir las vacaciones de la plantilla habitual. "
+                    + "El coste se calcula sobre el salario base de cada categoría (Salarios base de personal) y se prorratea "
+                    + "según los meses que trabaje cada empleado al año (editable en el diálogo de Jornada, junto a las horas/día)."
             }
         }
 
@@ -343,5 +552,171 @@ Flickable {
         }
 
         Item { Layout.preferredHeight: 8 }
+    }
+
+    // ---------------- diálogo: jornada individual por empleado
+    Popup {
+        id: dlgJornada
+        anchors.centerIn: page
+        width: (!vacation && role !== 0) ? 400 : 320
+        modal: true
+        focus: true
+        padding: 20
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        property int role: -1
+        property string roleLabel: ""
+        property bool vacation: false
+        readonly property string fteKeyPrefix: vacation ? "vacationStaffFte" : "staffFte"
+        function staffCount(rol) {
+            const key = (dlgJornada.vacation ? "vacationStaffCount" : "staffCount") + rol
+            const v = Engine.inputs[key]
+            return v !== undefined ? v : 0
+        }
+        readonly property int count: role < 0 ? 0
+            : Math.min(Math.max(0, Math.round(staffCount(role))), Engine.maxStaffPerRole)
+
+        function abrir(rol, etiqueta, esVacaciones) {
+            role = rol
+            roleLabel = etiqueta
+            vacation = esVacaciones === true
+            open()
+        }
+
+        background: Rectangle {
+            radius: 12
+            color: "white"
+            border.color: "#dde5e1"
+        }
+
+        contentItem: ColumnLayout {
+            width: dlgJornada.availableWidth
+            spacing: 10
+
+            Text {
+                text: (!dlgJornada.vacation && dlgJornada.role !== 0)
+                    ? "Jornada y año de inicio por empleado"
+                    : "Jornada por empleado (horas/día)"
+                font.pixelSize: 15
+                font.bold: true
+                color: "#14523f"
+            }
+            Text {
+                text: dlgJornada.roleLabel
+                font.pixelSize: 12
+                color: "#6b7a76"
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Flickable {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.min(empleadosCol.implicitHeight, 260)
+                contentWidth: width
+                contentHeight: empleadosCol.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                ScrollBar.vertical: ScrollBar {}
+
+                ColumnLayout {
+                    id: empleadosCol
+                    width: parent.width
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+                        visible: !dlgJornada.vacation && dlgJornada.role !== 0
+                        Item { Layout.fillWidth: true }
+                        Text {
+                            text: "Horas/día"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: "#14523f"
+                            Layout.preferredWidth: 80
+                            horizontalAlignment: Text.AlignRight
+                        }
+                        Text {
+                            text: "Año inicio"
+                            font.pixelSize: 11
+                            font.bold: true
+                            color: "#14523f"
+                            Layout.preferredWidth: 80
+                            horizontalAlignment: Text.AlignRight
+                        }
+                    }
+
+                    Repeater {
+                        model: dlgJornada.count
+                        RowLayout {
+                            required property int index
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Text {
+                                text: "Empleado " + (index + 1)
+                                font.pixelSize: 13
+                                color: "#3c4a46"
+                                Layout.fillWidth: true
+                            }
+                            HoursField {
+                                k: dlgJornada.fteKeyPrefix + dlgJornada.role + "_" + index
+                                decimals: 1
+                            }
+                            NumField {
+                                visible: !dlgJornada.vacation && dlgJornada.role !== 0
+                                k: "staffHireYear" + dlgJornada.role + "_" + index
+                                decimals: 0
+                                Layout.preferredWidth: 80
+                                implicitWidth: 80
+                            }
+                            NumField {
+                                visible: dlgJornada.vacation
+                                k: "vacationStaffMonths" + dlgJornada.role + "_" + index
+                                decimals: 0
+                                suffix: " m/año"
+                                Layout.preferredWidth: 90
+                                implicitWidth: 90
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                visible: dlgJornada.role >= 0 && dlgJornada.staffCount(dlgJornada.role) > Engine.maxStaffPerRole
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 11
+                color: "#a15c00"
+                text: "Solo se pueden personalizar los primeros " + Engine.maxStaffPerRole
+                    + " empleados; el resto usa la jornada del último."
+            }
+
+            Button {
+                id: btnCerrarJornada
+                Layout.fillWidth: true
+                Layout.preferredHeight: 36
+                text: "Cerrar"
+                font.pixelSize: 13
+                font.bold: true
+                onClicked: dlgJornada.close()
+                background: Rectangle {
+                    radius: 8
+                    color: btnCerrarJornada.down ? "#0f5a43" : "#1a7a5e"
+                }
+                contentItem: Text {
+                    text: btnCerrarJornada.text
+                    color: "#ffe9a8"
+                    font: btnCerrarJornada.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
+        }
     }
 }

@@ -432,9 +432,12 @@ void baseDataSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.dataRow({ QStringLiteral("Cuota autónomos (RETA, año 1)"),      d.eur(r.projection.selfEmployedQuota[0]) });
     t2.dataRow({ QStringLiteral("Total gastos personal"),              d.eur(D.totalStaffCost) }, true);
 
+    d.sectionTitle(QStringLiteral("Alquiler"));
+    Table tRent = kv(d);
+    tRent.dataRow({ QStringLiteral("Alquiler local"),          d.eur(in.premisesRent) }, true);
+
     d.sectionTitle(QStringLiteral("Otros gastos"));
     Table t3 = kv(d);
-    t3.dataRow({ QStringLiteral("Alquiler local"),             d.eur(in.premisesRent) });
     t3.dataRow({ QStringLiteral("Suministros"),                d.eur(in.utilities) });
     t3.dataRow({ QStringLiteral("Gastos asesoría"),            d.eur(in.advisoryFees) });
     t3.dataRow({ QStringLiteral("Mantenimiento informático"),  d.eur(in.maintenance) });
@@ -479,7 +482,7 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 
     d.sectionTitle(QStringLiteral("Inversión operación"));
     Table t2 = kv(d);
-    t2.dataRow({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.goodwillMultiple, 1) });
+    t2.dataRow({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.goodwillMultiple, 2) });
     t2.dataRow({ QStringLiteral("Fondo de comercio"),                 d.eur(F.goodwill) });
     t2.dataRow({ QStringLiteral("Local comercial"),                   d.eur(in.premisesPrice) });
     t2.dataRow({ QStringLiteral("Existencias"),                       d.eur(in.inventory) });
@@ -507,10 +510,10 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
                       QStringLiteral("%1 años").arg(in.coopTermYears), QStringLiteral("—") });
         t.dataRow({ QStringLiteral("Familiar"), d.pct(in.familyRate),
                       QStringLiteral("%1 años").arg(in.familyTermYears), QStringLiteral("—") });
-        t.dataRow({ QStringLiteral("Local"), d.pct(in.bankRate),
-                      QStringLiteral("%1 años").arg(in.bankTermYears), d.pct(in.premisesFinancingPct, 0) });
         t.dataRow({ QStringLiteral("Propiedades"), d.pct(in.propertiesRate),
                       QStringLiteral("%1 años").arg(in.propertiesTermYears), d.pct(in.propertiesFinancingPct, 0) });
+        t.dataRow({ QStringLiteral("Local"), d.pct(in.propertiesRate),
+                      QStringLiteral("%1 años").arg(in.propertiesTermYears), d.pct(in.premisesFinancingPct, 0) });
     }
 
     d.sectionTitle(QStringLiteral("Financiación"));
@@ -518,9 +521,9 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t3.dataRow({ QStringLiteral("Liquidez aportada"),                 d.eur(in.contributedCash) });
     t3.dataRow({ QStringLiteral("Aportación familiar"),               d.eur(in.familyContribution) });
     t3.dataRow({ QStringLiteral("Financiación bancaria farmacia"),    d.eur(F.pharmacyBankFinancing) });
+    t3.dataRow({ QStringLiteral("Financiación propiedades"),          d.eur(in.propertiesFinancing * in.propertiesFinancingPct) });
     t3.dataRow({ QStringLiteral("Financiación bancaria local"),       d.eur(F.premisesBankFinancing) });
-    t3.dataRow({ QStringLiteral("Total banco"),                       d.eur(F.pharmacyBankFinancing + F.premisesBankFinancing) }, true);
-    t3.dataRow({ QStringLiteral("Financiación propiedades"),          d.eur(in.propertiesFinancing) });
+    t3.dataRow({ QStringLiteral("Total propiedades"),                 d.eur(in.propertiesFinancing * in.propertiesFinancingPct + F.premisesBankFinancing) }, true);
     t3.dataRow({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.contributionExcess) });
     t3.dataRow({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.initialOrder) });
     t3.dataRow({ QStringLiteral("Total financiación"),                d.eur(F.totalFinancing) }, true);
@@ -745,7 +748,7 @@ void staffSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
         for (int k = 0; k < 3; ++k) {
             const auto& row = P.byRole[size_t(k)];
             t.dataRow({ QString::fromUtf8(roleLabelsData[k]), d.eur(row.grossFte),
-                          d.num(row.fte, 2), d.pct(row.socialSecurityPct, 0),
+                          d.num(row.fte * 8.0, 1) + QStringLiteral(" h"), d.pct(row.socialSecurityPct, 0),
                           d.eur(row.socialSecurityCost), d.eur(row.actualSalary), d.eur(row.totalCost) });
         }
         t.dataRow({ QStringLiteral("Total"), QString(), QString(), QString(),
@@ -772,7 +775,7 @@ void staffSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
                      { QStringLiteral("Coste total"),   88 } });
         for (int k = 0; k < 4; ++k) {
             const auto& row = P.headcountPlan[size_t(k)];
-            t.dataRow({ QString::fromUtf8(roleLabelsHeadcount[k]), d.num(row.fte, 2),
+            t.dataRow({ QString::fromUtf8(roleLabelsHeadcount[k]), d.num(row.fte * 8.0, 1) + QStringLiteral(" h"),
                           d.num(row.headcount, 0), d.eur(row.actualGross),
                           d.eur(row.socialSecurityCost), d.eur(row.costPerPerson), d.eur(row.totalCost) });
         }
@@ -843,6 +846,53 @@ void comparisonPage(Doc& d, const QVariantList& rows, const QStringList& names, 
     }
 }
 
+// ---------------------------------------------------------------- simulation
+QString simulationCell(const Doc& d, double v, const QString& fmt)
+{
+    if (fmt == QLatin1String("pct1"))  return d.pct(v, 1);
+    if (fmt == QLatin1String("years")) return d.num(v, 0) + QStringLiteral(" años");
+    return d.eur(v);
+}
+
+// One page per year: the 3 Facturación Total groups (-20% / igual / +20%),
+// each its own table — same layout as SimulacionView.qml, but only with the
+// columns still visible there ('combinaciones'/each row's "values" already
+// exclude the ones collapsed with the "eye" filter, see Engine::exportSimulationPdf).
+void simulationPage(Doc& d, const QVariantList& groups, const QStringList& combinaciones, int year)
+{
+    d.newPage(QPageLayout::Landscape, QStringLiteral("Simulación"));
+    if (d.pageNum == 1) {   // no prior cover page: this page does get a header/footer
+        d.header();
+        d.footer();
+    }
+    d.sheetTitle(QStringLiteral("Simulación — Año %1").arg(year));
+
+    const qreal wLabel = 190;
+    const qreal wTotal = d.pageWidth() - 2 * kMargin;
+    const int n = std::max(1, int(combinaciones.size()));
+    const qreal wVal = (wTotal - wLabel) / n;
+
+    QVector<Col> cols{ { QStringLiteral("Concepto"), wLabel, Qt::AlignLeft } };
+    for (const QString& name : combinaciones)
+        cols.append({ name, wVal });
+
+    for (const QVariant& gv : groups) {
+        const QVariantMap group = gv.toMap();
+        d.sectionTitle(QStringLiteral("Facturación total: %1")
+                           .arg(d.eur(group.value(QStringLiteral("facturacion")).toDouble())));
+
+        Table t(d, cols, true, 18, 7.6);
+        for (const QVariant& rv : group.value(QStringLiteral("rows")).toList()) {
+            const QVariantMap row = rv.toMap();
+            const QString fmt = row.value(QStringLiteral("fmt")).toString();
+            QStringList cells{ row.value(QStringLiteral("label")).toString() };
+            for (const QVariant& v : row.value(QStringLiteral("values")).toList())
+                cells << simulationCell(d, v.toDouble(), fmt);
+            t.dataRow(cells, row.value(QStringLiteral("bold")).toBool());
+        }
+    }
+}
+
 } // namespace
 
 // ---------------------------------------------------------------- API
@@ -871,6 +921,18 @@ bool writeComparison(QIODevice* dev, const QVariantList& pages,
         const QVariantMap page = pv.toMap();
         comparisonPage(d, page.value(QStringLiteral("rows")).toList(), scenarioNames,
                            page.value(QStringLiteral("year")).toInt());
+    }
+    return d.p.end();
+}
+
+bool writeSimulation(QIODevice* dev, const QVariantList& years,
+                      const QStringList& combinacionLabels)
+{
+    Doc d(dev);
+    for (const QVariant& yv : years) {
+        const QVariantMap ypage = yv.toMap();
+        simulationPage(d, ypage.value(QStringLiteral("groups")).toList(), combinacionLabels,
+                           ypage.value(QStringLiteral("year")).toInt());
     }
     return d.p.end();
 }

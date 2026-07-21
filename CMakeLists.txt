@@ -47,7 +47,7 @@ set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES
 # (ruta relativa a la raíz del proyecto), pero el QML los referencia como
 # "qrc:/qt/qml/FarmaciaSim/icons/xxx.svg" (sin el "qml/" intermedio), por lo
 # que QQuickImage no los encuentra en tiempo de ejecución.
-foreach(_icono datos_base financiacion proyeccion comparacion impuestos analisis banco cooperativa propiedades personal simple configuracion)
+foreach(_icono datos_base financiacion proyeccion comparacion simulacion impuestos analisis banco cooperativa familiar propiedades personal configuracion)
     set_source_files_properties(qml/icons/${_icono}.svg PROPERTIES
         QT_RESOURCE_ALIAS icons/${_icono}.svg
     )
@@ -72,11 +72,11 @@ qt_add_qml_module(farmaciasim_ui
         qml/NavPanel.qml
         qml/Fmt.qml
         qml/Nav.qml
-        qml/views/SimulacionSimpleView.qml
         qml/views/DatosBaseView.qml
         qml/views/FinanciacionView.qml
         qml/views/ProyeccionView.qml
         qml/views/ComparacionView.qml
+        qml/views/SimulacionView.qml
         qml/views/ImpuestosView.qml
         qml/views/AnalisisView.qml
         qml/views/AmortView.qml
@@ -84,6 +84,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/views/ConfiguracionView.qml
         qml/components/MoneyField.qml
         qml/components/PctField.qml
+        qml/components/HoursField.qml
         qml/components/NumField.qml
         qml/components/SectionTitle.qml
         qml/components/KeyboardAvoider.qml
@@ -91,18 +92,20 @@ qt_add_qml_module(farmaciasim_ui
         qml/components/Card.qml
         qml/components/ConceptTable.qml
         qml/components/RowCard.qml
+        qml/components/ResetGroupButton.qml
     RESOURCES
         qml/icons/datos_base.svg
         qml/icons/financiacion.svg
         qml/icons/proyeccion.svg
         qml/icons/comparacion.svg
+        qml/icons/simulacion.svg
         qml/icons/impuestos.svg
         qml/icons/analisis.svg
         qml/icons/banco.svg
         qml/icons/cooperativa.svg
+        qml/icons/familiar.svg
         qml/icons/propiedades.svg
         qml/icons/personal.svg
-        qml/icons/simple.svg
         qml/icons/configuracion.svg
         app_icon.ico
 )

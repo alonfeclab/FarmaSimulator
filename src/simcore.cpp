@@ -1,4 +1,5 @@
 #include "simcore.h"
+#include <algorithm>
 #include <cmath>
 
 namespace sim {
@@ -50,8 +51,13 @@ double irr(const std::vector<double>& cf, double guess)
 // Amortization schedule: ALWAYS 300 rows (like the Excel, rows 18-317).
 // Once the loan is paid off the payment drops to 0 but interest keeps being
 // computed on the (slightly negative) balance — exact replica.
+//
+// graceMonths (optional, only used by the family loan): a leading "carencia"
+// period during which neither interest nor capital is paid or amortized.
+// The fixed payment is then recomputed on the untouched principal over the
+// remaining term, so the loan still fully amortizes within numPayments.
 static AmortResult amortize(double principal, double annualRate, int termYears,
-                             int startYear, int startMonth)
+                             int startYear, int startMonth, int graceMonths = 0)
 {
     AmortResult a;
     a.principal   = principal;
@@ -59,11 +65,13 @@ static AmortResult amortize(double principal, double annualRate, int termYears,
     a.termYears   = termYears;
     a.numPayments = termYears * 12;
 
+    const int grace = std::clamp(graceMonths, 0, std::max(0, a.numPayments - 1));
+
     // Exact replica of the Excel: the payment uses F3/12, but the interest of
     // each row uses G3=F3*100/12 and then /100 (they differ in the last bit,
     // and that determines the schedule's behavior after the last payment).
     const double g3 = annualRate * 100.0 / 12.0;                              // G3
-    const double fixedPayment = pmt(annualRate / 12.0, a.numPayments, principal); // F18
+    const double fixedPayment = pmt(annualRate / 12.0, a.numPayments - grace, principal); // F18
 
     a.monthlyPayment = fixedPayment;
     a.annualPayment  = fixedPayment * 12.0;
@@ -77,9 +85,16 @@ static AmortResult amortize(double principal, double annualRate, int termYears,
         r.year            = year;
         r.month           = month;
         r.startingBalance = balance;
-        r.payment  = (m == 1) ? fixedPayment : (balance <= 0.0 ? 0.0 : fixedPayment); // F19: IF(E<=0;0;$F$18)
-        r.interest = (-balance * g3) / 100.0; // H: -E*$G$3/100
-        r.principalPaid = r.payment - r.interest;  // G: F-H
+        if (m <= grace) {
+            // Carencia total: ni capital ni interés se mueven en este periodo.
+            r.interest = 0.0;
+            r.payment = 0.0;
+            r.principalPaid = 0.0;
+        } else {
+            r.interest = (-balance * g3) / 100.0; // H: -E*$G$3/100
+            r.payment  = (m == grace + 1) ? fixedPayment : (balance <= 0.0 ? 0.0 : fixedPayment); // F19: IF(E<=0;0;$F$18)
+            r.principalPaid = r.payment - r.interest;  // G: F-H
+        }
         r.endingBalance = balance + r.principalPaid; // I: E+G
         a.totalInterest += r.interest;
         a.rows.push_back(r);
@@ -148,19 +163,30 @@ Results compute(const Inputs& in)
 
         // Recommended headcount (rows 13-16)
         // D13=B6 ; D14=B6*(1+H6) ; D15=B7*(1+H6) ; D16=B8*(1+H6)
+        // H6 is now per-role (in.raisePct[1..3]); role 0 (Owner) has none.
         const double d[4] = { in.pharmacistSalary,
-                              in.pharmacistSalary * (1.0 + in.raisePct),
-                              in.assistantSalary  * (1.0 + in.raisePct),
-                              in.technicianSalary * (1.0 + in.raisePct) };
+                              in.pharmacistSalary * (1.0 + in.raisePct[1]),
+                              in.assistantSalary  * (1.0 + in.raisePct[2]),
+                              in.technicianSalary * (1.0 + in.raisePct[3]) };
         for (int i = 0; i < 4; ++i) {
             auto& r = P.headcountPlan[i];
-            r.fte       = in.staffFte[i];
             r.headcount = (i == 0) ? 1.0 : in.staffCount[i]; // Owner: always 1 person
             r.grossFte  = d[i];
             if (i == 0) { // Owner: E13..H13 = 0 (compensated via profit)
+                r.fte = in.staffFteEach[i][0];
                 r.actualGross = r.socialSecurityCost = r.costPerPerson = r.totalCost = 0;
             } else {
-                r.actualGross      = d[i] * r.fte * r.headcount;      // E = D*B*C
+                // Sum each employee's individual jornada % instead of one %
+                // shared by the whole headcount; extras beyond
+                // kMaxStaffPerRole reuse the last slot's value.
+                const int n = std::clamp(int(std::lround(r.headcount)), 0, kMaxStaffPerRole);
+                double fteSum = 0;
+                for (int j = 0; j < n; ++j)
+                    fteSum += in.staffFteEach[i][j];
+                if (r.headcount > kMaxStaffPerRole)
+                    fteSum += in.staffFteEach[i][kMaxStaffPerRole - 1] * (r.headcount - kMaxStaffPerRole);
+                r.fte = fteSum; // sum (not average) of every employee's jornada %, for display
+                r.actualGross      = d[i] * fteSum;                    // E = D*sum(fte)
                 r.socialSecurityCost = r.actualGross * in.socialSecurityPct; // F = E*$D$6
                 r.costPerPerson     = r.actualGross * (1.0 + in.socialSecurityPct); // G = E*(1+$D$6)
                 r.totalCost         = r.costPerPerson;               // H = G
@@ -170,6 +196,68 @@ Results compute(const Inputs& in)
             P.totalSocialSecurity += r.socialSecurityCost; // F17
             P.totalHeadcountCost  += r.totalCost;  // H17
         }
+
+        // Vacation-cover headcount: temp workers hired to cover the regular
+        // plantilla's vacations. Reuses each role's base salary (pharmacist/
+        // assistant/technician); cost is prorated by each employee's months
+        // worked per year, since they don't work the full year.
+        const double dv[3] = { in.pharmacistSalary * (1.0 + in.vacationRaisePct[0]),
+                               in.assistantSalary  * (1.0 + in.vacationRaisePct[1]),
+                               in.technicianSalary * (1.0 + in.vacationRaisePct[2]) };
+        for (int i = 0; i < 3; ++i) {
+            auto& r = P.vacationStaffPlan[i];
+            r.headcount = in.vacationStaffCount[i];
+            r.grossFte  = dv[i];
+            const int n = std::clamp(int(std::lround(r.headcount)), 0, kMaxStaffPerRole);
+            double fteSum = 0, weightedSum = 0, monthsSum = 0;
+            for (int j = 0; j < n; ++j) {
+                const double months = std::clamp(in.vacationStaffMonthsEach[i][j], 0.0, 12.0);
+                fteSum += in.vacationStaffFteEach[i][j];
+                weightedSum += in.vacationStaffFteEach[i][j] * (months / 12.0);
+                monthsSum += months;
+            }
+            if (r.headcount > kMaxStaffPerRole) {
+                const double extra = r.headcount - kMaxStaffPerRole;
+                const double lastFte    = in.vacationStaffFteEach[i][kMaxStaffPerRole - 1];
+                const double lastMonths = std::clamp(in.vacationStaffMonthsEach[i][kMaxStaffPerRole - 1], 0.0, 12.0);
+                fteSum      += lastFte * extra;
+                weightedSum += lastFte * (lastMonths / 12.0) * extra;
+                monthsSum   += lastMonths * extra;
+            }
+            r.fte       = fteSum; // sum of every employee's jornada %, for display
+            r.avgMonths = r.headcount > 0 ? monthsSum / r.headcount : 0.0;
+            r.actualGross         = dv[i] * weightedSum; // gross prorated by months worked
+            r.socialSecurityCost  = r.actualGross * in.socialSecurityPct;
+            r.totalCost            = r.actualGross + r.socialSecurityCost;
+            P.totalVacationHeadcount      += r.headcount;
+            P.totalVacationActualGross    += r.actualGross;
+            P.totalVacationSocialSecurity += r.socialSecurityCost;
+            P.totalVacationCost           += r.totalCost;
+        }
+    }
+
+    // ================================================= Horario (cobertura)
+    {
+        auto& S = R.schedule;
+        constexpr double kWeeklyFullTimeHours = 8.0 * 5.0; // 8h/día x 5 días = jornada completa semanal
+
+        double totalOpen = 0;
+        for (int d = 0; d < 7; ++d) {
+            const double h = std::max(0.0, in.schedule[d].closeHour - in.schedule[d].openHour);
+            S.dailyHours[d] = h;
+            totalOpen += h;
+        }
+        S.weeklyOpenHours = totalOpen;
+
+        const auto& P = R.staff.headcountPlan;
+        // r.fte is already the SUM of every employee's jornada fraction for
+        // that role (see the headcount-plan loop above), not an average.
+        auto roleHours = [&](int idx) { return P[idx].fte * kWeeklyFullTimeHours; };
+        S.pharmacistWeeklyHours = roleHours(0) + roleHours(1); // Propietario + farmacéutico empleado
+        S.supportWeeklyHours    = roleHours(2) + roleHours(3); // Auxiliar + técnico
+        S.totalStaffWeeklyHours = S.pharmacistWeeklyHours + S.supportWeeklyHours;
+        S.pharmacistHoursGap = S.weeklyOpenHours - S.pharmacistWeeklyHours;
+        S.totalHoursGap      = S.weeklyOpenHours - S.totalStaffWeeklyHours;
     }
 
     // ================================================= Datos Base
@@ -180,10 +268,10 @@ Results compute(const Inputs& in)
         D.costOfGoods  = D.totalSales - D.grossMargin;                // D13
         D.rdDeduction  = calculateRdDeduction(in.prescriptionSales, in.rdBrackets); // D16
         D.marginAfterRd = D.grossMargin - D.rdDeduction;              // D17
-        D.staffCost      = R.staff.totalActualGross;                  // D18 = 'Personal '!E17
-        D.socialSecurity = R.staff.totalSocialSecurity;                // D19 = 'Personal '!F17
-        D.totalOtherExpenses = in.premisesRent + in.utilities + in.advisoryFees
-                           + in.maintenance + in.robot + in.insurance + in.otherExpenses; // D29
+        D.staffCost      = R.staff.totalActualGross + R.staff.totalVacationActualGross;  // D18 = 'Personal '!E17 + refuerzos vacaciones
+        D.socialSecurity = R.staff.totalSocialSecurity + R.staff.totalVacationSocialSecurity; // D19 = 'Personal '!F17 + refuerzos vacaciones
+        D.totalOtherExpenses = in.utilities + in.advisoryFees
+                           + in.maintenance + in.robot + in.insurance + in.otherExpenses; // D29 (alquiler shown separately, not bundled here)
         // D20/D21 (self-employed quota and total staff cost) are completed
         // further below, after computing the year-1 RETA quota in Projection.
     }
@@ -219,20 +307,28 @@ Results compute(const Inputs& in)
                             + F.pharmacyBankFinancing + F.premisesBankFinancing
                             + in.propertiesFinancing * in.propertiesFinancingPct
                             + in.contributionExcess + in.initialOrder;       // D50
-        F.minimumCash = (F.totalInvestment
-                          - in.propertiesFinancing * in.propertiesFinancingPct
-                            - in.initialOrder - in.premisesPrice)* (1-in.pharmacyFinancingPct) + in.premisesPrice * (1-in.premisesFinancingPct);
+        // Properties/cooperative financing offsets the pharmacy cash requirement
+        // euro-for-euro (they are loan sources, not partial collateral), clamped
+        // at zero so surplus guarantees don't produce a negative minimum.
+        const double pharmacyCashNeed = (F.totalInvestment - in.premisesPrice) * (1 - in.pharmacyFinancingPct)
+                                          - in.propertiesFinancing * in.propertiesFinancingPct
+                                          - in.initialOrder;
+        F.minimumCash = std::max(0.0, pharmacyCashNeed) + in.premisesPrice * (1-in.premisesFinancingPct);
         F.cashBelowMinimum = in.contributedCash < F.minimumCash;
     }
 
     // ================================================= Amortizaciones
-    R.bankAmort = amortize(R.financing.pharmacyBankFinancing + R.financing.premisesBankFinancing,
+    // El local se amortiza junto con la hipoteca de propiedades, no con el
+    // préstamo bancario principal de la farmacia.
+    R.bankAmort = amortize(R.financing.pharmacyBankFinancing,
                              in.bankRate, in.bankTermYears, in.startYear, in.startMonth);
     R.coopAmort  = amortize(in.initialOrder, in.coopRate, in.coopTermYears,
                              in.startYear, in.startMonth);
-    R.propertiesAmort  = amortize(in.propertiesFinancing * in.propertiesFinancingPct,
+    R.propertiesAmort  = amortize(in.propertiesFinancing * in.propertiesFinancingPct + R.financing.premisesBankFinancing,
                              in.propertiesRate, in.propertiesTermYears,
                              in.startYear, in.startMonth);
+    R.familyAmort  = amortize(in.familyContribution, in.familyRate, in.familyTermYears,
+                             in.startYear, in.startMonth, int(in.familyGraceMonths));
 
     // Annual sums of the schedules (year i: months 12i+1 .. 12i+12)
     auto annualSum = [](const AmortResult& a, int year, bool interest) {
@@ -255,6 +351,36 @@ Results compute(const Inputs& in)
             ? optimisticMarginSeries(in)
             : in.realisticMarginSeries;
 
+        // Per-role (1=pharmacist, 2=assistant, 3=technician) gross salary for
+        // one full-time-equivalent, grown year over year by IPC just like
+        // every other projection row. Role 0 (Owner) is always 0-cost.
+        std::array<double,4> roleGrossFte = { 0.0,
+            in.pharmacistSalary * (1.0 + in.raisePct[1]),
+            in.assistantSalary  * (1.0 + in.raisePct[2]),
+            in.technicianSalary * (1.0 + in.raisePct[3]) };
+        // Vacation-cover cost isn't staggered by hire year (it's temporary,
+        // recurring staff), so it keeps growing by IPC from its year-1 total.
+        double vacationCost = R.staff.totalVacationActualGross + R.staff.totalVacationSocialSecurity;
+
+        // Sum of jornada % (fte) of the employees of 'role' already hired by
+        // 'currentYear' (their staffHireYearEach <= currentYear); mirrors the
+        // headcount-plan fteSum logic above, including the >kMaxStaffPerRole
+        // extension (reuses the last slot's jornada % and hire year).
+        auto activeFteSum = [&](int role, int currentYear) {
+            const double headcount = in.staffCount[role];
+            const int n = std::clamp(int(std::lround(headcount)), 0, kMaxStaffPerRole);
+            double sum = 0;
+            for (int j = 0; j < n; ++j)
+                if (in.staffHireYearEach[role][j] <= currentYear)
+                    sum += in.staffFteEach[role][j];
+            if (headcount > kMaxStaffPerRole) {
+                const int last = kMaxStaffPerRole - 1;
+                if (in.staffHireYearEach[role][last] <= currentYear)
+                    sum += in.staffFteEach[role][last] * (headcount - kMaxStaffPerRole);
+            }
+            return sum;
+        };
+
         for (int i = 0; i < 10; ++i) {
             // IPC is applied from year 1 onward (including year 1 itself).
             // Negative IPC is treated as 0% (no deflation applied in the projection).
@@ -270,12 +396,22 @@ Results compute(const Inputs& in)
             P.grossMargin[i]      = P.totalSales[i] - P.costOfGoods[i];       // row 10
             P.rdDeduction[i] = (i == 0 ? R.baseData.rdDeduction : P.rdDeduction[i-1]) * (1.0 + ipc); // row 11
             P.marginAfterRd[i]  = P.grossMargin[i] - P.rdDeduction[i];        // row 12
-            P.rent[i] = 0;                                                 // row 13 (constant 0)
-            P.staffCost[i] = (i == 0
-                ? R.baseData.staffCost + R.baseData.socialSecurity     // B14 = SUM(D18:E19)
-                : P.staffCost[i-1]) * (1.0 + ipc);                         // row 14
+            P.rent[i] = (i == 0
+                ? in.premisesRent
+                : P.rent[i-1]) * (1.0 + ipc);                                 // row 13
+            // row 14: Plantilla cost only counts employees already hired by
+            // this projection year (in.startYear + i); vacation-cover cost
+            // isn't staggered. Both grow year over year by IPC like every
+            // other line, including year 1 itself (see comment above).
+            for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + ipc);
+            vacationCost *= (1.0 + ipc);
+            const int currentYear = in.startYear + i;
+            double regularStaffCost = 0;
+            for (int r = 1; r <= 3; ++r)
+                regularStaffCost += roleGrossFte[r] * activeFteSum(r, currentYear) * (1.0 + in.socialSecurityPct);
+            P.staffCost[i] = regularStaffCost + vacationCost;
             P.otherExpenses[i] = (i == 0
-                ? R.baseData.totalOtherExpenses                                 // B15 = D29
+                ? R.baseData.totalOtherExpenses                                 // B15 = D29 (rent shown separately in row 13)
                 : P.otherExpenses[i-1]) * (1.0 + ipc);                            // row 15
             P.interest[i] = annualSum(R.bankAmort, i, true)
                            + annualSum(R.propertiesAmort,  i, true);                 // row 16 (negative)
@@ -295,7 +431,7 @@ Results compute(const Inputs& in)
         R.baseData.totalStaffCost = R.baseData.staffCost
             + R.baseData.socialSecurity + P.selfEmployedQuota[0];               // D21
         R.baseData.profitBeforeTax = R.baseData.marginAfterRd
-            - R.baseData.totalStaffCost - R.baseData.totalOtherExpenses;  // D30
+            - R.baseData.totalStaffCost - in.premisesRent - R.baseData.totalOtherExpenses;  // D30
 
         // ------------------------- Hoja Impuestos (IRPF, v2) — between rows 17 and 18
         {

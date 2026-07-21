@@ -261,7 +261,7 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
-                        onPressed: mouse.accepted = false
+                        onPressed: (mouse) => mouse.accepted = false
                     }
                 }
             }
@@ -283,8 +283,10 @@ Item {
                     hRow: page.hRow
                     headerLabels: Engine.comparisonScenarios.map(e => e.name)
                     closableColumns: true
+                    applyableColumns: true
                     model: page.filasTabla
-                    onCloseColumn: (index) => Engine.removeComparisonScenario(index)
+                    onCloseColumn: (index) => dlgBorrarEscenario.confirmar(index)
+                    onApplyColumn: (index) => dlgAplicarEscenario.confirmar(index)
                     ScrollBar.vertical: ScrollBar {}
                 }
             }
@@ -356,7 +358,7 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: mouse.accepted = false
+                    onPressed: (mouse) => mouse.accepted = false
                 }
             }
 
@@ -383,7 +385,7 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: mouse.accepted = false
+                    onPressed: (mouse) => mouse.accepted = false
                 }
             }
 
@@ -406,7 +408,206 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onPressed: mouse.accepted = false
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
+        }
+    }
+
+    // ---------------- messagebox: confirmar aplicar un escenario al actual
+    Popup {
+        id: dlgAplicarEscenario
+        anchors.centerIn: parent
+        width: 340
+        modal: true
+        focus: true
+        padding: 20
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        property int pendingIndex: -1
+        property string pendingName: ""
+
+        background: Rectangle {
+            radius: 12
+            color: "white"
+            border.color: "#dde5e1"
+        }
+
+        function confirmar(index) {
+            pendingIndex = index
+            pendingName = Engine.comparisonScenarios[index].name
+            open()
+        }
+
+        contentItem: ColumnLayout {
+            width: dlgAplicarEscenario.availableWidth
+            spacing: 14
+
+            Text {
+                text: "Aplicar \"" + dlgAplicarEscenario.pendingName + "\""
+                font.pixelSize: 15
+                font.bold: true
+                color: "#14523f"
+            }
+            Text {
+                text: "Se sobrescribirán los datos actuales (Datos base, Financiación, Personal, Configuración) con los valores guardados en este escenario. Esta acción no se puede deshacer."
+                font.pixelSize: 13
+                color: "#3c4a46"
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: btnConfirmarAplicar
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                text: "Aplicar al escenario actual"
+                font.pixelSize: 13
+                font.bold: true
+                onClicked: {
+                    const ok = Engine.applyComparisonScenario(dlgAplicarEscenario.pendingIndex)
+                    dlgAplicarEscenario.close()
+                    avisoPdfComparacion.mostrar(ok
+                        ? "Escenario aplicado a los datos actuales"
+                        : "Este escenario es demasiado antiguo y no guarda datos para aplicar")
+                }
+                background: Rectangle {
+                    radius: 8
+                    color: btnConfirmarAplicar.down ? "#0f5a43" : "#1a7a5e"
+                    border.color: "#2b8a6a"
+                }
+                contentItem: Text {
+                    text: btnConfirmarAplicar.text
+                    color: "#ffe9a8"
+                    font: btnConfirmarAplicar.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
+
+            Button {
+                id: btnCancelarAplicar
+                Layout.fillWidth: true
+                Layout.preferredHeight: 34
+                text: "Cancelar"
+                font.pixelSize: 12
+                flat: true
+                onClicked: dlgAplicarEscenario.close()
+                background: Rectangle { color: "transparent" }
+                contentItem: Text {
+                    text: btnCancelarAplicar.text
+                    color: "#6b7a76"
+                    font: btnCancelarAplicar.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
+        }
+    }
+
+    // ---------------- messagebox: confirmar borrar un escenario
+    Popup {
+        id: dlgBorrarEscenario
+        anchors.centerIn: parent
+        width: 340
+        modal: true
+        focus: true
+        padding: 20
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        property int pendingIndex: -1
+        property string pendingName: ""
+
+        background: Rectangle {
+            radius: 12
+            color: "white"
+            border.color: "#dde5e1"
+        }
+
+        function confirmar(index) {
+            pendingIndex = index
+            pendingName = Engine.comparisonScenarios[index].name
+            open()
+        }
+
+        contentItem: ColumnLayout {
+            width: dlgBorrarEscenario.availableWidth
+            spacing: 14
+
+            Text {
+                text: "Borrar \"" + dlgBorrarEscenario.pendingName + "\""
+                font.pixelSize: 15
+                font.bold: true
+                color: "#14523f"
+            }
+            Text {
+                text: "Se eliminará este escenario de la comparación. Esta acción no se puede deshacer."
+                font.pixelSize: 13
+                color: "#3c4a46"
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Button {
+                id: btnConfirmarBorrar
+                Layout.fillWidth: true
+                Layout.preferredHeight: 40
+                text: "Borrar escenario"
+                font.pixelSize: 13
+                font.bold: true
+                onClicked: {
+                    Engine.removeComparisonScenario(dlgBorrarEscenario.pendingIndex)
+                    dlgBorrarEscenario.close()
+                }
+                background: Rectangle {
+                    radius: 8
+                    color: btnConfirmarBorrar.down ? "#8a2a1f" : "#a33b2e"
+                    border.color: "#c24d3c"
+                }
+                contentItem: Text {
+                    text: btnConfirmarBorrar.text
+                    color: "white"
+                    font: btnConfirmarBorrar.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
+
+            Button {
+                id: btnCancelarBorrar
+                Layout.fillWidth: true
+                Layout.preferredHeight: 34
+                text: "Cancelar"
+                font.pixelSize: 12
+                flat: true
+                onClicked: dlgBorrarEscenario.close()
+                background: Rectangle { color: "transparent" }
+                contentItem: Text {
+                    text: btnCancelarBorrar.text
+                    color: "#6b7a76"
+                    font: btnCancelarBorrar.font
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
                 }
             }
         }
