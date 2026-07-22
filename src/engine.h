@@ -54,12 +54,17 @@ public:
     Q_INVOKABLE QString exportComparisonPdf(int year);
 
     // Generates a PDF with the "Simulación" sheet: one page per year (1-10),
-    // each with the 3 Facturación Total groups. 'hiddenColumns' are the
-    // combination (column) indices collapsed with the "eye" filter in
-    // SimulacionView.qml (page.collapsedColumns) — those columns are left
-    // out of the PDF entirely, not just visually collapsed. Same save/
-    // download behavior as exportPdf().
-    Q_INVOKABLE QString exportSimulationPdf(const QVariantList& hiddenColumns);
+    // each with a single table merging every Facturación Total group: for
+    // every combination (plazo/interés/aportación) still visible in at least
+    // one group, one column per group where that combination isn't hidden,
+    // grouped together and preceded by a "Facturación" row identifying which
+    // group's Facturación Total each column used. 'hiddenColumnsPerGroup' has
+    // one entry per group (same order as simulationForYear()'s return value),
+    // each the combination (column) indices collapsed with the "eye" filter
+    // in that group's table (SimulacionView.qml, grupoCol.collapsedColumns)
+    // — those columns are left out of the PDF entirely, not just visually
+    // collapsed. Same save/download behavior as exportPdf().
+    Q_INVOKABLE QString exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup);
 
     // Freezes the current projection (m_projection) as a new scenario saved
     // for the "Comparación" sheet.
@@ -80,14 +85,15 @@ public:
     // year) of each saved scenario, pivoted the same way as comparisonForYear().
     Q_INVOKABLE QVariantList financingComparison() const;
 
-    // "Simulación" sheet: agrupa por Facturación Total (-20%/igual/+20%, 3
-    // grupos) las 8 combinaciones (2×2×2) de aportación inicial y plazo/
-    // interés de hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin
-    // escenarios mixtos con tipos distintos), partiendo del resto de los
-    // inputs actuales. Devuelve una lista de 3 grupos: { "facturacion":
-    // double, "rows": [ {label, values[8], fmt, bold} × 6 ] }, con las
-    // columnas ordenadas por aportación (400.000 € primero) y el valor del
-    // año dado (0-9) en cada fila. Pura: no modifica m_in ni m_r.
+    // "Simulación" sheet: agrupa por Facturación Total (igual / +X%, 2
+    // grupos; X = simulationRevenueIncreasePct, editable en Configuración)
+    // las 8 combinaciones (2×2×2) de aportación inicial y plazo/interés de
+    // hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin escenarios mixtos
+    // con tipos distintos), partiendo del resto de los inputs actuales.
+    // Devuelve una lista de 2 grupos: { "facturacion": double, "rows":
+    // [ {label, values[8], fmt, bold} × 8 ] }, con las columnas ordenadas por
+    // aportación (400.000 € primero) y el valor del año dado (0-9) en cada
+    // fila. Pura: no modifica m_in ni m_r.
     Q_INVOKABLE QVariantList simulationForYear(int year) const;
 
     QVariantMap inputs()        const { return m_inputs; }

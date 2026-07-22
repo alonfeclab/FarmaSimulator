@@ -238,6 +238,12 @@ struct Inputs {
     std::array<double,10> realisticMarginSeries {
         0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
     };
+
+    // ---- Hoja Simulación
+    // % extra de Facturación Total para el segundo grupo de columnas de la
+    // hoja "Simulación" (el primero siempre usa la Facturación Total actual,
+    // sin variar). Editable en Configuración.
+    double simulationRevenueIncreasePct = 0.20; // +20% por defecto
 };
 
 // ---------------------------------------------------------------- Outputs

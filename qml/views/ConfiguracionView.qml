@@ -45,6 +45,9 @@ Flickable {
         for (var k = 0; k < 10; k++) { ks.push("ipcHistorical" + k); ks.push("realisticMarginSeries" + k) }
         return ks
     }
+    function simulationKeys() {
+        return ["simulationRevenueIncreasePct"]
+    }
 
     // Cabecera de columnas de una tabla de tramos.
     component CabeceraTabla: Row {
@@ -365,6 +368,30 @@ Flickable {
                 ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                 FastWheel { flick: scroll5; fallback: page }
                 SerieAnualEdit { id: serieMargen; prefix: "realisticMarginSeries" }
+            }
+        }
+
+        // ---------------- Simulación
+        Card {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "Simulación"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.simulationKeys() }
+            }
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: "#6b7a76"
+                text: "% extra de Facturación Total con el que se calcula la segunda tabla de la hoja "
+                    + "Simulación (la primera siempre usa la Facturación Total actual, sin variar)."
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Text { text: "Facturación Total — segundo grupo (% extra)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                PctField { k: "simulationRevenueIncreasePct"; decimals: 0 }
             }
         }
 

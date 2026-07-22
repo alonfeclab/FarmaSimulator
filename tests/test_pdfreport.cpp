@@ -74,36 +74,33 @@ static QVariantMap simRow(const QString& label, const QString& fmt, bool bold,
                          { "fmt", fmt }, { "bold", bold } };
 }
 
-// Un grupo (una Facturación Total) con las 6 filas de SimulacionView.qml /
-// Engine::simulationForYear(), 'n' combinaciones (columnas) cada una.
-static QVariantMap simGroup(double facturacion, int n)
+// Las 9 filas de la tabla fusionada que arma Engine::exportSimulationPdf() a
+// partir de simulationForYear() (la fila "Facturación" añadida al fusionar
+// los grupos, más las 8 de SimulacionView.qml), 'n' columnas cada una.
+static QVariantList simMergedRows(int n)
 {
-    const QVariantList rows{
-        simRow(QStringLiteral("Años hipoteca mobiliaria"),    QStringLiteral("years"), false, n, 20, 1),
-        simRow(QStringLiteral("Interés hipoteca mobiliaria"), QStringLiteral("pct1"),  false, n, 0.03, 0.001),
-        simRow(QStringLiteral("Años hipoteca inmobiliaria"),  QStringLiteral("years"), false, n, 20, 1),
-        simRow(QStringLiteral("Interés hipoteca inmobiliaria"), QStringLiteral("pct1"), false, n, 0.03, 0.001),
-        simRow(QStringLiteral("Aportación inicial"),          QStringLiteral("eur"),   false, n, 400000, 1000),
-        simRow(QStringLiteral("Beneficio neto mensual"),      QStringLiteral("eur"),   true,  n, 1500, 25),
+    return QVariantList{
+        simRow(QStringLiteral("Facturación"),                    QStringLiteral("eur"),   false, n, 1000000, 50000),
+        simRow(QStringLiteral("Años hipoteca mobiliaria"),        QStringLiteral("years"), false, n, 20, 1),
+        simRow(QStringLiteral("Interés hipoteca mobiliaria"),     QStringLiteral("pct1"),  false, n, 0.03, 0.001),
+        simRow(QStringLiteral("Años hipoteca inmobiliaria"),      QStringLiteral("years"), false, n, 20, 1),
+        simRow(QStringLiteral("Interés hipoteca inmobiliaria"),   QStringLiteral("pct1"),  false, n, 0.03, 0.001),
+        simRow(QStringLiteral("Aportación inicial"),              QStringLiteral("eur"),   false, n, 400000, 1000),
+        simRow(QStringLiteral("Coste total farmacia"),            QStringLiteral("eur"),   false, n, 900000, 5000),
+        simRow(QStringLiteral("Intereses totales pagados"),       QStringLiteral("eur"),   false, n, 150000, 2000),
+        simRow(QStringLiteral("Beneficio neto mensual"),          QStringLiteral("eur"),   true,  n, 1500, 25),
     };
-    return QVariantMap{ { "facturacion", facturacion }, { "rows", rows } };
 }
 
-// 'nAnios' páginas (una por año), cada una con 3 grupos (Facturación Total
-// -20% / igual / +20%) de 'nCombinaciones' columnas — misma forma que arma
-// Engine::exportSimulationPdf() a partir de simulationForYear(), ya con las
-// columnas ocultas ("ojo") descartadas de cada fila.
-static QVariantList simYears(int nAnios, int nCombinaciones)
+// 'nAnios' páginas (una por año), cada una con la tabla fusionada (Facturación
+// Total igual / + un % configurable, ver Engine::exportSimulationPdf) de 'nColumnas'
+// columnas — misma forma que arma Engine::exportSimulationPdf() a partir de
+// simulationForYear(), ya con las columnas ocultas ("ojo") descartadas.
+static QVariantList simYears(int nAnios, int nColumnas)
 {
     QVariantList years;
-    for (int a = 0; a < nAnios; ++a) {
-        const QVariantList groups{
-            simGroup(800000, nCombinaciones),
-            simGroup(1000000, nCombinaciones),
-            simGroup(1200000, nCombinaciones),
-        };
-        years << QVariantMap{ { "year", a + 1 }, { "groups", groups } };
-    }
+    for (int a = 0; a < nAnios; ++a)
+        years << QVariantMap{ { "year", a + 1 }, { "rows", simMergedRows(nColumnas) } };
     return years;
 }
 
@@ -117,26 +114,28 @@ static QStringList combinacionLabels(int n)
 
 void TestPdfReport::escribirSimulacion_datosTipicos_producePdfValido()
 {
-    // 10 años × 3 grupos × 8 combinaciones, como en SimulacionView.qml.
-    const QVariantList years = simYears(10, 8);
+    // 10 años × 16 columnas (2 grupos × 8 combinaciones), como en la tabla
+    // fusionada que arma Engine::exportSimulationPdf().
+    const QVariantList years = simYears(10, 16);
 
     QBuffer buf;
     QVERIFY(buf.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&buf, years, combinacionLabels(8)));
+    QVERIFY(pdf::writeSimulation(&buf, years, combinacionLabels(16)));
     buf.close();
 
-    // Un informe de 10 páginas no es minúsculo.
+    // Un informe con 10 años (cada uno partido en 2 tablas, 16 columnas no
+    // caben legibles en una sola) no es minúsculo.
     QVERIFY(buf.data().size() > 2000);
     QVERIFY(buf.data().startsWith("%PDF-"));
 }
 
 void TestPdfReport::escribirSimulacion_valoresExtremos_noRevienta()
 {
-    // Casos límite: un solo año, una sola combinación (columna) y una
-    // facturación a cero, para comprobar que el maquetado no revienta con
-    // anchos de columna o valores degenerados.
+    // Casos límite: un solo año, una sola columna y una facturación a cero,
+    // para comprobar que el maquetado no revienta con anchos de columna o
+    // valores degenerados.
     const QVariantList years{
-        QVariantMap{ { "year", 1 }, { "groups", QVariantList{ simGroup(0, 1) } } },
+        QVariantMap{ { "year", 1 }, { "rows", simMergedRows(1) } },
     };
 
     QBuffer buf;
@@ -155,17 +154,17 @@ void TestPdfReport::escribirSimulacion_valoresExtremos_noRevienta()
 // no se pintan en el PDF (no quedan "huecos" reservados para ellas).
 void TestPdfReport::escribirSimulacion_conColumnasOcultas_soloIncluyeLasVisibles()
 {
-    const QVariantList aniosCompleto = simYears(10, 8);
-    const QVariantList aniosFiltrado = simYears(10, 3); // como si se hubieran ocultado 5 de 8
+    const QVariantList aniosCompleto = simYears(10, 16);
+    const QVariantList aniosFiltrado = simYears(10, 6); // como si se hubieran ocultado 10 de 16
 
     QBuffer bufCompleto;
     QVERIFY(bufCompleto.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&bufCompleto, aniosCompleto, combinacionLabels(8)));
+    QVERIFY(pdf::writeSimulation(&bufCompleto, aniosCompleto, combinacionLabels(16)));
     bufCompleto.close();
 
     QBuffer bufFiltrado;
     QVERIFY(bufFiltrado.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&bufFiltrado, aniosFiltrado, combinacionLabels(3)));
+    QVERIFY(pdf::writeSimulation(&bufFiltrado, aniosFiltrado, combinacionLabels(6)));
     bufFiltrado.close();
 
     QVERIFY(bufCompleto.data().startsWith("%PDF-"));

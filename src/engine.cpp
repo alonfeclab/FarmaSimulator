@@ -424,6 +424,8 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
         dbl[QStringLiteral("ipcHistorical%1").arg(k)]        = &i.ipcHistorical[k];
         dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
+    // ---- Hoja Simulación
+    dbl["simulationRevenueIncreasePct"] = &i.simulationRevenueIncreasePct;
 }
 
 void Engine::registerInputs()
@@ -604,49 +606,92 @@ QString Engine::exportComparisonPdf(int year)
     return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
 }
 
-QString Engine::exportSimulationPdf(const QVariantList& hiddenColumns)
+QString Engine::exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup)
 {
-    QSet<int> hidden;
-    for (const QVariant& v : hiddenColumns)
-        hidden.insert(v.toInt());
+    // Índices de columna (combinación) ocultos ("ojo"), por grupo (mismo
+    // orden que devuelve simulationForYear(): un elemento por Facturación
+    // Total). Si se reciben menos grupos de los que hay, el resto se trata
+    // como "nada oculto" en ese grupo.
+    QVector<QSet<int>> hiddenPerGroup;
+    for (const QVariant& gv : hiddenColumnsPerGroup) {
+        QSet<int> hidden;
+        for (const QVariant& v : gv.toList())
+            hidden.insert(v.toInt());
+        hiddenPerGroup.push_back(hidden);
+    }
+
+    const QVariantList sample = simulationForYear(0);
+    while (hiddenPerGroup.size() < sample.size())
+        hiddenPerGroup.push_back({});
 
     // Nº total de combinaciones (columnas), igual en todo grupo/año: se lee
     // de las filas del primer grupo del año 1.
     int totalCombinaciones = 0;
-    {
-        const QVariantList sample = simulationForYear(0);
-        if (!sample.isEmpty()) {
-            const QVariantList rows = sample.first().toMap().value(QStringLiteral("rows")).toList();
-            if (!rows.isEmpty())
-                totalCombinaciones = rows.first().toMap().value(QStringLiteral("values")).toList().size();
-        }
+    if (!sample.isEmpty()) {
+        const QVariantList rows = sample.first().toMap().value(QStringLiteral("rows")).toList();
+        if (!rows.isEmpty())
+            totalCombinaciones = rows.first().toMap().value(QStringLiteral("values")).toList().size();
     }
 
+    // Columnas de la tabla fusionada: cada combinación agrupa, una junto a
+    // otra, las columnas de los grupos (Facturación Total) donde esa
+    // combinación no está oculta — mismo plazo/interés/aportación en todas
+    // las columnas de un mismo grupo de combinación, ver la fila
+    // "Facturación" añadida más abajo para distinguirlas.
+    struct ColumnRef { int combo; int group; };
+    QVector<ColumnRef> columns;
+    for (int c = 0; c < totalCombinaciones; ++c)
+        for (int g = 0; g < sample.size(); ++g)
+            if (!hiddenPerGroup[g].contains(c))
+                columns.push_back({ c, g });
+
     QStringList combinacionLabels;
-    for (int i = 0; i < totalCombinaciones; ++i)
-        if (!hidden.contains(i))
-            combinacionLabels << QStringLiteral("Combinación %1").arg(i + 1);
+    for (const ColumnRef& col : columns)
+        combinacionLabels << QStringLiteral("Combinación %1").arg(col.combo + 1);
 
     QVariantList years;
     for (int a = 0; a < 10; ++a) {
-        QVariantList groups = simulationForYear(a);
-        for (QVariant& gv : groups) {
-            QVariantMap group = gv.toMap();
-            QVariantList rows = group.value(QStringLiteral("rows")).toList();
-            for (QVariant& rv : rows) {
-                QVariantMap row = rv.toMap();
-                const QVariantList values = row.value(QStringLiteral("values")).toList();
-                QVariantList filtered;
-                for (int i = 0; i < values.size(); ++i)
-                    if (!hidden.contains(i))
-                        filtered << values.at(i);
-                row[QStringLiteral("values")] = filtered;
-                rv = row;
+        const QVariantList groups = simulationForYear(a);
+
+        QVariantList facturacionValues;
+        for (const ColumnRef& col : columns)
+            facturacionValues << groups.value(col.group).toMap().value(QStringLiteral("facturacion"));
+
+        QVariantList mergedRows{
+            QVariantMap{ { "label", QStringLiteral("Facturación") },
+                         { "values", facturacionValues }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+        };
+
+        const QVariantList templateRows = groups.isEmpty() ? QVariantList()
+                                            : groups.first().toMap().value(QStringLiteral("rows")).toList();
+        for (const QVariant& trv : templateRows) {
+            const QVariantMap templateRow = trv.toMap();
+            QVariantList values;
+            for (const ColumnRef& col : columns) {
+                const QVariantList groupRows = groups.value(col.group).toMap()
+                                                    .value(QStringLiteral("rows")).toList();
+                // Las filas están en el mismo orden en simulationForYear(): se
+                // busca por etiqueta en vez de por índice para no depender de
+                // ese orden coincidiendo entre grupos.
+                QVariantList rowValues;
+                for (const QVariant& rv : groupRows) {
+                    const QVariantMap row = rv.toMap();
+                    if (row.value(QStringLiteral("label")) == templateRow.value(QStringLiteral("label"))) {
+                        rowValues = row.value(QStringLiteral("values")).toList();
+                        break;
+                    }
+                }
+                values << rowValues.value(col.combo);
             }
-            group[QStringLiteral("rows")] = rows;
-            gv = group;
+            mergedRows << QVariantMap{
+                { "label", templateRow.value(QStringLiteral("label")) },
+                { "values", values },
+                { "fmt", templateRow.value(QStringLiteral("fmt")) },
+                { "bold", templateRow.value(QStringLiteral("bold")) },
+            };
         }
-        years << QVariantMap{ { "year", a + 1 }, { "groups", groups } };
+
+        years << QVariantMap{ { "year", a + 1 }, { "rows", mergedRows } };
     }
 
     QBuffer buf;
@@ -1035,7 +1080,8 @@ QVariantList Engine::financingComparison() const
 
 // ---------------------------------------------------------------- simulación (todas las combinaciones)
 
-// Un grupo por cada Facturación Total (-20% / igual / +20%): dentro de cada
+// Un grupo por cada Facturación Total (igual / + un % configurable, ver
+// simulationRevenueIncreasePct en Configuración): dentro de cada
 // grupo, las 8 combinaciones (2×2×2) de aportación inicial, plazo e interés
 // de hipoteca comparten esa misma facturación, así que se muestran juntas y
 // los grupos se apilan uno debajo de otro (ver SimulacionView.qml).
@@ -1046,7 +1092,9 @@ QVariantList Engine::simulationForYear(int year) const
     // aplican a la vez a la hipoteca mobiliaria (banco) e inmobiliaria
     // (propiedades): ambas toman siempre el mismo valor dentro de cada
     // combinación (no hay escenarios "mixtos" con tipos distintos).
-    static const std::array<double,3> kFacturacionFactor { 0.8, 1.0, 1.2 };
+    // El segundo factor es configurable (Configuración: % extra de
+    // Facturación Total), no una constante fija: no puede ser 'static'.
+    const std::array<double,2> kFacturacionFactor { 1.0, 1.0 + m_in.simulationRevenueIncreasePct };
     static const std::array<int,2>    kPlazoHipoteca     { 20, 25 };
     static const std::array<double,2> kTipoHipoteca      { 0.035, 0.03 };
     static const std::array<double,2> kAportacionInicial { 400000.0, 450000.0 };
@@ -1055,7 +1103,8 @@ QVariantList Engine::simulationForYear(int year) const
 
     for (double facFactor : kFacturacionFactor) {
         QVariantList aniosMobiliaria, tipoMobiliaria,
-                     aniosInmobiliaria, tipoInmobiliaria, aportacion, beneficio;
+                     aniosInmobiliaria, tipoInmobiliaria, aportacion,
+                     costeTotal, interesesTotales, beneficio;
         double facturacionTotal = 0;
 
         // Aportación es el eje más externo (tras Facturación) para que, dentro
@@ -1082,6 +1131,11 @@ QVariantList Engine::simulationForYear(int year) const
             aniosInmobiliaria  << plazoYears;
             tipoInmobiliaria    << tipo;
             aportacion          << cash;
+            costeTotal          << r.financing.totalInvestment;
+            // Solo las hipotecas mobiliaria e inmobiliaria varían con plazo/
+            // interés en esta simulación (cooperativa y préstamo familiar
+            // quedan fijos), así que son las únicas que se suman aquí.
+            interesesTotales    << (r.bankAmort.totalInterest + r.propertiesAmort.totalInterest);
             beneficio            << netMonthly;
         }
 
@@ -1096,6 +1150,10 @@ QVariantList Engine::simulationForYear(int year) const
                          { "values", tipoInmobiliaria }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
             QVariantMap{ { "label", QStringLiteral("Aportación inicial") },
                          { "values", aportacion }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Coste total farmacia") },
+                         { "values", costeTotal }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+            QVariantMap{ { "label", QStringLiteral("Intereses totales pagados") },
+                         { "values", interesesTotales }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
             QVariantMap{ { "label", QStringLiteral("Beneficio neto mensual") },
                          { "values", beneficio }, { "fmt", QStringLiteral("eur") }, { "bold", true } },
         };

@@ -4,12 +4,12 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import FarmaciaSim
 
-// Hoja "Simulación": agrupa por Facturación Total (-20% / igual / +20%) las
-// combinaciones de plazo e interés de la hipoteca (mobiliaria e
-// inmobiliaria, ligados) y aportación inicial, partiendo del resto de los
-// datos actuales. Cálculo puro (Engine.simulationForYear): no guarda nada ni
-// afecta a Datos base/Financiación. Un grupo por facturación, apilados uno
-// debajo de otro.
+// Hoja "Simulación": agrupa por Facturación Total (igual / + un % configurable
+// en Configuración) las combinaciones de plazo e interés de la hipoteca
+// (mobiliaria e inmobiliaria, ligados) y aportación inicial, partiendo del
+// resto de los datos actuales. Cálculo puro (Engine.simulationForYear): no
+// guarda nada ni afecta a Datos base/Financiación. Un grupo por facturación,
+// apilados uno debajo de otro.
 Flickable {
     id: page
 
@@ -17,14 +17,32 @@ Flickable {
     readonly property int wCell: 110
     readonly property int hRow: 30
 
-    // Se recalcula cuando cambia el año elegido; simulationForYear es una
-    // función pura sobre los datos actuales (no depende de estado guardado).
-    readonly property var grupos: Engine.simulationForYear(anioCombo.currentIndex)
+    // Se refresca cuando cambia el año elegido o cualquier input del motor
+    // (plazo, tipo, facturación en Datos base, el % de Configuración...).
+    // simulationForYear() es un método invocable que lee el estado interno
+    // del motor directamente: un binding declarativo no basta (una lectura
+    // "descartada" de Engine.inputs solo para forzar la dependencia puede
+    // optimizarse fuera del QML precompilado, ya que su valor no se usa), así
+    // que se recalcula explícitamente con Connections en vez de depender de
+    // que el motor de bindings detecte la dependencia por sí solo.
+    property var grupos: []
+    function refreshGrupos() {
+        page.grupos = Engine.simulationForYear(anioCombo.currentIndex)
+    }
+    Component.onCompleted: page.refreshGrupos()
+    Connections {
+        target: anioCombo
+        function onCurrentIndexChanged() { page.refreshGrupos() }
+    }
+    Connections {
+        target: Engine
+        function onRecalculated() { page.refreshGrupos() }
+    }
 
     // "CN" (combinación N) en vez de "Año N", abreviado para que quepa en la
     // columna, y para no confundirse con los "Escenario N" guardados en
     // Comparación: la columna N es la misma combinación de plazo/interés/
-    // aportación en los 3 grupos (mismo orden en cada uno), solo cambia la
+    // aportación en los 2 grupos (mismo orden en cada uno), solo cambia la
     // Facturación Total de un grupo a otro.
     readonly property var combinacionLabels: {
         const n = page.grupos.length > 0 && page.grupos[0].rows.length > 0
@@ -34,7 +52,7 @@ Flickable {
         return labels
     }
 
-    // Scroll horizontal común a las 3 tablas (una por Facturación Total),
+    // Scroll horizontal común a las 2 tablas (una por Facturación Total),
     // para poder comparar la misma combinación de columna entre grupos.
     // Guard contra el bucle infinito: al igualar el contentX de las otras
     // tablas se dispara su propio onContentXChanged, que debe ser un no-op.
@@ -50,16 +68,17 @@ Flickable {
         page.syncingScroll = false
     }
 
-    // Columnas colapsadas (filtro visual con el "ojo" de la cabecera),
-    // compartidas por las 3 tablas: la columna N es la misma combinación en
-    // cada grupo, así que colapsarla en una debe colapsarla en todas.
-    property var collapsedColumns: []
-    function toggleColumn(index) {
-        const i = page.collapsedColumns.indexOf(index)
-        const arr = page.collapsedColumns.slice()
-        if (i === -1) arr.push(index)
-        else arr.splice(i, 1)
-        page.collapsedColumns = arr
+    // Recopila las columnas colapsadas ("ojo") de cada tabla por separado
+    // (cada grupo lleva ahora su propio filtro, ver grupoCol.collapsedColumns
+    // más abajo), para pasárselas a Engine.exportSimulationPdf en el mismo
+    // orden que sus grupos.
+    function allCollapsedColumns() {
+        const arr = []
+        for (let i = 0; i < repeaterGrupos.count; ++i) {
+            const item = repeaterGrupos.itemAt(i)
+            arr.push(item ? item.collapsedColumns : [])
+        }
+        return arr
     }
 
     contentWidth: width
@@ -83,8 +102,8 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: "Combinaciones de plazo e interés de la hipoteca (mobiliaria e inmobiliaria) y aportación "
-                  + "inicial, agrupadas por Facturación Total (-20% / igual / +20%). No se guarda ni afecta al "
-                  + "resto de la app."
+                  + "inicial, agrupadas por Facturación Total (igual / +" + Fmt.pct(Engine.inputs.simulationRevenueIncreasePct, 0)
+                  + ", configurable en Configuración). No se guarda ni afecta al resto de la app."
             font.pixelSize: 12
             color: "#6b7a76"
             wrapMode: Text.WordWrap
@@ -183,7 +202,7 @@ Flickable {
                 font.pixelSize: 13
                 font.bold: true
                 onClicked: {
-                    const destino = Engine.exportSimulationPdf(page.collapsedColumns)
+                    const destino = Engine.exportSimulationPdf(page.allCollapsedColumns())
                     avisoPdfSimulacion.mostrar(destino.length > 0
                         ? "PDF guardado en: " + destino
                         : "No se pudo crear el PDF")
@@ -245,6 +264,19 @@ Flickable {
                 Layout.topMargin: grupoCol.index > 0 ? 8 : 0
                 spacing: 6
 
+                // Columnas colapsadas (filtro visual con el "ojo" de la
+                // cabecera) de esta tabla en concreto: cada grupo (Facturación
+                // Total) lleva su propio filtro, así que ocultar una columna
+                // aquí no afecta a las demás tablas.
+                property var collapsedColumns: []
+                function toggleColumn(index) {
+                    const i = grupoCol.collapsedColumns.indexOf(index)
+                    const arr = grupoCol.collapsedColumns.slice()
+                    if (i === -1) arr.push(index)
+                    else arr.splice(i, 1)
+                    grupoCol.collapsedColumns = arr
+                }
+
                 Text {
                     text: "Facturación total: " + Fmt.eur(grupoCol.modelData.facturacion)
                     font.pixelSize: 15
@@ -272,8 +304,8 @@ Flickable {
                         headerLabels: page.combinacionLabels
                         model: grupoCol.modelData.rows
                         collapsibleColumns: true
-                        collapsedColumns: page.collapsedColumns
-                        onToggleColumn: (index) => page.toggleColumn(index)
+                        collapsedColumns: grupoCol.collapsedColumns
+                        onToggleColumn: (index) => grupoCol.toggleColumn(index)
                         // La página (Flickable) ya lleva el scroll vertical: esta tabla
                         // solo necesita desplazarse en horizontal (8 columnas).
                         flickableDirection: Flickable.HorizontalFlick
