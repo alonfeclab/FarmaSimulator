@@ -241,9 +241,13 @@ struct Table {
     // 'group'/'groupEnd' = row belonging to a separate group (e.g.
     // "Financiación" in the comparison table): own background, and if it's
     // the last row of the group, a divider line underneath — same as
-    // ConceptTable.qml.
+    // ConceptTable.qml. 'merged' = single value shared by every column
+    // (e.g. "Coste total farmacia" in Simulación): drawn once, centered,
+    // spanning every column after the label — 'cells' only needs the label
+    // (index 0) and that one value (index 1) in this case, same as
+    // ConceptTable.qml's merged row.
     void dataRow(const QStringList& cells, bool highlighted = false,
-                    bool group = false, bool groupEnd = false)
+                    bool group = false, bool groupEnd = false, bool merged = false)
     {
         if (d.y + rowHeight > d.bottomY()) {
             d.pageBreak();
@@ -258,16 +262,30 @@ struct Table {
         d.p.drawRect(QRectF(d.leftX(), d.y, totalWidth(), rowHeight));
 
         d.p.setFont(d.f(fontPt, highlighted));
-        qreal x = d.leftX();
-        for (int i = 0; i < cols.size() && i < cells.size(); ++i) {
-            const QString& t = cells.at(i);
-            QColor color = highlighted ? kGreen : (i == 0 ? kGray : kText);
-            if (i > 0 && t.startsWith(QLatin1Char('-')))
-                color = kRed;                      // negative amounts in red
+        if (merged && cols.size() >= 2) {
+            d.p.setPen(highlighted ? kGreen : kGray);
+            d.p.drawText(QRectF(d.leftX() + 6, d.y, cols.at(0).w - 12, rowHeight),
+                         cols.at(0).align | Qt::AlignVCenter, cells.value(0));
+
+            const QString& t = cells.value(1);
+            QColor color = highlighted ? kGreen : kText;
+            if (t.startsWith(QLatin1Char('-')))
+                color = kRed;
             d.p.setPen(color);
-            d.p.drawText(QRectF(x + 6, d.y, cols.at(i).w - 12, rowHeight),
-                         cols.at(i).align | Qt::AlignVCenter, t);
-            x += cols.at(i).w;
+            d.p.drawText(QRectF(d.leftX() + cols.at(0).w, d.y, totalWidth() - cols.at(0).w, rowHeight),
+                         Qt::AlignHCenter | Qt::AlignVCenter, t);
+        } else {
+            qreal x = d.leftX();
+            for (int i = 0; i < cols.size() && i < cells.size(); ++i) {
+                const QString& t = cells.at(i);
+                QColor color = highlighted ? kGreen : (i == 0 ? kGray : kText);
+                if (i > 0 && t.startsWith(QLatin1Char('-')))
+                    color = kRed;                      // negative amounts in red
+                d.p.setPen(color);
+                d.p.drawText(QRectF(x + 6, d.y, cols.at(i).w - 12, rowHeight),
+                             cols.at(i).align | Qt::AlignVCenter, t);
+                x += cols.at(i).w;
+            }
         }
         if (groupEnd) {
             d.p.setPen(QPen(QColor("#8fb3a3"), 2));
@@ -924,11 +942,18 @@ void simulationYearBlock(Doc& d, const QVariantList& rows, const QStringList& co
         for (const QVariant& rv : rows) {
             const QVariantMap row = rv.toMap();
             const QString fmt = row.value(QStringLiteral("fmt")).toString();
+            const bool merged = row.value(QStringLiteral("merged")).toBool();
             const QVariantList values = row.value(QStringLiteral("values")).toList();
             QStringList cells{ row.value(QStringLiteral("label")).toString() };
-            for (int i = start; i < start + n; ++i)
-                cells << simulationCell(d, values.value(i).toDouble(), fmt);
-            t.dataRow(cells, row.value(QStringLiteral("bold")).toBool());
+            if (merged) {
+                // Un único valor para todas las columnas de esta sub-tabla:
+                // el de la primera (ver Engine::simulationForYear).
+                cells << simulationCell(d, values.value(start).toDouble(), fmt);
+            } else {
+                for (int i = start; i < start + n; ++i)
+                    cells << simulationCell(d, values.value(i).toDouble(), fmt);
+            }
+            t.dataRow(cells, row.value(QStringLiteral("bold")).toBool(), false, false, merged);
         }
     }
 }

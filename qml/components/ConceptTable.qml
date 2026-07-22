@@ -51,6 +51,12 @@ Flickable {
         for (let i = 0; i < root.cols; ++i) w += root.columnWidth(i)
         return w
     }
+    // Todas las columnas colapsadas ("ojo"): oculta el valor de una fila
+    // "merged" (p.ej. "Coste total farmacia" en Simulación), ya que ese
+    // valor es el de la primera combinación y esa columna ya no está visible.
+    function allColumnsCollapsed() {
+        return root.collapsibleColumns && root.cols > 0 && root.collapsedColumns.length >= root.cols
+    }
 
     // Resumen "concepto: valor" de una columna colapsada, para mostrarlo en
     // el tooltip del ojo (una columna colapsada no muestra sus valores).
@@ -126,7 +132,8 @@ Flickable {
                     readonly property bool hasIcons: root.closableColumns || root.applyableColumns || root.collapsibleColumns
                     // Ancho reservado para los iconos (incluido el hueco que Row deja
                     // antes de cada uno), para poder acotar el ancho del nombre y que
-                    // el conjunto nombre+iconos quede centrado sin desbordar la columna.
+                    // el conjunto nombre+iconos quede alineado a la derecha sin
+                    // desbordar la columna.
                     readonly property real iconsWidth: (root.collapsibleColumns ? btnOjo.implicitWidth + headerContent.spacing : 0)
                                                        + (root.applyableColumns ? btnAplicar.implicitWidth + headerContent.spacing : 0)
                                                        + (root.closableColumns ? btnCerrar.implicitWidth + headerContent.spacing : 0)
@@ -134,7 +141,12 @@ Flickable {
 
                     Row {
                         id: headerContent
-                        anchors.centerIn: parent
+                        // Alineado a la derecha, como las celdas de valor de
+                        // cada columna (anchors.right + rightMargin: 8 más
+                        // abajo, en la celda de datos).
+                        anchors.right: parent.right
+                        anchors.rightMargin: 8
+                        anchors.verticalCenter: parent.verticalCenter
                         spacing: 10
 
                         Text {
@@ -242,6 +254,12 @@ Flickable {
                 // filas normales) y, si es la última del grupo, línea divisoria abajo.
                 readonly property bool esGrupo: !!fila.modelData.grupo
                 readonly property bool finGrupo: !!fila.modelData.groupEnd
+                // Fila con un único valor igual (o prácticamente igual) en todas
+                // las columnas (p.ej. "Coste total farmacia" en Simulación): en
+                // vez de repetirlo columna a columna, se muestra una sola vez,
+                // centrado, abarcando el ancho de todas las columnas, con el
+                // valor de la primera.
+                readonly property bool esMerged: !!fila.modelData.merged
 
                 Rectangle {
                     width: fila.esSeparador ? (root.wLabel + root.totalColumnsWidth()) : root.wLabel
@@ -270,8 +288,39 @@ Flickable {
                         color: "#8fb3a3"
                     }
                 }
+                Rectangle {
+                    visible: fila.esMerged
+                    width: root.totalColumnsWidth()
+                    height: root.hRow
+                    color: fila.esGrupo ? "#eef5f1"
+                         : fila.modelData.bold ? "#e3efe9"
+                         : (fila.index % 2 ? "#f7faf8" : "white")
+                    Text {
+                        readonly property real valor: (fila.modelData.values && fila.modelData.values.length > 0)
+                                                       ? fila.modelData.values[0] : 0
+                        // Si se han colapsado todas las columnas, el valor
+                        // (de la primera combinación) ya no tiene una columna
+                        // visible a la que asociarse: se esconde, igual que
+                        // el valor de una celda normal al colapsar su columna.
+                        visible: !root.allColumnsCollapsed()
+                        anchors.centerIn: parent
+                        text: Fmt.byFmt(valor, fila.modelData.fmt)
+                        font.pixelSize: root.fontSize
+                        font.bold: fila.modelData.bold
+                        color: valor < 0 ? "#a33b2e"
+                             : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                    }
+                    Rectangle {
+                        visible: fila.finGrupo
+                        anchors.bottom: parent.bottom
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        height: 2
+                        color: "#8fb3a3"
+                    }
+                }
                 Repeater {
-                    model: fila.esSeparador ? 0 : root.cols
+                    model: (fila.esSeparador || fila.esMerged) ? 0 : root.cols
                     Rectangle {
                         id: celda
                         required property int index

@@ -688,6 +688,7 @@ QString Engine::exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup)
                 { "values", values },
                 { "fmt", templateRow.value(QStringLiteral("fmt")) },
                 { "bold", templateRow.value(QStringLiteral("bold")) },
+                { "merged", templateRow.value(QStringLiteral("merged")) },
             };
         }
 
@@ -1097,7 +1098,10 @@ QVariantList Engine::simulationForYear(int year) const
     const std::array<double,2> kFacturacionFactor { 1.0, 1.0 + m_in.simulationRevenueIncreasePct };
     static const std::array<int,2>    kPlazoHipoteca     { 20, 25 };
     static const std::array<double,2> kTipoHipoteca      { 0.035, 0.03 };
-    static const std::array<double,2> kAportacionInicial { 400000.0, 450000.0 };
+    // La aportación inicial actual (Financiación: "Liquidez aportada") y esa
+    // misma cifra +50.000 €, no un par de constantes fijas: no puede ser
+    // 'static'.
+    const std::array<double,2> kAportacionInicial { m_in.contributedCash, m_in.contributedCash + 50000.0 };
 
     QVariantList groups;
 
@@ -1108,8 +1112,8 @@ QVariantList Engine::simulationForYear(int year) const
         double facturacionTotal = 0;
 
         // Aportación es el eje más externo (tras Facturación) para que, dentro
-        // de cada grupo, todas las columnas de 400.000 € queden antes que las
-        // de 450.000 €.
+        // de cada grupo, todas las columnas con la aportación actual queden
+        // antes que las de esa cifra +50.000 €.
         for (double cash : kAportacionInicial)
         for (int plazoYears : kPlazoHipoteca)
         for (double tipo : kTipoHipoteca) {
@@ -1150,8 +1154,16 @@ QVariantList Engine::simulationForYear(int year) const
                          { "values", tipoInmobiliaria }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
             QVariantMap{ { "label", QStringLiteral("Aportación inicial") },
                          { "values", aportacion }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+            // "merged": no depende del plazo/interés de la hipoteca, solo de
+            // la aportación inicial (y, dentro de ese margen, apenas varía:
+            // solo por la comisión de apertura sobre la financiación
+            // bancaria) — repetirlo en las 8 columnas es ruido, así que se
+            // muestra una sola vez, centrado, con el valor de la primera
+            // combinación (ver ConceptTable.qml y Table::dataRow en
+            // pdfreport.cpp).
             QVariantMap{ { "label", QStringLiteral("Coste total farmacia") },
-                         { "values", costeTotal }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+                         { "values", costeTotal }, { "fmt", QStringLiteral("eur") }, { "bold", false },
+                         { "merged", true } },
             QVariantMap{ { "label", QStringLiteral("Intereses totales pagados") },
                          { "values", interesesTotales }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
             QVariantMap{ { "label", QStringLiteral("Beneficio neto mensual") },

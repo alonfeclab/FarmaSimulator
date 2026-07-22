@@ -89,10 +89,12 @@ public:
     // grupos; X = simulationRevenueIncreasePct, editable en Configuración)
     // las 8 combinaciones (2×2×2) de aportación inicial y plazo/interés de
     // hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin escenarios mixtos
-    // con tipos distintos), partiendo del resto de los inputs actuales.
+    // con tipos distintos), partiendo del resto de los inputs actuales. La
+    // aportación inicial usa la "Liquidez aportada" actual (Financiación:
+    // contributedCash) y esa misma cifra +50.000 €, no valores fijos.
     // Devuelve una lista de 2 grupos: { "facturacion": double, "rows":
     // [ {label, values[8], fmt, bold} × 8 ] }, con las columnas ordenadas por
-    // aportación (400.000 € primero) y el valor del año dado (0-9) en cada
+    // aportación (la actual primero) y el valor del año dado (0-9) en cada
     // fila. Pura: no modifica m_in ni m_r.
     Q_INVOKABLE QVariantList simulationForYear(int year) const;
 
