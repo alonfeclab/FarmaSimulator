@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import FarmaciaSim
 
 // Título de sección con barra de acento, estilo cabecera de la hoja Excel.
 ColumnLayout {
@@ -13,14 +14,14 @@ ColumnLayout {
         Layout.fillWidth: true
         font.pixelSize: 15
         font.bold: true
-        color: "#14523f"
+        color: Tokens.textHeading
         wrapMode: Text.WordWrap
     }
     Rectangle {
         Layout.fillWidth: true
         Layout.preferredHeight: 2
         radius: 1
-        color: "#1a7a5e"
+        color: Tokens.borderAccent
         opacity: 0.35
     }
 }

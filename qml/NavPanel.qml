@@ -15,7 +15,7 @@ Rectangle {
 
     signal navigate(int index)
 
-    color: "#123f31"
+    color: Tokens.bgNav
 
     ColumnLayout {
         anchors.fill: parent
@@ -24,13 +24,13 @@ Rectangle {
 
         Text {
             text: "SIMULACIÓN\nFARMACIA"
-            color: "white"
+            color: Tokens.textOnDark
             font.pixelSize: 19
             font.bold: true
             lineHeight: 1.1
             Layout.margins: 8
         }
-        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#2b6a52" }
+        Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Tokens.borderNavDivider }
         Item { Layout.preferredHeight: 6 }
 
         // Lista de pestañas con scroll propio: en móvil, con muchas pestañas,
@@ -64,8 +64,8 @@ Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: root.compact ? 50 : 42
                         radius: 8
-                        color: root.currentIndex === index ? "#1a7a5e"
-                             : mouse.containsMouse ? "#1a5a45" : "transparent"
+                        color: root.currentIndex === index ? Tokens.bgNavItemActive
+                             : mouse.containsMouse ? Tokens.bgNavItemHover : Tokens.bgTransparent
 
                         RowLayout {
                             anchors.fill: parent
@@ -79,7 +79,7 @@ Rectangle {
                             }
                             Text {
                                 text: navItem.modelData.nombre
-                                color: "white"
+                                color: Tokens.textOnDark
                                 font.pixelSize: 14
                                 font.bold: root.currentIndex === navItem.index
                                 Layout.fillWidth: true
@@ -113,12 +113,12 @@ Rectangle {
             }
             background: Rectangle {
                 radius: 8
-                color: btnPdf.down ? "#0f5a43" : "#1a7a5e"
-                border.color: "#2b8a6a"
+                color: btnPdf.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                border.color: Tokens.borderButtonPrimary
             }
             contentItem: Text {
                 text: btnPdf.text
-                color: "#ffe9a8"
+                color: Tokens.textButtonPrimary
                 font: btnPdf.font
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -134,7 +134,7 @@ Rectangle {
             visible: false
             Layout.fillWidth: true
             wrapMode: Text.WrapAnywhere
-            color: "#cfe8de"
+            color: Tokens.textOnDarkSecondary
             font.pixelSize: 10
             horizontalAlignment: Text.AlignHCenter
 
@@ -159,12 +159,12 @@ Rectangle {
             onClicked: Engine.resetToDefaults()
             background: Rectangle {
                 radius: 8
-                color: btnRestaurar.down ? "#0e3226" : "#1a5a45"
-                border.color: "#2b6a52"
+                color: btnRestaurar.down ? Tokens.bgButtonSecondaryPressed : Tokens.bgButtonSecondaryDefault
+                border.color: Tokens.borderButtonSecondary
             }
             contentItem: Text {
                 text: btnRestaurar.text
-                color: "#cfe8de"
+                color: Tokens.textOnDarkSecondary
                 font: btnRestaurar.font
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -177,13 +177,13 @@ Rectangle {
         }
         Text {
             text: "Los campos amarillos son editables"
-            color: "#7fae9c"
+            color: Tokens.textOnDarkMuted
             font.pixelSize: 11
             Layout.alignment: Qt.AlignHCenter
         }
         Text {
             text: "Cambios guardados automáticamente"
-            color: "#7fae9c"
+            color: Tokens.textOnDarkMuted
             font.pixelSize: 10
             Layout.alignment: Qt.AlignHCenter
             Layout.bottomMargin: 4

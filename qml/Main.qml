@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumHeight: 480
     visible: true
     title: "Simulación Farmacia"
-    color: "#eef2f0"
+    color: Tokens.bgApp
 
     // Por debajo de este ancho la barra lateral se convierte en un
     // menú deslizante (Drawer) para dejar sitio al contenido en
@@ -40,7 +40,7 @@ ApplicationWindow {
     header: ToolBar {
         visible: win.compact
         height: visible ? 52 : 0
-        background: Rectangle { color: "#123f31" }
+        background: Rectangle { color: Tokens.bgNav }
 
         RowLayout {
             anchors.fill: parent
@@ -53,7 +53,7 @@ ApplicationWindow {
                 Layout.preferredHeight: 48
                 contentItem: Text {
                     text: "☰"
-                    color: "white"
+                    color: Tokens.textOnDark
                     font.pixelSize: 22
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -79,7 +79,7 @@ ApplicationWindow {
                 }
                 Text {
                     text: win.hojas[stack.currentIndex].nombre
-                    color: "white"
+                    color: Tokens.textOnDark
                     font.pixelSize: 16
                     font.bold: true
                     elide: Text.ElideRight

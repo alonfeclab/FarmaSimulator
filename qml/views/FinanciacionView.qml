@@ -27,13 +27,13 @@ Flickable {
         property bool indent: false
         Text {
             text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
-            color: calcRow.destacada ? "#14523f" : "#3c4a46"; Layout.fillWidth: true
+            color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary; Layout.fillWidth: true
             Layout.leftMargin: calcRow.indent ? 16 : 0
             wrapMode: Text.WordWrap
         }
         Text {
             text: Fmt.eur(calcRow.value); font.pixelSize: 14; font.bold: true
-            color: calcRow.destacada ? "#14523f" : "#1e2b28"
+            color: calcRow.destacada ? Tokens.textHeading : Tokens.textPrimary
             Layout.alignment: Qt.AlignRight
         }
     }
@@ -49,7 +49,7 @@ Flickable {
         Layout.fillWidth: true
         spacing: 2
         RowCard {
-            Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+            Text { text: editRow.label; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
             MoneyField { k: editRow.k; invalid: editRow.invalid; Layout.alignment: Qt.AlignRight }
         }
         Text {
@@ -57,7 +57,7 @@ Flickable {
             visible: editRow.showMinimo
             Layout.alignment: Qt.AlignRight
             font.pixelSize: 11
-            color: editRow.invalid ? "#c0392b" : "#3c4a46"
+            color: editRow.invalid ? Tokens.textInvalid : Tokens.textSecondary
         }
         Text {
             text: editRow.warningText
@@ -67,7 +67,7 @@ Flickable {
             horizontalAlignment: Text.AlignRight
             wrapMode: Text.WordWrap
             font.pixelSize: 11
-            color: "#c0392b"
+            color: Tokens.textInvalid
         }
         Text {
             text: "(máx(0, (Total inversión " + Fmt.eur(Engine.financing.totalInvestment)
@@ -86,7 +86,7 @@ Flickable {
             wrapMode: Text.WordWrap
             font.pixelSize: 10
             font.italic: true
-            color: "#7a8985"
+            color: Tokens.textFaint
         }
     }
 
@@ -95,7 +95,7 @@ Flickable {
         property string label
         property string k
         property int decimals: 1
-        Text { text: pctRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        Text { text: pctRow.label; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         PctField { k: pctRow.k; decimals: pctRow.decimals; Layout.alignment: Qt.AlignRight }
     }
 
@@ -103,7 +103,7 @@ Flickable {
         id: plazoRow
         property string label
         property string k
-        Text { text: plazoRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        Text { text: plazoRow.label; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         NumField { k: plazoRow.k; suffix: " años"; Layout.alignment: Qt.AlignRight }
     }
 
@@ -111,7 +111,7 @@ Flickable {
         id: mesesRow
         property string label
         property string k
-        Text { text: mesesRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        Text { text: mesesRow.label; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         NumField { k: mesesRow.k; suffix: " meses"; Layout.alignment: Qt.AlignRight }
     }
 
@@ -123,8 +123,8 @@ Flickable {
         default property alias content: box.data
         Layout.fillWidth: true
         radius: 8
-        color: "#eef5f1"
-        border.color: "#d5e6dc"
+        color: Tokens.bgAccentTint
+        border.color: Tokens.borderRowCardDefault
         implicitHeight: colWrap.implicitHeight + 16
 
         ColumnLayout {
@@ -135,7 +135,7 @@ Flickable {
             anchors.margins: 8
             spacing: 6
 
-            Text { text: srcGroup.title; font.bold: true; font.pixelSize: 12; color: "#14523f" }
+            Text { text: srcGroup.title; font.bold: true; font.pixelSize: 12; color: Tokens.textHeading }
             ColumnLayout {
                 id: box
                 Layout.fillWidth: true
@@ -152,13 +152,13 @@ Flickable {
         width: Math.min(page.width - 48, 820)
         spacing: 14
 
-        Text { text: "Estudio de financiación"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text { text: "Estudio de financiación"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         // ---------------- Inversión operación
         Card {
             SectionTitle { text: "Inversión operación" }
             RowCard {
-                Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 NumField { k: "goodwillMultiple"; decimals: 2; Layout.alignment: Qt.AlignRight }
             }
             CalcRow { label: "Fondo de comercio"; value: Engine.financing.goodwill }

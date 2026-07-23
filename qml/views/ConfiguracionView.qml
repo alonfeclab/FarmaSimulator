@@ -13,6 +13,8 @@ import FarmaciaSim
 Flickable {
     id: page
 
+    readonly property bool angosto: width < 640
+
     contentWidth: width
     contentHeight: col.implicitHeight + 48
     clip: true
@@ -60,11 +62,11 @@ Flickable {
             Rectangle {
                 id: hdrCell
                 required property string modelData
-                width: cabecera.wCell; height: 30; color: "#14523f"
+                width: cabecera.wCell; height: 30; color: Tokens.bgBrandStrong
                 Text {
                     anchors.centerIn: parent
                     text: hdrCell.modelData
-                    color: "white"; font.bold: true; font.pixelSize: 12
+                    color: Tokens.textOnDark; font.bold: true; font.pixelSize: 12
                 }
             }
         }
@@ -77,7 +79,7 @@ Flickable {
         property int wCell: 148
         implicitWidth: wCell
         implicitHeight: 44
-        color: par ? "white" : "#f7faf8"
+        color: par ? Tokens.bgTableRowPrimary : Tokens.bgTableRowAlt
     }
 
     // Serie editable de 10 años (IPC histórico, margen comercial...).
@@ -94,11 +96,11 @@ Flickable {
                 Rectangle {
                     id: hdrCell
                     required property int index
-                    width: serie.wCell; height: 26; color: "#14523f"
+                    width: serie.wCell; height: 26; color: Tokens.bgBrandStrong
                     Text {
                         anchors.centerIn: parent
                         text: "Año " + (hdrCell.index + 1)
-                        color: "white"; font.bold: true; font.pixelSize: 11
+                        color: Tokens.textOnDark; font.bold: true; font.pixelSize: 11
                     }
                 }
             }
@@ -110,7 +112,7 @@ Flickable {
                     id: celda
                     required property int index
                     width: serie.wCell; height: 40
-                    color: celda.index % 2 ? "#f7faf8" : "white"
+                    color: celda.index % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary
                     PctField {
                         anchors.centerIn: parent
                         implicitWidth: serie.wCell - 8
@@ -133,13 +135,13 @@ Flickable {
             text: "Configuración"
             font.pixelSize: 22;
             font.bold: true;
-            color: "#14523f"
+            color: Tokens.textHeading
         }
         Text {
             text: "Escalas y series oficiales usadas por el simulador. Son editables, con los valores "
                 + "vigentes como punto de partida; \"Restaurar valores\" (panel lateral) también las restaura."
             font.pixelSize: 13
-            color: "#6b7a76"
+            color: Tokens.textMuted
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
@@ -150,13 +152,13 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "IRPF — escala general 2026"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.irpfKeys() }
+                ResetGroupButton { keys: page.irpfKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Tramos de la base liquidable general, usados para calcular la cuota escala en la hoja Impuestos."
             }
             Flickable {
@@ -194,20 +196,20 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "RETA — cuota de autónomos"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.retaKeys() }
+                ResetGroupButton { keys: page.retaKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Tarifa plana durante los primeros 12 meses de actividad. A partir del segundo año se "
                     + "aplica la escala por tramos de rendimientos netos mensuales."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Tarifa plana (mensual)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "Tarifa plana (mensual)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 MoneyField { k: "retaFlatMonthlyFee"; decimals: 2 }
             }
             Flickable {
@@ -244,13 +246,13 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "Reales decretos (RD 823/2008, art. 2.5)"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.rdKeys() }
+                ResetGroupButton { keys: page.rdKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Escala de deducción sobre la facturación mensual de recetas (PVP+IVA) al SNS, usada en Datos base."
             }
             Flickable {
@@ -288,43 +290,43 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "Compraventa de la farmacia — porcentajes fijos"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.fixedPctKeys() }
+                ResetGroupButton { keys: page.fixedPctKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Usados en Financiación e Impuestos para calcular honorarios, impuestos de la compraventa y existencias estimadas a 10 años."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Honorarios (% s/ fondo de comercio + local)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "Honorarios (% s/ fondo de comercio + local)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "feesPct"; decimals: 1 }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "IVA (% s/ honorarios)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "IVA (% s/ honorarios)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "ivaPct"; decimals: 1 }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "ITP (% s/ local comercial)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "ITP (% s/ local comercial)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "itpPct"; decimals: 1 }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "AJD (% s/ fondo de comercio + existencias)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "AJD (% s/ fondo de comercio + existencias)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "ajdPct"; decimals: 1 }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Existencias a 10 años (% s/ venta total año 10)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "Existencias a 10 años (% s/ venta total año 10)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "inventoryPctYear10"; decimals: 1 }
             }
         }
@@ -335,19 +337,19 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "Personal — subida salarial anual"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.salaryKeys() }
+                ResetGroupButton { keys: page.salaryKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Porcentaje fijo con el que suben cada año los sueldos de la plantilla y los refuerzos de vacaciones en la Proyección a 10 años, independiente del IPC del escenario de crecimiento."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Subida salarial anual"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "Subida salarial anual"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "salaryRaisePct"; decimals: 1 }
             }
         }
@@ -358,16 +360,16 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 12
                 SectionTitle { text: "Escenario realista — series históricas"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.historicalSeriesKeys() }
+                ResetGroupButton { keys: page.historicalSeriesKeys(); compact: page.angosto }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Series que alimenta el escenario de crecimiento \"Realista\" en Financiación y Proyección."
             }
-            Text { text: "IPC histórico (INE)"; font.pixelSize: 12; font.bold: true; color: "#3c4a46" }
+            Text { text: "IPC histórico (INE)"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary }
             Flickable {
                 id: scroll4
                 Layout.fillWidth: true
@@ -380,7 +382,7 @@ Flickable {
                 FastWheel { flick: scroll4; fallback: page }
                 SerieAnualEdit { id: serieIpc; prefix: "ipcHistorical" }
             }
-            Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: "#3c4a46"; Layout.topMargin: 8 }
+            Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary; Layout.topMargin: 8 }
             Flickable {
                 id: scroll5
                 Layout.fillWidth: true
@@ -396,7 +398,10 @@ Flickable {
         }
 
         // ---------------- Carpeta de guardado de PDFs
+        // No aplica en la versión web (los informes siempre se descargan a
+        // través del navegador), así que la tarjeta entera se oculta ahí.
         Card {
+            visible: Qt.platform.os !== "wasm"
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -406,23 +411,28 @@ Flickable {
                     text: "Restaurar (Documentos)"
                     font.pixelSize: 11
                     implicitHeight: 28
-                    leftPadding: 10
-                    rightPadding: 10
-                    visible: Qt.platform.os !== "wasm"
+                    leftPadding: page.angosto ? 0 : 10
+                    rightPadding: page.angosto ? 0 : 10
+                    implicitWidth: page.angosto ? implicitHeight : implicitContentWidth + leftPadding + rightPadding
                     onClicked: Engine.setPdfSaveDir("")
                     background: Rectangle {
                         radius: 6
-                        color: btnRestaurarCarpeta.down ? "#eef5f1" : "white"
-                        border.color: (btnRestaurarCarpeta.hovered || btnRestaurarCarpeta.down) ? "#1a7a5e" : "#c9d6d0"
+                        color: btnRestaurarCarpeta.down ? Tokens.bgAccentTint : Tokens.bgButtonGhostDefault
+                        border.color: (btnRestaurarCarpeta.hovered || btnRestaurarCarpeta.down) ? Tokens.borderInteractiveHover : Tokens.borderButtonGhostDefault
                         border.width: 1
                     }
                     contentItem: Text {
-                        text: btnRestaurarCarpeta.text
-                        color: "#1a5a45"
-                        font: btnRestaurarCarpeta.font
+                        text: page.angosto ? "↺" : btnRestaurarCarpeta.text
+                        color: Tokens.textButtonGhost
+                        font.family: btnRestaurarCarpeta.font.family
+                        font.pixelSize: page.angosto ? 16 : btnRestaurarCarpeta.font.pixelSize
+                        font.bold: page.angosto
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
+                    ToolTip.visible: page.angosto && btnRestaurarCarpeta.hovered
+                    ToolTip.text: btnRestaurarCarpeta.text
+                    ToolTip.delay: 400
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
@@ -434,22 +444,12 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
-                visible: Qt.platform.os !== "wasm"
+                color: Tokens.textMuted
                 text: "Carpeta donde se guardan (y desde donde se abren) los informes PDF exportados desde Datos base, Comparación y Simulación. Déjala en blanco para usar la carpeta de Documentos del usuario."
-            }
-            Text {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.pixelSize: 12
-                color: "#6b7a76"
-                visible: Qt.platform.os === "wasm"
-                text: "En la versión web, los informes se descargan siempre a través del navegador; esta carpeta no aplica."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                visible: Qt.platform.os !== "wasm"
                 Button {
                     id: btnCarpetaPdf
                     Layout.fillWidth: true
@@ -462,13 +462,13 @@ Flickable {
                     }
                     background: Rectangle {
                         radius: 5
-                        color: "#fffbe8"
-                        border.color: (btnCarpetaPdf.hovered || btnCarpetaPdf.down) ? "#1a7a5e" : "#e0d6ac"
+                        color: Tokens.bgInput
+                        border.color: (btnCarpetaPdf.hovered || btnCarpetaPdf.down) ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                         border.width: 1
                     }
                     contentItem: Text {
                         text: btnCarpetaPdf.text
-                        color: "#1e2b28"
+                        color: Tokens.textPrimary
                         font: btnCarpetaPdf.font
                         leftPadding: 10
                         rightPadding: 10

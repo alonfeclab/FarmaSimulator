@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import FarmaciaSim
 
 // Caja con fondo y borde suave que envuelve una fila de "etiqueta: valor"
 // (EditRow, CalcRow, PctRow, PlazoRow...) para que ambos queden unidos
@@ -19,8 +20,8 @@ Rectangle {
 
     Layout.fillWidth: true
     radius: 8
-    color: destacada ? "#bfe2cf" : "#f4f8f6"
-    border.color: destacada ? "#7fbb9b" : "#d5e6dc"
+    color: destacada ? Tokens.bgRowCardEmphasis : Tokens.bgRowCardDefault
+    border.color: destacada ? Tokens.borderRowCardEmphasis : Tokens.borderRowCardDefault
     border.width: 1
     implicitHeight: rowContent.implicitHeight + 12
 

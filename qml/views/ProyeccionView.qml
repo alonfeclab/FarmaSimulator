@@ -19,14 +19,14 @@ Item {
         anchors.margins: 24
         spacing: 12
 
-        Text { text: "Proyección a 10 años"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text { text: "Proyección a 10 años"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
             clip: true
 
             ConceptTable {
@@ -45,7 +45,7 @@ Item {
             Layout.fillWidth: true
             text: "El escenario de crecimiento (Realista/Optimista) se elige en la hoja Financiación."
             font.pixelSize: 12
-            color: "#6b7a76"
+            color: Tokens.textMuted
             wrapMode: Text.WordWrap
         }
     }

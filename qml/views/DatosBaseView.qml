@@ -25,7 +25,7 @@ Flickable {
             text: label
             font.pixelSize: 13
             font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46"
+            color: destacada ? Tokens.textHeading : Tokens.textSecondary
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
@@ -33,7 +33,7 @@ Flickable {
             text: Fmt.eur(value)
             font.pixelSize: 14
             font.bold: true
-            color: destacada ? "#14523f" : "#1e2b28"
+            color: destacada ? Tokens.textHeading : Tokens.textPrimary
             Layout.alignment: Qt.AlignRight
         }
     }
@@ -44,7 +44,7 @@ Flickable {
         property string label
         property string k
         property real multiplier: 1
-        Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+        Text { text: editRow.label; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
         MoneyField { k: editRow.k; multiplier: editRow.multiplier; Layout.alignment: Qt.AlignRight }
     }
 
@@ -57,7 +57,7 @@ Flickable {
         width: Math.min(page.width - 48, 760)
         spacing: 14
 
-        Text { text: "Datos base del estudio"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text { text: "Datos base del estudio"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         // ---------------- Escenario de crecimiento
         Card {
@@ -68,7 +68,7 @@ Flickable {
 
                 Text {
                     text: "Tipo"
-                    font.pixelSize: 13; color: "#3c4a46"
+                    font.pixelSize: 13; color: Tokens.textSecondary
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                 }
@@ -87,16 +87,16 @@ Flickable {
 
                     background: Rectangle {
                         radius: 5
-                        color: "#fffbe8"
+                        color: Tokens.bgInput
                         border.color: escenarioCombo.activeFocus || escenarioCombo.popup.visible
-                                      ? "#1a7a5e" : "#e0d6ac"
+                                      ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                         border.width: 1
                     }
 
                     contentItem: Text {
                         text: escenarioCombo.displayText
                         font.pixelSize: 14
-                        color: "#1e2b28"
+                        color: Tokens.textPrimary
                         leftPadding: 10
                         rightPadding: escenarioCombo.indicator.width + 8
                         verticalAlignment: Text.AlignVCenter
@@ -107,7 +107,7 @@ Flickable {
                         y: (escenarioCombo.height - height) / 2
                         text: "▾"
                         font.pixelSize: 12
-                        color: "#14523f"
+                        color: Tokens.textHeading
                     }
 
                     popup: Popup {
@@ -127,8 +127,8 @@ Flickable {
 
                         background: Rectangle {
                             radius: 5
-                            color: "#fffbe8"
-                            border.color: "#e0d6ac"
+                            color: Tokens.bgInput
+                            border.color: Tokens.borderInputDefault
                             border.width: 1
                         }
                     }
@@ -143,19 +143,19 @@ Flickable {
                         contentItem: Text {
                             text: comboDelegate.modelData
                             font.pixelSize: 14
-                            color: "#1e2b28"
+                            color: Tokens.textPrimary
                             leftPadding: 10
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         background: Rectangle {
-                            color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                            color: comboDelegate.highlighted ? Tokens.bgDropdownItemHighlighted : Tokens.bgInput
                         }
                     }
                 }
                 Text {
                     text: "IPC"
-                    font.pixelSize: 13; color: "#3c4a46"
+                    font.pixelSize: 13; color: Tokens.textSecondary
                     visible: escenarioCombo.currentIndex === 1
                 }
                 PctField {
@@ -169,7 +169,7 @@ Flickable {
                       ? "Se aplica el IPC indicado, constante, a los 10 años de la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
                       : "Se aplica el IPC histórico de España de los últimos 10 años a la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 wrapMode: Text.WordWrap
             }
 
@@ -185,18 +185,18 @@ Flickable {
                     text: "M. Comercial % aplicado"
                     font.pixelSize: 12
                     font.bold: true
-                    color: "#14523f"
+                    color: Tokens.textHeading
                 }
                 RowCard {
-                    Text { text: "Año 1"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "Año 1"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear1"; Layout.alignment: Qt.AlignRight }
                 }
                 RowCard {
-                    Text { text: "Año 2"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "Año 2"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear2"; Layout.alignment: Qt.AlignRight }
                 }
                 RowCard {
-                    Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
+                    Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear3"; Layout.alignment: Qt.AlignRight }
                 }
             }
@@ -243,12 +243,12 @@ Flickable {
             }
             background: Rectangle {
                 radius: 8
-                color: btnComparar.down ? "#0f5a43" : "#1a7a5e"
-                border.color: "#2b8a6a"
+                color: btnComparar.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                border.color: Tokens.borderButtonPrimary
             }
             contentItem: Text {
                 text: btnComparar.text
-                color: "#ffe9a8"
+                color: Tokens.textButtonPrimary
                 font: btnComparar.font
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -264,7 +264,7 @@ Flickable {
             visible: false
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            color: "#14523f"
+            color: Tokens.textHeading
             font.pixelSize: 12
 
             function mostrar(mensaje) {

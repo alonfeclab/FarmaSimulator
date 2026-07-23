@@ -48,7 +48,7 @@ Item {
         anchors.margins: 24
         spacing: 12
 
-        Text { text: "Comparación de escenarios"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text { text: "Comparación de escenarios"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         // ---------------- estado vacío: no hay escenarios guardados
         ColumnLayout {
@@ -64,7 +64,7 @@ Item {
                 width: 88
                 height: 88
                 radius: width / 2
-                color: "#14523f"
+                color: Tokens.bgBrandStrong
                 Image {
                     anchors.centerIn: parent
                     source: "qrc:/qt/qml/FarmaciaSim/icons/comparacion.svg"
@@ -77,14 +77,14 @@ Item {
                 text: "No hay datos para comparar"
                 font.pixelSize: 15
                 font.bold: true
-                color: "#14523f"
+                color: Tokens.textHeading
                 horizontalAlignment: Text.AlignHCenter
                 Layout.alignment: Qt.AlignHCenter
             }
             Text {
                 text: "Ve a la hoja \"Datos base\" y pulsa \"Añadir a comparación\" para guardar el escenario actual."
                 font.pixelSize: 13
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 Layout.alignment: Qt.AlignHCenter
@@ -116,14 +116,14 @@ Item {
                         x: switchVistaCompleta.leftPadding
                         y: parent.height / 2 - height / 2
                         radius: 11
-                        color: switchVistaCompleta.checked ? "#1a7a5e" : "#c9d6cf"
-                        border.color: switchVistaCompleta.checked ? "#1a7a5e" : "#a8b8b0"
+                        color: switchVistaCompleta.checked ? Tokens.bgSwitchTrackOn : Tokens.bgSwitchTrackOff
+                        border.color: switchVistaCompleta.checked ? Tokens.bgSwitchTrackOn : Tokens.borderSwitchTrackOff
 
                         Rectangle {
                             x: switchVistaCompleta.checked ? parent.width - width - 3 : 3
                             y: 3
                             width: 16; height: 16; radius: 8
-                            color: "white"
+                            color: Tokens.bgSwitchThumb
                             Behavior on x { NumberAnimation { duration: 120 } }
                         }
                     }
@@ -131,7 +131,7 @@ Item {
                     contentItem: Text {
                         text: switchVistaCompleta.text
                         font.pixelSize: 13
-                        color: "#3c4a46"
+                        color: Tokens.textSecondary
                         leftPadding: switchVistaCompleta.indicator.width + switchVistaCompleta.spacing
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -140,7 +140,7 @@ Item {
                 RowLayout {
                     spacing: 8
 
-                    Text { text: "Año"; font.pixelSize: 13; color: "#3c4a46" }
+                    Text { text: "Año"; font.pixelSize: 13; color: Tokens.textSecondary }
                     ComboBox {
                         id: anioCombo
                         implicitWidth: 150
@@ -149,16 +149,16 @@ Item {
 
                         background: Rectangle {
                             radius: 5
-                            color: "#fffbe8"
+                            color: Tokens.bgInput
                             border.color: anioCombo.activeFocus || anioCombo.popup.visible
-                                          ? "#1a7a5e" : "#e0d6ac"
+                                          ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                             border.width: 1
                         }
 
                         contentItem: Text {
                             text: anioCombo.displayText
                             font.pixelSize: 14
-                            color: "#1e2b28"
+                            color: Tokens.textPrimary
                             leftPadding: 10
                             rightPadding: anioCombo.indicator.width + 8
                             verticalAlignment: Text.AlignVCenter
@@ -169,7 +169,7 @@ Item {
                             y: (anioCombo.height - height) / 2
                             text: "▾"
                             font.pixelSize: 12
-                            color: "#14523f"
+                            color: Tokens.textHeading
                         }
 
                         popup: Popup {
@@ -189,8 +189,8 @@ Item {
 
                             background: Rectangle {
                                 radius: 5
-                                color: "#fffbe8"
-                                border.color: "#e0d6ac"
+                                color: Tokens.bgInput
+                                border.color: Tokens.borderInputDefault
                                 border.width: 1
                             }
                         }
@@ -205,13 +205,13 @@ Item {
                             contentItem: Text {
                                 text: comboDelegate.modelData
                                 font.pixelSize: 14
-                                color: "#1e2b28"
+                                color: Tokens.textPrimary
                                 leftPadding: 10
                                 verticalAlignment: Text.AlignVCenter
                             }
 
                             background: Rectangle {
-                                color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                                color: comboDelegate.highlighted ? Tokens.bgDropdownItemHighlighted : Tokens.bgInput
                             }
                         }
                     }
@@ -222,7 +222,7 @@ Item {
                     visible: false
                     height: 40
                     verticalAlignment: Text.AlignVCenter
-                    color: "#14523f"
+                    color: Tokens.textHeading
                     font.pixelSize: 12
 
                     function mostrar(mensaje) {
@@ -246,12 +246,12 @@ Item {
                     onClicked: dlgExportarPdf.open()
                     background: Rectangle {
                         radius: 8
-                        color: btnPdfComparacion.down ? "#0f5a43" : "#1a7a5e"
-                        border.color: "#2b8a6a"
+                        color: btnPdfComparacion.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                        border.color: Tokens.borderButtonPrimary
                     }
                     contentItem: Text {
                         text: btnPdfComparacion.text
-                        color: "#ffe9a8"
+                        color: Tokens.textButtonPrimary
                         font: btnPdfComparacion.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -270,8 +270,8 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 12
-                color: "white"
-                border.color: "#dde5e1"
+                color: Tokens.bgSurface
+                border.color: Tokens.borderSurface
                 clip: true
 
                 ConceptTable {
@@ -305,8 +305,8 @@ Item {
 
         background: Rectangle {
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
         }
 
         function exportar(anio) {
@@ -325,12 +325,12 @@ Item {
                 text: "Exportar tabla a PDF"
                 font.pixelSize: 15
                 font.bold: true
-                color: "#14523f"
+                color: Tokens.textHeading
             }
             Text {
                 text: "¿Exportar solo el año actual o los 10 años?"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -345,12 +345,12 @@ Item {
                 onClicked: dlgExportarPdf.exportar(anioCombo.currentIndex)
                 background: Rectangle {
                     radius: 8
-                    color: btnAnioSeleccionado.down ? "#0f5a43" : "#1a7a5e"
-                    border.color: "#2b8a6a"
+                    color: btnAnioSeleccionado.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                    border.color: Tokens.borderButtonPrimary
                 }
                 contentItem: Text {
                     text: btnAnioSeleccionado.text
-                    color: "#ffe9a8"
+                    color: Tokens.textButtonPrimary
                     font: btnAnioSeleccionado.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -372,12 +372,12 @@ Item {
                 onClicked: dlgExportarPdf.exportar(-1)
                 background: Rectangle {
                     radius: 8
-                    color: btnTodosAnios.down ? "#e0d6ac" : "#fffbe8"
-                    border.color: "#e0d6ac"
+                    color: btnTodosAnios.down ? Tokens.bgInputPressed : Tokens.bgInput
+                    border.color: Tokens.borderInputDefault
                 }
                 contentItem: Text {
                     text: btnTodosAnios.text
-                    color: "#14523f"
+                    color: Tokens.textHeading
                     font: btnTodosAnios.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -397,10 +397,10 @@ Item {
                 font.pixelSize: 12
                 flat: true
                 onClicked: dlgExportarPdf.close()
-                background: Rectangle { color: "transparent" }
+                background: Rectangle { color: Tokens.bgTransparent }
                 contentItem: Text {
                     text: btnCancelarExportar.text
-                    color: "#6b7a76"
+                    color: Tokens.textMuted
                     font: btnCancelarExportar.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -429,8 +429,8 @@ Item {
 
         background: Rectangle {
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
         }
 
         function confirmar(index) {
@@ -447,12 +447,12 @@ Item {
                 text: "Aplicar \"" + dlgAplicarEscenario.pendingName + "\""
                 font.pixelSize: 15
                 font.bold: true
-                color: "#14523f"
+                color: Tokens.textHeading
             }
             Text {
                 text: "Se sobrescribirán los datos actuales (Datos base, Financiación, Personal, Configuración) con los valores guardados en este escenario. Esta acción no se puede deshacer."
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -473,12 +473,12 @@ Item {
                 }
                 background: Rectangle {
                     radius: 8
-                    color: btnConfirmarAplicar.down ? "#0f5a43" : "#1a7a5e"
-                    border.color: "#2b8a6a"
+                    color: btnConfirmarAplicar.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                    border.color: Tokens.borderButtonPrimary
                 }
                 contentItem: Text {
                     text: btnConfirmarAplicar.text
-                    color: "#ffe9a8"
+                    color: Tokens.textButtonPrimary
                     font: btnConfirmarAplicar.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -498,10 +498,10 @@ Item {
                 font.pixelSize: 12
                 flat: true
                 onClicked: dlgAplicarEscenario.close()
-                background: Rectangle { color: "transparent" }
+                background: Rectangle { color: Tokens.bgTransparent }
                 contentItem: Text {
                     text: btnCancelarAplicar.text
-                    color: "#6b7a76"
+                    color: Tokens.textMuted
                     font: btnCancelarAplicar.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -530,8 +530,8 @@ Item {
 
         background: Rectangle {
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
         }
 
         function confirmar(index) {
@@ -548,12 +548,12 @@ Item {
                 text: "Borrar \"" + dlgBorrarEscenario.pendingName + "\""
                 font.pixelSize: 15
                 font.bold: true
-                color: "#14523f"
+                color: Tokens.textHeading
             }
             Text {
                 text: "Se eliminará este escenario de la comparación. Esta acción no se puede deshacer."
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -571,12 +571,12 @@ Item {
                 }
                 background: Rectangle {
                     radius: 8
-                    color: btnConfirmarBorrar.down ? "#8a2a1f" : "#a33b2e"
-                    border.color: "#c24d3c"
+                    color: btnConfirmarBorrar.down ? Tokens.bgButtonDangerPressed : Tokens.bgButtonDangerDefault
+                    border.color: Tokens.borderButtonDanger
                 }
                 contentItem: Text {
                     text: btnConfirmarBorrar.text
-                    color: "white"
+                    color: Tokens.textOnDark
                     font: btnConfirmarBorrar.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -596,10 +596,10 @@ Item {
                 font.pixelSize: 12
                 flat: true
                 onClicked: dlgBorrarEscenario.close()
-                background: Rectangle { color: "transparent" }
+                background: Rectangle { color: Tokens.bgTransparent }
                 contentItem: Text {
                     text: btnCancelarBorrar.text
-                    color: "#6b7a76"
+                    color: Tokens.textMuted
                     font: btnCancelarBorrar.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

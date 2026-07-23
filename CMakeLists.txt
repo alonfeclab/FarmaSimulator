@@ -39,7 +39,7 @@ target_include_directories(farmaciasim_ui PUBLIC src)
 target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core farmaciasim_pdf Qt6::Quick Qt6::QuickControls2 Qt6::QuickDialogs2 Qt6::Svg)
 
 # Debe declararse ANTES de qt_add_qml_module
-set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES
+set_source_files_properties(qml/Fmt.qml qml/Nav.qml qml/Tokens.qml PROPERTIES
     QT_QML_SINGLETON_TYPE TRUE
 )
 
@@ -72,6 +72,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/NavPanel.qml
         qml/Fmt.qml
         qml/Nav.qml
+        qml/Tokens.qml
         qml/views/DatosBaseView.qml
         qml/views/FinanciacionView.qml
         qml/views/ProyeccionView.qml

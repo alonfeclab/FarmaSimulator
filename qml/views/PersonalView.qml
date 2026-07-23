@@ -22,7 +22,7 @@ Flickable {
         horizontalAlignment: Text.AlignRight
         font.pixelSize: 13
         font.bold: negrita
-        color: negrita ? "#14523f" : "#1e2b28"
+        color: negrita ? Tokens.textHeading : Tokens.textPrimary
     }
 
     component CabeceraCol: Text {
@@ -30,7 +30,7 @@ Flickable {
         horizontalAlignment: Text.AlignRight
         font.pixelSize: 12
         font.bold: true
-        color: "#14523f"
+        color: Tokens.textHeading
         wrapMode: Text.WordWrap
     }
 
@@ -46,7 +46,7 @@ Flickable {
             text: "Personal"
             font.pixelSize: 22;
             font.bold: true;
-            color: "#14523f"
+            color: Tokens.textHeading
             wrapMode: Text.WordWrap
         }
 
@@ -58,18 +58,18 @@ Flickable {
                 spacing: 8
                 Text {
                     text: "Cuota anual año 1"
-                    font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap
+                    font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap
                 }
                 Text {
                     text: Fmt.eur(Engine.baseData.selfEmployedQuota)
-                    font.pixelSize: 15; font.bold: true; color: "#14523f"
+                    font.pixelSize: 15; font.bold: true; color: Tokens.textHeading
                 }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Se calcula automáticamente cada año según la escala oficial de 15 tramos de rendimientos netos (no editable)."
             }
 
@@ -129,7 +129,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Tipo"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        Text { text: "Tipo"; font.pixelSize: 12; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 160 }
                         CabeceraCol { text: "Sal. bruto anual (FT)" }
                         CabeceraCol { text: "% SS empresa" }
                         CabeceraCol { text: "Coste SS/año" }
@@ -141,7 +141,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Farmacéutico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        Text { text: "Farmacéutico"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 160 }
                         MoneyField { k: "pharmacistSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[0].socialSecurityCost) }
@@ -152,7 +152,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        Text { text: "Técnico"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 160 }
                         MoneyField { k: "technicianSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[2].socialSecurityCost) }
@@ -163,7 +163,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 160 }
+                        Text { text: "Auxiliar de farmacia"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 160 }
                         MoneyField { k: "assistantSalary"; Layout.preferredWidth: 108; implicitWidth: 108 }
                         PctField { k: "socialSecurityPct"; decimals: 0; Layout.preferredWidth: 108; implicitWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.byRole[1].socialSecurityCost) }
@@ -171,11 +171,11 @@ Flickable {
                         Celda { text: Fmt.eur(Engine.staff.byRole[1].totalCost) }
                     }
                     // Total
-                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Tokens.borderDivider }
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Total"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 160 }
+                        Text { text: "Total"; font.pixelSize: 13; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 160 }
                         Item { Layout.preferredWidth: 108 }
                         Item { Layout.preferredWidth: 108 }
                         Celda { text: Fmt.eur(Engine.staff.totalSocialSecurityCost); negrita: true }
@@ -189,7 +189,7 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Salario bruto a jornada completa. El % SS empresa es igual para todos. "
                     + "Cambiar aquí actualiza Datos base y la Proyección."
             }
@@ -206,7 +206,7 @@ Flickable {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
-                    Text { text: "Día"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 100 }
+                    Text { text: "Día"; font.pixelSize: 12; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 100 }
                     CabeceraCol { text: "Abre"; Layout.preferredWidth: 90 }
                     CabeceraCol { text: "Cierra"; Layout.preferredWidth: 90 }
                     CabeceraCol { text: "Horas"; Layout.preferredWidth: 90 }
@@ -221,7 +221,7 @@ Flickable {
                             "Viernes", "Sábado", "Domingo"][index]
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: filaHorario.dia; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 100 }
+                        Text { text: filaHorario.dia; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 100 }
                         NumField {
                             k: "scheduleOpen" + filaHorario.index
                             decimals: 1
@@ -241,38 +241,38 @@ Flickable {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; Layout.topMargin: 4; color: "#dde5e1" }
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; Layout.topMargin: 4; color: Tokens.borderDivider }
 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: "Horas de apertura semanales"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                Text { text: Fmt.num(Engine.schedule.weeklyOpenHours, 1) + " h"; font.pixelSize: 13; font.bold: true; color: "#14523f" }
+                Text { text: "Horas de apertura semanales"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.weeklyOpenHours, 1) + " h"; font.pixelSize: 13; font.bold: true; color: Tokens.textHeading }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: "Cubiertas por farmacéuticos (titular + empleado)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                Text { text: Fmt.num(Engine.schedule.pharmacistWeeklyHours, 1) + " h"; font.pixelSize: 13; color: "#1e2b28" }
+                Text { text: "Cubiertas por farmacéuticos (titular + empleado)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.pharmacistWeeklyHours, 1) + " h"; font.pixelSize: 13; color: Tokens.textPrimary }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: "Cubiertas por auxiliar y técnico"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                Text { text: Fmt.num(Engine.schedule.supportWeeklyHours, 1) + " h"; font.pixelSize: 13; color: "#1e2b28" }
+                Text { text: "Cubiertas por auxiliar y técnico"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.supportWeeklyHours, 1) + " h"; font.pixelSize: 13; color: Tokens.textPrimary }
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: "Total horas cubiertas por la plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                Text { text: Fmt.num(Engine.schedule.totalStaffWeeklyHours, 1) + " h"; font.pixelSize: 15; font.bold: true; color: "#14523f" }
+                Text { text: "Total horas cubiertas por la plantilla"; font.pixelSize: 13; font.bold: true; color: Tokens.textHeading; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: Fmt.num(Engine.schedule.totalStaffWeeklyHours, 1) + " h"; font.pixelSize: 15; font.bold: true; color: Tokens.textHeading }
             }
 
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Horas orientativas asumiendo una persona en mostrador a la vez. La farmacéutica titular cubre "
                     + "cualquier hueco de presencia que no llegue a cubrir el resto de la plantilla contratada."
             }
@@ -304,7 +304,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
+                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 170 }
                         CabeceraCol { text: "Jornada (h)"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Subida %"; Layout.preferredWidth: 80 }
@@ -322,7 +322,7 @@ Flickable {
                             readonly property var r: Engine.staff.headcountPlan[index]
                             Layout.fillWidth: true
                             spacing: 8
-                            Text { text: filaPl.r.role; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                            Text { text: filaPl.r.role; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                             Button {
                                 id: btnJornada
                                 Layout.preferredWidth: 80
@@ -333,13 +333,13 @@ Flickable {
                                 onClicked: dlgJornada.abrir(filaPl.index, filaPl.r.role)
                                 background: Rectangle {
                                     radius: 5
-                                    color: "#fffbe8"
-                                    border.color: (btnJornada.hovered || btnJornada.down) ? "#1a7a5e" : "#e0d6ac"
+                                    color: Tokens.bgInput
+                                    border.color: (btnJornada.hovered || btnJornada.down) ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                                     border.width: 1
                                 }
                                 contentItem: Text {
                                     text: btnJornada.text
-                                    color: "#1e2b28"
+                                    color: Tokens.textPrimary
                                     font: btnJornada.font
                                     horizontalAlignment: Text.AlignRight
                                     verticalAlignment: Text.AlignVCenter
@@ -351,7 +351,7 @@ Flickable {
                                 Layout.preferredWidth: 80
                                 horizontalAlignment: Text.AlignRight
                                 font.pixelSize: 13
-                                color: "#1e2b28"
+                                color: Tokens.textPrimary
                             }
                             NumField {
                                 visible: filaPl.index !== 0
@@ -365,7 +365,7 @@ Flickable {
                                 Layout.preferredWidth: 80
                                 horizontalAlignment: Text.AlignRight
                                 font.pixelSize: 13
-                                color: "#1e2b28"
+                                color: Tokens.textPrimary
                             }
                             PctField {
                                 visible: filaPl.index !== 0
@@ -381,11 +381,11 @@ Flickable {
                         }
                     }
 
-                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Tokens.borderDivider }
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Total plantilla"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Text { text: "Total plantilla"; font.pixelSize: 13; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
                         Celda { text: Fmt.num(Engine.staff.totalHeadcount) + " pers."; negrita: true; Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 80 }
@@ -402,7 +402,7 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "El propietario cubre la presencia legal; coste 0 € (se retribuye vía beneficio) y no lleva subida salarial. "
                     + "Pulsa el botón de Jornada para asignar las horas/día y el año de inicio a cada empleado por separado "
                     + "(8 h = jornada completa). Mientras el año de inicio de un empleado no haya llegado, su coste no se "
@@ -436,7 +436,7 @@ Flickable {
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170 }
+                        Text { text: "Tipo de trabajador"; font.pixelSize: 12; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 170 }
                         CabeceraCol { text: "Jornada (h)"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Nº personas"; Layout.preferredWidth: 80 }
                         CabeceraCol { text: "Subida %"; Layout.preferredWidth: 80 }
@@ -455,7 +455,7 @@ Flickable {
                             readonly property var r: Engine.staff.vacationStaffPlan[index]
                             Layout.fillWidth: true
                             spacing: 8
-                            Text { text: filaVac.r.role; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                            Text { text: filaVac.r.role; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                             Button {
                                 id: btnJornadaVac
                                 Layout.preferredWidth: 80
@@ -466,13 +466,13 @@ Flickable {
                                 onClicked: dlgJornada.abrir(filaVac.index, filaVac.r.role, true)
                                 background: Rectangle {
                                     radius: 5
-                                    color: "#fffbe8"
-                                    border.color: (btnJornadaVac.hovered || btnJornadaVac.down) ? "#1a7a5e" : "#e0d6ac"
+                                    color: Tokens.bgInput
+                                    border.color: (btnJornadaVac.hovered || btnJornadaVac.down) ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                                     border.width: 1
                                 }
                                 contentItem: Text {
                                     text: btnJornadaVac.text
-                                    color: "#1e2b28"
+                                    color: Tokens.textPrimary
                                     font: btnJornadaVac.font
                                     horizontalAlignment: Text.AlignRight
                                     verticalAlignment: Text.AlignVCenter
@@ -497,11 +497,11 @@ Flickable {
                         }
                     }
 
-                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: "#dde5e1" }
+                    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Tokens.borderDivider }
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 8
-                        Text { text: "Total refuerzos"; font.pixelSize: 13; font.bold: true; color: "#14523f"; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
+                        Text { text: "Total refuerzos"; font.pixelSize: 13; font.bold: true; color: Tokens.textHeading; Layout.preferredWidth: 170; wrapMode: Text.WordWrap }
                         Item { Layout.preferredWidth: 80 }
                         Celda { text: Fmt.num(Engine.staff.totalVacationHeadcount) + " pers."; negrita: true; Layout.preferredWidth: 80 }
                         Item { Layout.preferredWidth: 80 }
@@ -518,7 +518,7 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "Personal contratado temporalmente para cubrir las vacaciones de la plantilla habitual. "
                     + "El coste se calcula sobre el salario base de cada categoría (Salarios base de personal) y se prorratea "
                     + "según los meses que trabaje cada empleado al año (editable en el diálogo de Jornada, junto a las horas/día)."
@@ -529,7 +529,7 @@ Flickable {
         Rectangle {
             Layout.fillWidth: true
             radius: 12
-            color: "#14523f"
+            color: Tokens.bgBrandStrong
             implicitHeight: 64
 
             RowLayout {
@@ -538,7 +538,7 @@ Flickable {
                 anchors.rightMargin: 20
                 Text {
                     text: "Salario neto mensual titular (año 1)"
-                    color: "white";
+                    color: Tokens.textOnDark;
                     font.pixelSize: 15;
                     font.bold: true
                     Layout.fillWidth: true
@@ -546,7 +546,7 @@ Flickable {
                 }
                 Text {
                     text: Fmt.eur(Engine.staff.netMonthlySalaryYear1)
-                    color: "#ffe9a8"; font.pixelSize: 20; font.bold: true
+                    color: Tokens.textButtonPrimary; font.pixelSize: 20; font.bold: true
                 }
             }
         }
@@ -585,8 +585,8 @@ Flickable {
 
         background: Rectangle {
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
         }
 
         contentItem: ColumnLayout {
@@ -599,12 +599,12 @@ Flickable {
                     : "Jornada por empleado (horas/día)"
                 font.pixelSize: 15
                 font.bold: true
-                color: "#14523f"
+                color: Tokens.textHeading
             }
             Text {
                 text: dlgJornada.roleLabel
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -632,7 +632,7 @@ Flickable {
                             text: "Horas/día"
                             font.pixelSize: 11
                             font.bold: true
-                            color: "#14523f"
+                            color: Tokens.textHeading
                             Layout.preferredWidth: 80
                             horizontalAlignment: Text.AlignRight
                         }
@@ -640,7 +640,7 @@ Flickable {
                             text: "Año inicio"
                             font.pixelSize: 11
                             font.bold: true
-                            color: "#14523f"
+                            color: Tokens.textHeading
                             Layout.preferredWidth: 80
                             horizontalAlignment: Text.AlignRight
                         }
@@ -655,7 +655,7 @@ Flickable {
                             Text {
                                 text: "Empleado " + (index + 1)
                                 font.pixelSize: 13
-                                color: "#3c4a46"
+                                color: Tokens.textSecondary
                                 Layout.fillWidth: true
                             }
                             HoursField {
@@ -687,7 +687,7 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 11
-                color: "#a15c00"
+                color: Tokens.textWarning
                 text: "Solo se pueden personalizar los primeros " + Engine.maxStaffPerRole
                     + " empleados; el resto usa la jornada del último."
             }
@@ -702,11 +702,11 @@ Flickable {
                 onClicked: dlgJornada.close()
                 background: Rectangle {
                     radius: 8
-                    color: btnCerrarJornada.down ? "#0f5a43" : "#1a7a5e"
+                    color: btnCerrarJornada.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
                 }
                 contentItem: Text {
                     text: btnCerrarJornada.text
-                    color: "#ffe9a8"
+                    color: Tokens.textButtonPrimary
                     font: btnCerrarJornada.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

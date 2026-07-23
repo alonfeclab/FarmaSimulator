@@ -101,7 +101,7 @@ Flickable {
         width: Math.min(page.width - 48, 1040)
         spacing: 14
 
-        Text { text: "Simulación"; font.pixelSize: 22; font.bold: true; color: "#14523f" }
+        Text { text: "Simulación"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
         Text {
             Layout.fillWidth: true
             text: "Combinaciones de plazo e interés de la hipoteca (mobiliaria e inmobiliaria) y aportación "
@@ -109,7 +109,7 @@ Flickable {
                   + "siempre el dato actual, la segunda le suma el margen configurado abajo. El cálculo en sí "
                   + "no se guarda ni afecta a Datos base/Financiación."
             font.pixelSize: 12
-            color: "#6b7a76"
+            color: Tokens.textMuted
             wrapMode: Text.WordWrap
         }
 
@@ -117,7 +117,7 @@ Flickable {
             text: "Margen de la 2ª columna de cada combinación (la 1ª usa siempre el dato actual)"
             font.pixelSize: 13
             font.bold: true
-            color: "#3c4a46"
+            color: Tokens.textSecondary
         }
         Flow {
             Layout.fillWidth: true
@@ -126,7 +126,7 @@ Flickable {
             Text {
                 text: "Facturación Total"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 height: campoFacturacionDelta.implicitHeight
                 verticalAlignment: Text.AlignVCenter
             }
@@ -135,7 +135,7 @@ Flickable {
             Text {
                 text: "Años hipoteca (mobiliaria/inmobiliaria)"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 height: campoAniosDelta.implicitHeight
                 verticalAlignment: Text.AlignVCenter
             }
@@ -144,7 +144,7 @@ Flickable {
             Text {
                 text: "Interés hipoteca (mobiliaria/inmobiliaria)"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 height: campoInteresDelta.implicitHeight
                 verticalAlignment: Text.AlignVCenter
             }
@@ -153,7 +153,7 @@ Flickable {
             Text {
                 text: "Aportación inicial"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 height: campoAportacionDelta.implicitHeight
                 verticalAlignment: Text.AlignVCenter
             }
@@ -167,7 +167,7 @@ Flickable {
             Text {
                 text: "Año"
                 font.pixelSize: 13
-                color: "#3c4a46"
+                color: Tokens.textSecondary
                 height: anioCombo.implicitHeight
                 verticalAlignment: Text.AlignVCenter
             }
@@ -179,16 +179,16 @@ Flickable {
 
                 background: Rectangle {
                     radius: 5
-                    color: "#fffbe8"
+                    color: Tokens.bgInput
                     border.color: anioCombo.activeFocus || anioCombo.popup.visible
-                                  ? "#1a7a5e" : "#e0d6ac"
+                                  ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
                     border.width: 1
                 }
 
                 contentItem: Text {
                     text: anioCombo.displayText
                     font.pixelSize: 14
-                    color: "#1e2b28"
+                    color: Tokens.textPrimary
                     leftPadding: 10
                     rightPadding: anioCombo.indicator.width + 8
                     verticalAlignment: Text.AlignVCenter
@@ -199,7 +199,7 @@ Flickable {
                     y: (anioCombo.height - height) / 2
                     text: "▾"
                     font.pixelSize: 12
-                    color: "#14523f"
+                    color: Tokens.textHeading
                 }
 
                 popup: Popup {
@@ -219,8 +219,8 @@ Flickable {
 
                     background: Rectangle {
                         radius: 5
-                        color: "#fffbe8"
-                        border.color: "#e0d6ac"
+                        color: Tokens.bgInput
+                        border.color: Tokens.borderInputDefault
                         border.width: 1
                     }
                 }
@@ -235,13 +235,13 @@ Flickable {
                     contentItem: Text {
                         text: comboDelegate.modelData
                         font.pixelSize: 14
-                        color: "#1e2b28"
+                        color: Tokens.textPrimary
                         leftPadding: 10
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     background: Rectangle {
-                        color: comboDelegate.highlighted ? "#eef0c9" : "#fffbe8"
+                        color: comboDelegate.highlighted ? Tokens.bgDropdownItemHighlighted : Tokens.bgInput
                     }
                 }
             }
@@ -260,12 +260,12 @@ Flickable {
                 }
                 background: Rectangle {
                     radius: 8
-                    color: btnPdfSimulacion.down ? "#0f5a43" : "#1a7a5e"
-                    border.color: "#2b8a6a"
+                    color: btnPdfSimulacion.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                    border.color: Tokens.borderButtonPrimary
                 }
                 contentItem: Text {
                     text: btnPdfSimulacion.text
-                    color: "#ffe9a8"
+                    color: Tokens.textButtonPrimary
                     font: btnPdfSimulacion.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -284,7 +284,7 @@ Flickable {
                 visible: false
                 height: 40
                 verticalAlignment: Text.AlignVCenter
-                color: "#14523f"
+                color: Tokens.textHeading
                 font.pixelSize: 12
 
                 function mostrar(mensaje) {
@@ -332,15 +332,15 @@ Flickable {
                     text: "Facturación total: " + Fmt.eur(grupoCol.modelData.facturacion)
                     font.pixelSize: 15
                     font.bold: true
-                    color: "#14523f"
+                    color: Tokens.textHeading
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: tabla.implicitHeight + 28
                     radius: 12
-                    color: "white"
-                    border.color: "#dde5e1"
+                    color: Tokens.bgSurface
+                    border.color: Tokens.borderSurface
                     clip: true
 
                     ConceptTable {

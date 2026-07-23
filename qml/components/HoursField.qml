@@ -18,14 +18,14 @@ TextField {
     implicitHeight: 40
     horizontalAlignment: TextInput.AlignRight
     font.pixelSize: 14
-    color: "#1e2b28"
+    color: Tokens.textPrimary
     selectByMouse: true
     inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     background: Rectangle {
         radius: 5
-        color: "#fffbe8"
-        border.color: root.activeFocus ? "#1a7a5e" : "#e0d6ac"
+        color: Tokens.bgInput
+        border.color: root.activeFocus ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
         border.width: 1
     }
 

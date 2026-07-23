@@ -115,12 +115,12 @@ Flickable {
         // -------- cabecera
         Row {
             Rectangle {
-                width: root.wLabel; height: root.hRow; color: "#14523f"
+                width: root.wLabel; height: root.hRow; color: Tokens.bgBrandStrong
                 radius: 4; topRightRadius: 0; bottomRightRadius: 0
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left; anchors.leftMargin: 8
-                    text: root.headerLabel; color: "white"; font.bold: true; font.pixelSize: root.fontSize
+                    text: root.headerLabel; color: Tokens.textOnDark; font.bold: true; font.pixelSize: root.fontSize
                 }
             }
             Repeater {
@@ -137,7 +137,7 @@ Flickable {
                     readonly property real iconsWidth: (root.collapsibleColumns ? btnOjo.implicitWidth + headerContent.spacing : 0)
                                                        + (root.applyableColumns ? btnAplicar.implicitWidth + headerContent.spacing : 0)
                                                        + (root.closableColumns ? btnCerrar.implicitWidth + headerContent.spacing : 0)
-                    width: root.columnWidth(hdrCell.index); height: root.hRow; color: "#14523f"
+                    width: root.columnWidth(hdrCell.index); height: root.hRow; color: Tokens.bgBrandStrong
 
                     Row {
                         id: headerContent
@@ -159,7 +159,7 @@ Flickable {
                             text: root.headerLabels.length > hdrCell.index
                                   ? root.headerLabels[hdrCell.index]
                                   : ("Año " + (hdrCell.index + 1))
-                            color: "white"; font.bold: true; font.pixelSize: root.fontSize
+                            color: Tokens.textOnDark; font.bold: true; font.pixelSize: root.fontSize
                         }
                         Image {
                             id: btnOjo
@@ -197,7 +197,7 @@ Flickable {
                             visible: root.applyableColumns
                             anchors.verticalCenter: parent.verticalCenter
                             text: "↺"
-                            color: "white"
+                            color: Tokens.textOnDark
                             font.bold: true
                             font.pixelSize: root.fontSize + 4
                             HoverHandler {
@@ -225,7 +225,7 @@ Flickable {
                             visible: root.closableColumns
                             anchors.verticalCenter: parent.verticalCenter
                             text: "✕"
-                            color: "white"
+                            color: Tokens.textOnDark
                             font.bold: true
                             font.pixelSize: root.fontSize + 3
                             MouseArea {
@@ -264,10 +264,10 @@ Flickable {
                 Rectangle {
                     width: fila.esSeparador ? (root.wLabel + root.totalColumnsWidth()) : root.wLabel
                     height: root.hRow
-                    color: fila.esSeparador ? "#dde9e2"
-                         : fila.esGrupo ? "#eef5f1"
-                         : fila.modelData.bold ? "#e3efe9"
-                         : (fila.index % 2 ? "#f7faf8" : "white")
+                    color: fila.esSeparador ? Tokens.bgTableRowSeparator
+                         : fila.esGrupo ? Tokens.bgAccentTint
+                         : fila.modelData.bold ? Tokens.bgTableRowEmphasis
+                         : (fila.index % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary)
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left; anchors.leftMargin: 8
@@ -276,8 +276,8 @@ Flickable {
                         text: fila.modelData.label
                         font.pixelSize: root.fontSize
                         font.bold: fila.esSeparador || fila.modelData.bold
-                        color: fila.esSeparador ? "#14523f"
-                             : fila.modelData.bold ? "#14523f" : "#3c4a46"
+                        color: fila.esSeparador ? Tokens.textHeading
+                             : fila.modelData.bold ? Tokens.textHeading : Tokens.textSecondary
                     }
                     Rectangle {
                         visible: fila.finGrupo
@@ -285,16 +285,16 @@ Flickable {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         height: 2
-                        color: "#8fb3a3"
+                        color: Tokens.borderTableGroupEnd
                     }
                 }
                 Rectangle {
                     visible: fila.esMerged
                     width: root.totalColumnsWidth()
                     height: root.hRow
-                    color: fila.esGrupo ? "#eef5f1"
-                         : fila.modelData.bold ? "#e3efe9"
-                         : (fila.index % 2 ? "#f7faf8" : "white")
+                    color: fila.esGrupo ? Tokens.bgAccentTint
+                         : fila.modelData.bold ? Tokens.bgTableRowEmphasis
+                         : (fila.index % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary)
                     Text {
                         readonly property real valor: (fila.modelData.values && fila.modelData.values.length > 0)
                                                        ? fila.modelData.values[0] : 0
@@ -307,8 +307,8 @@ Flickable {
                         text: Fmt.byFmt(valor, fila.modelData.fmt)
                         font.pixelSize: root.fontSize
                         font.bold: fila.modelData.bold
-                        color: valor < 0 ? "#a33b2e"
-                             : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                        color: valor < 0 ? Tokens.textNegative
+                             : fila.modelData.bold ? Tokens.textHeading : Tokens.textPrimary
                     }
                     Rectangle {
                         visible: fila.finGrupo
@@ -316,7 +316,7 @@ Flickable {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         height: 2
-                        color: "#8fb3a3"
+                        color: Tokens.borderTableGroupEnd
                     }
                 }
                 Repeater {
@@ -332,9 +332,9 @@ Flickable {
                                                    ? fila.modelData.values[index] : 0
                     readonly property bool colapsada: root.collapsibleColumns && root.isColumnCollapsed(celda.index)
                         width: root.columnWidth(celda.index); height: root.hRow
-                        color: fila.esGrupo ? "#eef5f1"
-                             : fila.modelData.bold ? "#e3efe9"
-                             : (fila.index % 2 ? "#f7faf8" : "white")
+                        color: fila.esGrupo ? Tokens.bgAccentTint
+                             : fila.modelData.bold ? Tokens.bgTableRowEmphasis
+                             : (fila.index % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary)
                         Text {
                             visible: !celda.colapsada
                             anchors.verticalCenter: parent.verticalCenter
@@ -342,8 +342,8 @@ Flickable {
                             text: Fmt.byFmt(celda.valor, fila.modelData.fmt)
                             font.pixelSize: root.fontSize
                             font.bold: fila.modelData.bold
-                            color: celda.valor < 0 ? "#a33b2e"
-                                 : fila.modelData.bold ? "#14523f" : "#1e2b28"
+                            color: celda.valor < 0 ? Tokens.textNegative
+                                 : fila.modelData.bold ? Tokens.textHeading : Tokens.textPrimary
                         }
                         Rectangle {
                             visible: fila.finGrupo
@@ -351,7 +351,7 @@ Flickable {
                             anchors.left: parent.left
                             anchors.right: parent.right
                             height: 2
-                            color: "#8fb3a3"
+                            color: Tokens.borderTableGroupEnd
                         }
                     }
                 }

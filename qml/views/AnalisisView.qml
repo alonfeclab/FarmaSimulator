@@ -29,7 +29,7 @@ Flickable {
         Layout.fillWidth: true
         Text {
             text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? "#14523f" : "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios
+            color: destacada ? Tokens.textHeading : Tokens.textSecondary; Layout.preferredWidth: page.wLabelEscenarios
             elide: Text.ElideRight
         }
         Repeater {
@@ -40,7 +40,7 @@ Flickable {
                 horizontalAlignment: Text.AlignRight
                 text: Fmt.byFmt(modelData, fmt)
                 font.pixelSize: 13; font.bold: destacada
-                color: modelData < 0 ? "#a33b2e" : destacada ? "#14523f" : "#1e2b28"
+                color: modelData < 0 ? Tokens.textNegative : destacada ? Tokens.textHeading : Tokens.textPrimary
             }
         }
     }
@@ -57,7 +57,7 @@ Flickable {
             text: "Análisis inversión"
             font.pixelSize: 22;
             font.bold: true;
-            color: "#14523f"
+            color: Tokens.textHeading
             wrapMode: Text.WordWrap
         }
 
@@ -93,7 +93,7 @@ Flickable {
                                 required property string modelData
                                 Layout.preferredWidth: page.wCell
                                 horizontalAlignment: Text.AlignRight
-                                text: modelData; font.bold: true; font.pixelSize: 13; color: "#14523f"
+                                text: modelData; font.bold: true; font.pixelSize: 13; color: Tokens.textHeading
                             }
                         }
                     }
@@ -101,7 +101,7 @@ Flickable {
                     Row3 { label: "Inversión inicial"; vals: Engine.analysis.initialInvestment }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Factor venta"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios }
+                        Text { text: "Factor venta"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: page.wLabelEscenarios }
                         NumField { k: "saleFactor0"; decimals: 1; Layout.preferredWidth: page.wCell }
                         NumField { k: "saleFactor1"; decimals: 1; Layout.preferredWidth: page.wCell }
                         NumField { k: "saleFactor2"; decimals: 1; Layout.preferredWidth: page.wCell }
@@ -112,7 +112,7 @@ Flickable {
                     Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analysis.fdcOutstanding }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Impuestos venta"; font.pixelSize: 13; color: "#3c4a46"; Layout.preferredWidth: page.wLabelEscenarios }
+                        Text { text: "Impuestos venta"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.preferredWidth: page.wLabelEscenarios }
                         MoneyField { k: "saleTaxes0"; Layout.preferredWidth: page.wCell }
                         MoneyField { k: "saleTaxes1"; Layout.preferredWidth: page.wCell }
                         MoneyField { k: "saleTaxes2"; Layout.preferredWidth: page.wCell }
@@ -130,7 +130,7 @@ Flickable {
                 Layout.topMargin: 6
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "CAGR: revalorización del capital al vender la farmacia a los 10 años, sin contar el salario. "
                     + "TIR: retorno total, incluye el salario neto cobrado cada año más el valor de venta."
             }
@@ -167,7 +167,7 @@ Flickable {
                                 required property string modelData
                                 Layout.preferredWidth: page.wCell
                                 horizontalAlignment: Text.AlignRight
-                                text: modelData; font.bold: true; font.pixelSize: 13; color: "#14523f"
+                                text: modelData; font.bold: true; font.pixelSize: 13; color: Tokens.textHeading
                             }
                         }
                     }

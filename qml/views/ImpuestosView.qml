@@ -29,7 +29,7 @@ Flickable {
         property string fmt: "eur"
         Text {
             text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
-            color: calcRow.destacada ? "#14523f" : "#3c4a46";
+            color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary;
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
         }
@@ -37,7 +37,7 @@ Flickable {
             text: Fmt.byFmt(calcRow.value, calcRow.fmt);
             font.pixelSize: 14;
             font.bold: true
-            color: calcRow.destacada ? "#14523f" : "#1e2b28"
+            color: calcRow.destacada ? Tokens.textHeading : Tokens.textPrimary
             Layout.alignment: Qt.AlignRight
         }
     }
@@ -54,7 +54,7 @@ Flickable {
             text: "Impuestos"
             font.pixelSize: 22;
             font.bold: true;
-            color: "#14523f"
+            color: Tokens.textHeading
         }
 
         // ---------------- Paso 1: parámetros y base amortizable
@@ -133,7 +133,7 @@ Flickable {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 text: "El % de amortización de la farmacia se ajusta cada año (entre el mínimo y el máximo) para "
                     + "dejar la base imponible en 0 mientras sea posible. El pago alimenta la fila "
                     + "\"Pago impuestos\" de la Proyección a 10 años."

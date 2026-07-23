@@ -32,8 +32,8 @@ Item {
         property string valor
         spacing: 2
         Layout.fillWidth: true
-        Text { text: etiqueta; font.pixelSize: 12; color: "#6b7a76"; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-        Text { text: valor; font.pixelSize: 15; font.bold: true; color: "#14523f" }
+        Text { text: etiqueta; font.pixelSize: 12; color: Tokens.textMuted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Text { text: valor; font.pixelSize: 15; font.bold: true; color: Tokens.textHeading }
     }
 
     ColumnLayout {
@@ -45,7 +45,7 @@ Item {
             text: page.loan.title;
             font.pixelSize: 22;
             font.bold: true;
-            color: "#14523f"
+            color: Tokens.textHeading
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
         }
@@ -64,7 +64,7 @@ Item {
                 width: 88
                 height: 88
                 radius: width / 2
-                color: "#14523f"
+                color: Tokens.bgBrandStrong
                 Image {
                     anchors.centerIn: parent
                     source: page.emptyIcono
@@ -76,7 +76,7 @@ Item {
             Text {
                 text: page.emptyTexto
                 font.pixelSize: 15
-                color: "#6b7a76"
+                color: Tokens.textMuted
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 Layout.alignment: Qt.AlignHCenter
@@ -100,8 +100,8 @@ Item {
             visible: !page.vacio
             Layout.fillWidth: true
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
             implicitHeight: resumen.implicitHeight + 32
 
             GridLayout {
@@ -129,8 +129,8 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 12
-            color: "white"
-            border.color: "#dde5e1"
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
             clip: true
 
             ColumnLayout {
@@ -149,13 +149,13 @@ Item {
                         required property string display
                         implicitHeight: 32
                         implicitWidth: page.anchosCol[index]
-                        color: "#14523f"
+                        color: Tokens.bgBrandStrong
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.right: parent.right
                             anchors.rightMargin: 8
                             text: hdrCell.display
-                            color: "white"; font.bold: true; font.pixelSize: 12
+                            color: Tokens.textOnDark; font.bold: true; font.pixelSize: 12
                         }
                     }
                 }
@@ -181,14 +181,14 @@ Item {
                         required property int column
                         required property string display
                         implicitHeight: 28
-                        color: row % 2 ? "#f7faf8" : "white"
+                        color: row % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.right: parent.right
                             anchors.rightMargin: 8
                             text: celda.display
                             font.pixelSize: 12
-                            color: celda.display.startsWith("-") ? "#a33b2e" : "#1e2b28"
+                            color: celda.display.startsWith("-") ? Tokens.textNegative : Tokens.textPrimary
                         }
                     }
                 }
