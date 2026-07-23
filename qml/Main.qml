@@ -21,12 +21,15 @@ ApplicationWindow {
     readonly property int breakpointCompacto: 760
     readonly property bool compact: width < breakpointCompacto
 
+    // Barra lateral fija: colapsable a solo iconos para ganar espacio
+    // horizontal al contenido (no aplica al Drawer, que ya se abre/cierra).
+    property bool navCollapsed: false
+
     readonly property var hojas: [
         { nombre: "Datos base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
         { nombre: "Proyección 10 años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
-        { nombre: "Impuestos",           icono: "qrc:/qt/qml/FarmaciaSim/icons/impuestos.svg" },
-        { nombre: "Análisis inversión",  icono: "qrc:/qt/qml/FarmaciaSim/icons/analisis.svg" },
+        // Impuestos y Análisis inversión ocultos temporalmente (no borrar).
         { nombre: "Amort. banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
         { nombre: "Amort. cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
         { nombre: "Amort. familiar",     icono: "qrc:/qt/qml/FarmaciaSim/icons/familiar.svg" },
@@ -124,11 +127,45 @@ ApplicationWindow {
 
         NavPanel {
             visible: !win.compact
-            Layout.preferredWidth: 230
+            Layout.preferredWidth: win.navCollapsed ? 0 : 230
             Layout.fillHeight: true
+            clip: true
             hojas: win.hojas
             currentIndex: stack.currentIndex
             onNavigate: (index) => stack.currentIndex = index
+
+            Behavior on Layout.preferredWidth {
+                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+            }
+        }
+
+        // Franja angosta pegada al borde derecho del menú: permite
+        // colapsarlo (ocultando título, pestañas y botones) o volver a
+        // expandirlo, para ganar ancho horizontal para el contenido.
+        Rectangle {
+            id: navCollapseStrip
+            visible: !win.compact
+            Layout.preferredWidth: 20
+            Layout.fillHeight: true
+            color: collapseArea.containsMouse ? Tokens.bgNavItemHover : Tokens.bgNav
+
+            Text {
+                anchors.centerIn: parent
+                text: win.navCollapsed ? "»" : "«"
+                color: Tokens.textOnDark
+                font.pixelSize: 14
+                font.bold: true
+            }
+            MouseArea {
+                id: collapseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: win.navCollapsed = !win.navCollapsed
+            }
+            ToolTip.visible: collapseArea.containsMouse
+            ToolTip.delay: 400
+            ToolTip.text: win.navCollapsed ? "Expandir menú" : "Colapsar menú"
         }
 
         // ------------------------------------------------ contenido
@@ -156,8 +193,7 @@ ApplicationWindow {
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}
-            ImpuestosView {}
-            AnalisisView {}
+            // ImpuestosView y AnalisisView ocultos temporalmente (no borrar).
             AmortView {
                 loan: Engine.bank
                 emptyIcono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg"

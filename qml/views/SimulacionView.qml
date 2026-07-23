@@ -4,84 +4,47 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import FarmaciaSim
 
-// Hoja "Simulación": agrupa por Facturación Total (la actual / + un margen
-// editable en esta misma hoja) las combinaciones de plazo e interés de la
-// hipoteca (mobiliaria e inmobiliaria, ligados) y aportación inicial —cada
-// eje parte del valor real actual y le suma un margen también editable
-// aquí—, partiendo del resto de los datos actuales. El cálculo de la tabla
-// en sí (Engine.simulationForYear) es puro: no guarda nada ni afecta a Datos
-// base/Financiación; los márgenes editables sí se guardan, como cualquier
-// otro dato de la app. Un grupo por facturación, apilados uno debajo de otro.
+// Hoja "Simulación": una sola tabla con una columna por escenario, sin
+// nombres de columna ni "ojo" — solo el botón "✕" para borrar (salvo en la
+// columna 0). La columna 0 ("Actual") es siempre el escenario principal
+// (Datos base/Financiación...) sin tocar. El botón "Añadir escenario" congela
+// una columna más a partir de los 5 campos de arriba (Facturación Total,
+// años/interés de la hipoteca —mobiliaria e inmobiliaria, ligados—,
+// aportación inicial y margen comercial), precargados con el valor actual:
+// el campo que no se edite hace que ese eje de la nueva columna siga el
+// escenario principal para siempre (se recalcula solo si cambia, p.ej. en
+// Datos base), y el que se edite queda fijo en ese número. El cálculo en sí
+// es puro: no guarda nada ni afecta a Datos base/Financiación (solo los
+// escenarios añadidos aquí se guardan, como cualquier otro dato de la app —
+// ver Engine::addSimulationScenario()).
 Flickable {
     id: page
 
     readonly property int wLabel: 240
-    readonly property int wCell: 110
+    readonly property int wCell: 120
     readonly property int hRow: 30
 
-    // Se refresca cuando cambia el año elegido o cualquier input del motor
-    // (plazo, tipo, facturación en Datos base/Financiación, los márgenes
-    // editables de aquí arriba...). simulationForYear() es un método invocable
-    // que lee el estado interno
+    // Se refresca cuando cambia el año elegido, los escenarios guardados o
+    // cualquier input del motor (Datos base, Financiación...).
+    // simulationForYear() es un método invocable que lee el estado interno
     // del motor directamente: un binding declarativo no basta (una lectura
     // "descartada" de Engine.inputs solo para forzar la dependencia puede
     // optimizarse fuera del QML precompilado, ya que su valor no se usa), así
     // que se recalcula explícitamente con Connections en vez de depender de
     // que el motor de bindings detecte la dependencia por sí solo.
-    property var grupos: []
-    function refreshGrupos() {
-        page.grupos = Engine.simulationForYear(anioCombo.currentIndex)
+    property var filas: []
+    function refreshFilas() {
+        page.filas = Engine.simulationForYear(anioCombo.currentIndex)
     }
-    Component.onCompleted: page.refreshGrupos()
+    Component.onCompleted: page.refreshFilas()
     Connections {
         target: anioCombo
-        function onCurrentIndexChanged() { page.refreshGrupos() }
+        function onCurrentIndexChanged() { page.refreshFilas() }
     }
     Connections {
         target: Engine
-        function onRecalculated() { page.refreshGrupos() }
-    }
-
-    // "CN" (combinación N) en vez de "Año N", abreviado para que quepa en la
-    // columna, y para no confundirse con los "Escenario N" guardados en
-    // Comparación: la columna N es la misma combinación de plazo/interés/
-    // aportación en los 2 grupos (mismo orden en cada uno), solo cambia la
-    // Facturación Total de un grupo a otro.
-    readonly property var combinacionLabels: {
-        const n = page.grupos.length > 0 && page.grupos[0].rows.length > 0
-                  ? page.grupos[0].rows[0].values.length : 0
-        const labels = []
-        for (let i = 0; i < n; ++i) labels.push("C" + (i + 1))
-        return labels
-    }
-
-    // Scroll horizontal común a las 2 tablas (una por Facturación Total),
-    // para poder comparar la misma combinación de columna entre grupos.
-    // Guard contra el bucle infinito: al igualar el contentX de las otras
-    // tablas se dispara su propio onContentXChanged, que debe ser un no-op.
-    property bool syncingScroll: false
-    function syncScroll(source) {
-        if (page.syncingScroll) return
-        page.syncingScroll = true
-        for (let i = 0; i < repeaterGrupos.count; ++i) {
-            const item = repeaterGrupos.itemAt(i)
-            if (item && item.tablaRef && item.tablaRef !== source)
-                item.tablaRef.contentX = source.contentX
-        }
-        page.syncingScroll = false
-    }
-
-    // Recopila las columnas colapsadas ("ojo") de cada tabla por separado
-    // (cada grupo lleva ahora su propio filtro, ver grupoCol.collapsedColumns
-    // más abajo), para pasárselas a Engine.exportSimulationPdf en el mismo
-    // orden que sus grupos.
-    function allCollapsedColumns() {
-        const arr = []
-        for (let i = 0; i < repeaterGrupos.count; ++i) {
-            const item = repeaterGrupos.itemAt(i)
-            arr.push(item ? item.collapsedColumns : [])
-        }
-        return arr
+        function onRecalculated() { page.refreshFilas() }
+        function onSimulationScenariosChanged() { page.refreshFilas() }
     }
 
     contentWidth: width
@@ -91,6 +54,57 @@ Flickable {
 
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
+
+    // Campo numérico precargado con el valor actual del escenario principal
+    // (como MoneyField/NumField/PctField): mientras el usuario no lo edite
+    // ("touched"), sigue ese valor si cambia en Datos base/Financiación. En
+    // cuanto lo edita (textEdited, que solo se dispara por interacción del
+    // usuario, no al asignar "text" por código), queda fijo como override de
+    // ese eje en el próximo escenario.
+    component ScenarioField: TextField {
+        id: fld
+        required property real mainValue
+        property string kind: "eur" // "eur" | "years" | "pct1"
+        property bool touched: false
+
+        function display(v) {
+            if (fld.kind === "pct1") return Fmt.num(v * 100, 1) + " %"
+            if (fld.kind === "years") return Fmt.num(v, 0) + " años"
+            return Fmt.num(v, 0) + " €"
+        }
+        // Override fijado por el usuario, o null si el campo aún sigue al
+        // escenario principal (no editado desde el último resetToMain()).
+        readonly property var overrideValue: {
+            if (!fld.touched) return null
+            const v = Fmt.parse(fld.text)
+            if (isNaN(v)) return null
+            return fld.kind === "pct1" ? v / 100 : v
+        }
+        function resetToMain() {
+            fld.touched = false
+            fld.text = fld.display(fld.mainValue)
+        }
+
+        implicitWidth: fld.kind === "eur" ? 130 : 90
+        implicitHeight: 40
+        horizontalAlignment: TextInput.AlignRight
+        font.pixelSize: 14
+        color: Tokens.textPrimary
+        selectByMouse: true
+        inputMethodHints: Qt.ImhFormattedNumbersOnly
+
+        background: Rectangle {
+            radius: 5
+            color: Tokens.bgInput
+            border.color: fld.activeFocus ? Tokens.borderInteractiveHover : Tokens.borderInputDefault
+            border.width: 1
+        }
+
+        Component.onCompleted: fld.text = fld.display(fld.mainValue)
+        onMainValueChanged: if (!fld.touched) fld.text = fld.display(fld.mainValue)
+        onTextEdited: fld.touched = true
+        onAccepted: focus = false
+    }
 
     ColumnLayout {
         id: col
@@ -104,60 +118,107 @@ Flickable {
         Text { text: "Simulación"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
         Text {
             Layout.fillWidth: true
-            text: "Combinaciones de plazo e interés de la hipoteca (mobiliaria e inmobiliaria) y aportación "
-                  + "inicial, agrupadas por Facturación Total: la primera columna de cada combinación usa "
-                  + "siempre el dato actual, la segunda le suma el margen configurado abajo. El cálculo en sí "
-                  + "no se guarda ni afecta a Datos base/Financiación."
+            text: "La primera columna es siempre el escenario actual. Los campos de abajo arrancan "
+                  + "con los valores actuales: edita solo los que quieras fijar en un nuevo escenario "
+                  + "(el resto seguirá siempre al escenario actual) y pulsa \"Añadir escenario\" para "
+                  + "añadirlo como columna. El cálculo en sí no se guarda ni afecta a Datos base/"
+                  + "Financiación."
             font.pixelSize: 12
             color: Tokens.textMuted
             wrapMode: Text.WordWrap
         }
 
-        Text {
-            text: "Margen de la 2ª columna de cada combinación (la 1ª usa siempre el dato actual)"
-            font.pixelSize: 13
-            font.bold: true
-            color: Tokens.textSecondary
-        }
-        Flow {
-            Layout.fillWidth: true
-            spacing: 12
+        // Grupo con el mismo estilo (título + línea de acento) que el resto
+        // de la app (ver CollapsibleCard.qml, basado en Card + SectionTitle),
+        // pero colapsable: expandido por defecto al abrir la app (expanded
+        // no se guarda, es solo estado de la sesión), para poder dejarle más
+        // hueco a la tabla sin necesidad de hacer scroll.
+        CollapsibleCard {
+            title: "Nuevo escenario"
+            // Su borde derecho coincide con el del botón "Exportar a PDF" de
+            // abajo (no Layout.fillWidth, que es lo que trae Card por
+            // defecto): btnPdfSimulacion.x es su posición dentro de su Flow,
+            // que empieza en el mismo x que esta tarjeta dentro de "col".
+            Layout.fillWidth: false
+            Layout.preferredWidth: btnPdfSimulacion.x + btnPdfSimulacion.width
 
-            Text {
-                text: "Facturación Total"
-                font.pixelSize: 13
-                color: Tokens.textSecondary
-                height: campoFacturacionDelta.implicitHeight
-                verticalAlignment: Text.AlignVCenter
+            RowCard {
+                Text { text: "Facturación Total"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField {
+                    id: campoFacturacionNueva
+                    kind: "eur"
+                    mainValue: Engine.inputs.prescriptionSales + Engine.inputs.otcSales
+                    Layout.alignment: Qt.AlignRight
+                }
             }
-            MoneyField { id: campoFacturacionDelta; k: "simulationRevenueDeltaEur" }
 
-            Text {
-                text: "Años hipoteca (mobiliaria/inmobiliaria)"
-                font.pixelSize: 13
-                color: Tokens.textSecondary
-                height: campoAniosDelta.implicitHeight
-                verticalAlignment: Text.AlignVCenter
+            RowCard {
+                Text { text: "Años hipoteca mobiliaria/inmobiliaria"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoAniosNueva; kind: "years"; mainValue: Engine.inputs.bankTermYears; Layout.alignment: Qt.AlignRight }
             }
-            NumField { id: campoAniosDelta; k: "simulationTermDeltaYears"; suffix: " años" }
 
-            Text {
-                text: "Interés hipoteca (mobiliaria/inmobiliaria)"
-                font.pixelSize: 13
-                color: Tokens.textSecondary
-                height: campoInteresDelta.implicitHeight
-                verticalAlignment: Text.AlignVCenter
+            RowCard {
+                Text { text: "Interés hipoteca mobiliaria/inmobiliaria"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoInteresNueva; kind: "pct1"; mainValue: Engine.inputs.bankRate; Layout.alignment: Qt.AlignRight }
             }
-            PctField { id: campoInteresDelta; k: "simulationRateDeltaPct"; decimals: 1 }
 
-            Text {
-                text: "Aportación inicial"
-                font.pixelSize: 13
-                color: Tokens.textSecondary
-                height: campoAportacionDelta.implicitHeight
-                verticalAlignment: Text.AlignVCenter
+            RowCard {
+                Text { text: "Aportación inicial"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoAportacionNueva; kind: "eur"; mainValue: Engine.inputs.contributedCash; Layout.alignment: Qt.AlignRight }
             }
-            MoneyField { id: campoAportacionDelta; k: "simulationCashDeltaEur" }
+
+            RowCard {
+                Text { text: "Margen comercial"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoMargenNueva; kind: "pct1"; mainValue: Engine.inputs.marginPct; Layout.alignment: Qt.AlignRight }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Item { Layout.fillWidth: true }
+
+                Button {
+                    id: btnAnadirEscenario
+                    height: 40
+                    text: "Añadir escenario"
+                    font.pixelSize: 13
+                    font.bold: true
+                    onClicked: {
+                        const overrides = {}
+                        if (campoFacturacionNueva.overrideValue !== null) overrides.revenueEur = campoFacturacionNueva.overrideValue
+                        if (campoAniosNueva.overrideValue !== null) overrides.termYears = campoAniosNueva.overrideValue
+                        if (campoInteresNueva.overrideValue !== null) overrides.ratePct = campoInteresNueva.overrideValue
+                        if (campoAportacionNueva.overrideValue !== null) overrides.cashEur = campoAportacionNueva.overrideValue
+                        if (campoMargenNueva.overrideValue !== null) overrides.marginPct = campoMargenNueva.overrideValue
+                        Engine.addSimulationScenario(overrides)
+                        campoFacturacionNueva.resetToMain()
+                        campoAniosNueva.resetToMain()
+                        campoInteresNueva.resetToMain()
+                        campoAportacionNueva.resetToMain()
+                        campoMargenNueva.resetToMain()
+                    }
+                    background: Rectangle {
+                        radius: 8
+                        color: btnAnadirEscenario.down ? Tokens.bgButtonPrimaryPressed : Tokens.bgButtonPrimaryDefault
+                        border.color: Tokens.borderButtonPrimary
+                    }
+                    contentItem: Text {
+                        text: btnAnadirEscenario.text
+                        color: Tokens.textButtonPrimary
+                        font: btnAnadirEscenario.font
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        leftPadding: 12
+                        rightPadding: 12
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: (mouse) => mouse.accepted = false
+                    }
+                }
+            }
         }
 
         Flow {
@@ -253,7 +314,7 @@ Flickable {
                 font.pixelSize: 13
                 font.bold: true
                 onClicked: {
-                    const destino = Engine.exportSimulationPdf(page.allCollapsedColumns())
+                    const destino = Engine.exportSimulationPdf()
                     avisoPdfSimulacion.mostrar(destino.length > 0
                         ? "PDF guardado en: " + destino
                         : "No se pudo crear el PDF")
@@ -300,70 +361,33 @@ Flickable {
             }
         }
 
-        // ---------------- un bloque por cada Facturación Total, apilados
-        Repeater {
-            id: repeaterGrupos
-            model: page.grupos
-            delegate: ColumnLayout {
-                id: grupoCol
-                required property var modelData
-                required property int index
-                // Referencia a la tabla de este grupo, para que page.syncScroll()
-                // pueda alcanzarla vía repeaterGrupos.itemAt(i).tablaRef.
-                property alias tablaRef: tabla
-                Layout.fillWidth: true
-                Layout.topMargin: grupoCol.index > 0 ? 8 : 0
-                spacing: 6
+        // ---------------- una única tabla: columna 0 = Actual, resto = escenarios
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: tabla.implicitHeight + 28
+            radius: 12
+            color: Tokens.bgSurface
+            border.color: Tokens.borderSurface
+            clip: true
 
-                // Columnas colapsadas (filtro visual con el "ojo" de la
-                // cabecera) de esta tabla en concreto: cada grupo (Facturación
-                // Total) lleva su propio filtro, así que ocultar una columna
-                // aquí no afecta a las demás tablas.
-                property var collapsedColumns: []
-                function toggleColumn(index) {
-                    const i = grupoCol.collapsedColumns.indexOf(index)
-                    const arr = grupoCol.collapsedColumns.slice()
-                    if (i === -1) arr.push(index)
-                    else arr.splice(i, 1)
-                    grupoCol.collapsedColumns = arr
-                }
-
-                Text {
-                    text: "Facturación total: " + Fmt.eur(grupoCol.modelData.facturacion)
-                    font.pixelSize: 15
-                    font.bold: true
-                    color: Tokens.textHeading
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: tabla.implicitHeight + 28
-                    radius: 12
-                    color: Tokens.bgSurface
-                    border.color: Tokens.borderSurface
-                    clip: true
-
-                    ConceptTable {
-                        id: tabla
-                        // Permite localizar cada tabla en los tests QML (tst_SimulacionView.qml).
-                        objectName: "tabla" + grupoCol.index
-                        anchors.fill: parent
-                        anchors.margins: 14
-                        wLabel: page.wLabel
-                        wCell: page.wCell
-                        hRow: page.hRow
-                        headerLabels: page.combinacionLabels
-                        model: grupoCol.modelData.rows
-                        collapsibleColumns: true
-                        collapsedColumns: grupoCol.collapsedColumns
-                        onToggleColumn: (index) => grupoCol.toggleColumn(index)
-                        // La página (Flickable) ya lleva el scroll vertical: esta tabla
-                        // solo necesita desplazarse en horizontal (8 columnas).
-                        flickableDirection: Flickable.HorizontalFlick
-                        fallback: page
-                        onContentXChanged: page.syncScroll(tabla)
-                    }
-                }
+            ConceptTable {
+                id: tabla
+                // Permite localizar la tabla en los tests QML (tst_SimulacionView.qml).
+                objectName: "tabla"
+                anchors.fill: parent
+                anchors.margins: 14
+                wLabel: page.wLabel
+                wCell: page.wCell
+                hRow: page.hRow
+                showHeaderLabels: false // sin "ojo"/nombres: las columnas se identifican por su posición
+                model: page.filas
+                closableColumns: true
+                firstClosableColumn: 1 // la columna 0 ("Actual") no se puede borrar
+                onCloseColumn: (index) => Engine.removeSimulationScenario(index - 1)
+                // La página (Flickable) ya lleva el scroll vertical: esta tabla
+                // solo necesita desplazarse en horizontal.
+                flickableDirection: Flickable.HorizontalFlick
+                fallback: page
             }
         }
 

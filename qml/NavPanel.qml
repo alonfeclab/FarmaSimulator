@@ -22,13 +22,52 @@ Rectangle {
         anchors.margins: 12
         spacing: 4
 
-        Text {
-            text: "SIMULACIÓN\nFARMACIA"
-            color: Tokens.textOnDark
-            font.pixelSize: 19
-            font.bold: true
-            lineHeight: 1.1
+        RowLayout {
+            Layout.fillWidth: true
             Layout.margins: 8
+            spacing: 8
+
+            Text {
+                text: "SIMULACIÓN\nFARMACIA"
+                color: Tokens.textOnDark
+                font.pixelSize: 19
+                font.bold: true
+                lineHeight: 1.1
+                Layout.fillWidth: true
+            }
+
+            // Botón checkable sol/luna: ON (sol) = tema claro, OFF (luna) = tema
+            // oscuro. Cambia Tokens.dark, y como todas las vistas leen los
+            // colores de Tokens.xxx, el repintado es automático (bindings de QML).
+            ToolButton {
+                id: btnTema
+                checkable: true
+                checked: !Tokens.dark
+                onCheckedChanged: Tokens.dark = !checked
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
+                Layout.alignment: Qt.AlignVCenter
+
+                background: Rectangle {
+                    radius: 8
+                    color: (btnTema.hovered || btnTema.down) ? Tokens.bgNavItemHover : Tokens.bgTransparent
+                }
+                contentItem: Image {
+                    source: btnTema.checked
+                        ? "qrc:/qt/qml/FarmaciaSim/icons/sun.svg"
+                        : "qrc:/qt/qml/FarmaciaSim/icons/moon.svg"
+                    sourceSize: Qt.size(20, 20)
+                    fillMode: Image.PreserveAspectFit
+                }
+                ToolTip.visible: btnTema.hovered
+                ToolTip.delay: 400
+                ToolTip.text: btnTema.checked ? "Cambiar a tema oscuro" : "Cambiar a tema claro"
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onPressed: (mouse) => mouse.accepted = false
+                }
+            }
         }
         Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: Tokens.borderNavDivider }
         Item { Layout.preferredHeight: 6 }

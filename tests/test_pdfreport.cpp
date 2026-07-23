@@ -74,13 +74,12 @@ static QVariantMap simRow(const QString& label, const QString& fmt, bool bold,
                          { "fmt", fmt }, { "bold", bold } };
 }
 
-// Las 9 filas de la tabla fusionada que arma Engine::exportSimulationPdf() a
-// partir de simulationForYear() (la fila "Facturación" añadida al fusionar
-// los grupos, más las 8 de SimulacionView.qml), 'n' columnas cada una.
-static QVariantList simMergedRows(int n)
+// Las 9 filas que arma Engine::simulationForYear() (una por escenario,
+// columna 0 = "Actual"), 'n' columnas cada una.
+static QVariantList simRows(int n)
 {
     return QVariantList{
-        simRow(QStringLiteral("Facturación"),                    QStringLiteral("eur"),   false, n, 1000000, 50000),
+        simRow(QStringLiteral("Facturación Total"),               QStringLiteral("eur"),   false, n, 1000000, 50000),
         simRow(QStringLiteral("Años hipoteca mobiliaria"),        QStringLiteral("years"), false, n, 20, 1),
         simRow(QStringLiteral("Interés hipoteca mobiliaria"),     QStringLiteral("pct1"),  false, n, 0.03, 0.001),
         simRow(QStringLiteral("Años hipoteca inmobiliaria"),      QStringLiteral("years"), false, n, 20, 1),
@@ -92,39 +91,38 @@ static QVariantList simMergedRows(int n)
     };
 }
 
-// 'nAnios' páginas (una por año), cada una con la tabla fusionada (Facturación
-// Total igual / + un % configurable, ver Engine::exportSimulationPdf) de 'nColumnas'
-// columnas — misma forma que arma Engine::exportSimulationPdf() a partir de
-// simulationForYear(), ya con las columnas ocultas ("ojo") descartadas.
+// 'nAnios' páginas (una por año), cada una con 'nColumnas' columnas —
+// misma forma que arma Engine::exportSimulationPdf() a partir de
+// simulationForYear() (columna 0 "Actual" + una por escenario guardado).
 static QVariantList simYears(int nAnios, int nColumnas)
 {
     QVariantList years;
     for (int a = 0; a < nAnios; ++a)
-        years << QVariantMap{ { "year", a + 1 }, { "rows", simMergedRows(nColumnas) } };
+        years << QVariantMap{ { "year", a + 1 }, { "rows", simRows(nColumnas) } };
     return years;
 }
 
-static QStringList combinacionLabels(int n)
+static QStringList scenarioLabels(int n)
 {
-    QStringList labels;
-    for (int i = 0; i < n; ++i)
-        labels << QStringLiteral("Combinación %1").arg(i + 1);
+    QStringList labels{ QStringLiteral("Actual") };
+    for (int i = 1; i < n; ++i)
+        labels << QStringLiteral("Escenario %1").arg(i);
     return labels;
 }
 
 void TestPdfReport::escribirSimulacion_datosTipicos_producePdfValido()
 {
-    // 10 años × 16 columnas (2 grupos × 8 combinaciones), como en la tabla
-    // fusionada que arma Engine::exportSimulationPdf().
+    // 10 años × 16 columnas ("Actual" + 15 escenarios), muchas más de las
+    // que caben legibles en una sola tabla por página.
     const QVariantList years = simYears(10, 16);
 
     QBuffer buf;
     QVERIFY(buf.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&buf, years, combinacionLabels(16)));
+    QVERIFY(pdf::writeSimulation(&buf, years, scenarioLabels(16)));
     buf.close();
 
-    // Un informe con 10 años (cada uno partido en 2 tablas, 16 columnas no
-    // caben legibles en una sola) no es minúsculo.
+    // Un informe con 10 años (cada uno partido en varias tablas, 16
+    // columnas no caben legibles en una sola) no es minúsculo.
     QVERIFY(buf.data().size() > 2000);
     QVERIFY(buf.data().startsWith("%PDF-"));
 }
@@ -135,36 +133,36 @@ void TestPdfReport::escribirSimulacion_valoresExtremos_noRevienta()
     // para comprobar que el maquetado no revienta con anchos de columna o
     // valores degenerados.
     const QVariantList years{
-        QVariantMap{ { "year", 1 }, { "rows", simMergedRows(1) } },
+        QVariantMap{ { "year", 1 }, { "rows", simRows(1) } },
     };
 
     QBuffer buf;
     QVERIFY(buf.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&buf, years, combinacionLabels(1)));
+    QVERIFY(pdf::writeSimulation(&buf, years, scenarioLabels(1)));
     buf.close();
 
     QVERIFY(buf.data().startsWith("%PDF-"));
 }
 
-// Engine::exportSimulationPdf() ya quita del "values" de cada fila las
-// columnas colapsadas ("ojo") antes de llamar a writeSimulation() — desde
-// aquí (caja negra sobre pdf::writeSimulation) lo que se comprueba es que
-// menos columnas dan un documento más pequeño (menos celdas dibujadas), es
-// decir que las columnas ausentes de 'years'/'combinacionLabels' realmente
-// no se pintan en el PDF (no quedan "huecos" reservados para ellas).
+// pdf::writeSimulation() es puro sobre lo que recibe: no sabe nada de "ojo"
+// ni de escenarios borrados, solo dibuja las columnas de 'years'/
+// 'scenarioLabels' que se le pasan (caja negra). Aquí se comprueba que menos
+// columnas dan un documento más pequeño (menos celdas dibujadas), es decir
+// que las columnas ausentes realmente no se pintan en el PDF (no quedan
+// "huecos" reservados para ellas).
 void TestPdfReport::escribirSimulacion_conColumnasOcultas_soloIncluyeLasVisibles()
 {
     const QVariantList aniosCompleto = simYears(10, 16);
-    const QVariantList aniosFiltrado = simYears(10, 6); // como si se hubieran ocultado 10 de 16
+    const QVariantList aniosFiltrado = simYears(10, 6); // como si solo se hubieran guardado 6 escenarios
 
     QBuffer bufCompleto;
     QVERIFY(bufCompleto.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&bufCompleto, aniosCompleto, combinacionLabels(16)));
+    QVERIFY(pdf::writeSimulation(&bufCompleto, aniosCompleto, scenarioLabels(16)));
     bufCompleto.close();
 
     QBuffer bufFiltrado;
     QVERIFY(bufFiltrado.open(QIODevice::WriteOnly));
-    QVERIFY(pdf::writeSimulation(&bufFiltrado, aniosFiltrado, combinacionLabels(6)));
+    QVERIFY(pdf::writeSimulation(&bufFiltrado, aniosFiltrado, scenarioLabels(6)));
     bufFiltrado.close();
 
     QVERIFY(bufCompleto.data().startsWith("%PDF-"));

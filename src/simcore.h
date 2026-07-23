@@ -245,17 +245,10 @@ struct Inputs {
         0.330, 0.336, 0.333, 0.341, 0.338, 0.347, 0.344, 0.353, 0.358, 0.365
     };
 
-    // ---- Hoja Simulación
-    // Rango superior de cada eje que varía en la hoja "Simulación": la
-    // primera columna de cada combinación usa siempre el valor actual (el de
-    // más arriba), la segunda le suma este margen. Editables en la propia
-    // hoja Simulación (no en Configuración): la simulación en sí sigue
-    // siendo un cálculo puro que no toca Datos base/Financiación, pero estos
-    // márgenes sí se guardan como cualquier otro dato de la app.
-    double simulationRevenueDeltaEur = 200000; // Facturación Total: +200.000 € por defecto
-    double simulationTermDeltaYears  = 5;      // Años hipoteca (mobiliaria e inmobiliaria): +5 años
-    double simulationRateDeltaPct    = 0.005;  // Interés hipoteca (mobiliaria e inmobiliaria): +0,5 %
-    double simulationCashDeltaEur    = 50000;  // Aportación inicial: +50.000 €
+    // La hoja "Simulación" ya no tiene inputs propios en Inputs: cada
+    // escenario que el usuario añade ahí es un mapa de overrides (0 a 5
+    // ejes) guardado en Engine::m_simulationScenarios, no un campo fijo
+    // aquí — ver Engine::simulationForYear().
 };
 
 // ---------------------------------------------------------------- Outputs

@@ -2,12 +2,10 @@ import QtQuick
 import QtTest
 import FarmaciaSim
 
-// Usa el singleton Engine real (recálculo real). Verifica que colapsar o
-// expandir una columna "Combinación N" en una de las 2 tablas (una por
-// Facturación Total: igual / + un % configurable) NO se propaga a la otra tabla — cada
-// tabla lleva su propio filtro de columnas (ver grupoCol.collapsedColumns en
-// SimulacionView.qml) — mientras que el scroll horizontal sí sigue
-// sincronizado entre ambas.
+// Usa el singleton Engine real (recálculo real). Verifica que:
+// - la columna 0 ("Actual") siempre existe y no lleva el botón "✕" de cerrar;
+// - Engine.addSimulationScenario()/removeSimulationScenario() añaden y
+//   quitan columnas de la única tabla de la hoja.
 TestCase {
     id: testCase
     name: "SimulacionView"
@@ -22,43 +20,75 @@ TestCase {
     }
 
     function init() { Engine.resetToDefaults() }
-    function cleanup() { Engine.resetToDefaults() }
+    function cleanup() {
+        // resetToDefaults() no toca los escenarios guardados (no son un
+        // input de Configuración): se limpian aparte para no dejar estado
+        // entre tests.
+        while (Engine.simulationScenarios.length > 0)
+            Engine.removeSimulationScenario(0)
+        Engine.resetToDefaults()
+    }
 
-    function test_collapsingColumnOnlyAffectsItsOwnTable() {
+    function test_defaultColumnIsPresentAndNotClosable() {
         const view = createTemporaryObject(simulacionComponent, testCase, { width: 1200, height: 900 })
         verify(view !== null)
 
-        const tabla0 = findChild(view, "tabla0")
-        const tabla1 = findChild(view, "tabla1")
-        verify(tabla0 !== null)
-        verify(tabla1 !== null)
+        const tabla = findChild(view, "tabla")
+        verify(tabla !== null)
 
-        compare(tabla0.collapsedColumns.length, 0)
-        compare(tabla1.collapsedColumns.length, 0)
+        compare(tabla.cols, 1)
+        compare(tabla.isColumnClosable(0), false)
+    }
 
-        // Simula el clic en el "ojo" de la columna 0 de la primera tabla
-        // (el MouseArea del botón solo llama a root.toggleColumn(index)).
-        tabla0.toggleColumn(0)
+    function test_addSimulationScenarioAddsColumn() {
+        const view = createTemporaryObject(simulacionComponent, testCase, { width: 1200, height: 900 })
+        verify(view !== null)
+        const tabla = findChild(view, "tabla")
+        verify(tabla !== null)
 
-        compare(tabla0.collapsedColumns.indexOf(0) !== -1, true)
-        compare(tabla1.collapsedColumns.indexOf(0), -1)
+        Engine.addSimulationScenario({ cashEur: 500000 })
 
-        // El ancho de la columna solo debe colapsarse en la tabla donde se
-        // pulsó el "ojo", no en la otra.
-        compare(tabla0.columnWidth(0), tabla0.collapsedWidth)
-        compare(tabla1.columnWidth(0), tabla1.wCell)
+        compare(tabla.cols, 2)
+        compare(tabla.isColumnClosable(0), false)
+        compare(tabla.isColumnClosable(1), true)
 
-        // Colapsar en la otra tabla tampoco debe afectar a la primera.
-        tabla1.toggleColumn(1)
+        const filaAportacion = tabla.model.find(f => f.label === "Aportación inicial")
+        verify(filaAportacion !== undefined)
+        compare(filaAportacion.values[0], Engine.inputs.contributedCash)
+        compare(filaAportacion.values[1], 500000)
+    }
 
-        compare(tabla1.collapsedColumns.indexOf(1) !== -1, true)
-        compare(tabla0.collapsedColumns.indexOf(1), -1)
+    function test_removeSimulationScenarioRemovesColumn() {
+        const view = createTemporaryObject(simulacionComponent, testCase, { width: 1200, height: 900 })
+        verify(view !== null)
+        const tabla = findChild(view, "tabla")
+        verify(tabla !== null)
 
-        // Expandir de nuevo solo afecta a la tabla en la que se colapsó.
-        tabla0.toggleColumn(0)
+        Engine.addSimulationScenario({ marginPct: 0.4 })
+        Engine.addSimulationScenario({ marginPct: 0.45 })
+        compare(tabla.cols, 3)
 
-        compare(tabla0.collapsedColumns.indexOf(0), -1)
-        compare(tabla0.columnWidth(0), tabla0.wCell)
-        compare(tabla1.collapsedColumns.indexOf(1) !== -1, true)
+        tabla.closeColumn(1) // borra el primer escenario añadido, no "Actual"
+
+        compare(tabla.cols, 2)
+        const filaMargen = tabla.model.find(f => f.label === "Margen comercial")
+        compare(filaMargen.values[1], 0.45)
+    }
+
+    // Un escenario añadido sin editar ningún campo de "Nuevo escenario" no
+    // fija ningún override: la columna sigue enteramente al escenario
+    // principal, así que su valor cambia si cambia el principal.
+    function test_scenarioWithNoOverridesTracksMainScenario() {
+        const view = createTemporaryObject(simulacionComponent, testCase, { width: 1200, height: 900 })
+        verify(view !== null)
+        const tabla = findChild(view, "tabla")
+        verify(tabla !== null)
+
+        Engine.addSimulationScenario({})
+        Engine.set("contributedCash", 600000)
+
+        const filaAportacion = tabla.model.find(f => f.label === "Aportación inicial")
+        compare(filaAportacion.values[0], 600000)
+        compare(filaAportacion.values[1], 600000)
     }
 }

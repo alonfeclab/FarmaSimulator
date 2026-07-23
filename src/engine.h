@@ -32,6 +32,7 @@ class Engine : public QObject
     Q_PROPERTY(QString dataPath         READ dataPath     CONSTANT)
     Q_PROPERTY(int maxStaffPerRole      READ maxStaffPerRole CONSTANT)
     Q_PROPERTY(QVariantList comparisonScenarios READ comparisonScenarios NOTIFY comparisonScenariosChanged)
+    Q_PROPERTY(QVariantList simulationScenarios READ simulationScenarios NOTIFY simulationScenariosChanged)
     // Folder where exported PDFs are saved (desktop only). Empty means the
     // default: the user's Documents folder (see pdfSaveDirDefault).
     Q_PROPERTY(QString pdfSaveDir        READ pdfSaveDir        NOTIFY pdfSaveDirChanged)
@@ -69,17 +70,10 @@ public:
     Q_INVOKABLE QString exportComparisonPdf(int year);
 
     // Generates a PDF with the "Simulación" sheet: one page per year (1-10),
-    // each with a single table merging every Facturación Total group: for
-    // every combination (plazo/interés/aportación) still visible in at least
-    // one group, one column per group where that combination isn't hidden,
-    // grouped together and preceded by a "Facturación" row identifying which
-    // group's Facturación Total each column used. 'hiddenColumnsPerGroup' has
-    // one entry per group (same order as simulationForYear()'s return value),
-    // each the combination (column) indices collapsed with the "eye" filter
-    // in that group's table (SimulacionView.qml, grupoCol.collapsedColumns)
-    // — those columns are left out of the PDF entirely, not just visually
-    // collapsed. Same save/download behavior as exportPdf().
-    Q_INVOKABLE QString exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup);
+    // each with the same table simulationForYear() shows in the UI (column 0
+    // "Actual" + one per saved scenario). Same save/download behavior as
+    // exportPdf().
+    Q_INVOKABLE QString exportSimulationPdf();
 
     // Freezes the current projection (m_projection) as a new scenario saved
     // for the "Comparación" sheet.
@@ -100,19 +94,21 @@ public:
     // year) of each saved scenario, pivoted the same way as comparisonForYear().
     Q_INVOKABLE QVariantList financingComparison() const;
 
-    // "Simulación" sheet: agrupa por Facturación Total (la actual / + un
-    // margen, 2 grupos) las 8 combinaciones (2×2×2) de aportación inicial y
-    // plazo/interés de hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin
-    // escenarios mixtos con tipos distintos), partiendo del resto de los
-    // inputs actuales. Cada eje usa el valor real actual (Facturación Total,
-    // bankTermYears, bankRate, contributedCash) para su primera columna, y
-    // ese mismo valor + un margen editable en la propia hoja Simulación
-    // (simulationRevenueDeltaEur/simulationTermDeltaYears/
-    // simulationRateDeltaPct/simulationCashDeltaEur, en simcore.h) para la
-    // segunda. Devuelve una lista de 2 grupos: { "facturacion": double,
-    // "rows": [ {label, values[8], fmt, bold} × 8 ] }, con las columnas
-    // ordenadas por aportación (la actual primero) y el valor del año dado (0-9) en cada
-    // fila. Pura: no modifica m_in ni m_r.
+    // Freezes the current staged overrides as a new "Simulación" scenario
+    // (a new column in SimulacionView.qml, added after "Actual"). 'overrides'
+    // holds only the axes the user filled in (any subset of revenueEur/
+    // termYears/ratePct/cashEur/marginPct) — an absent axis keeps following
+    // the live main scenario forever (see simulationForYear()).
+    Q_INVOKABLE void addSimulationScenario(const QVariantMap& overrides);
+    Q_INVOKABLE void removeSimulationScenario(int index);
+
+    // "Simulación" sheet: one row per concept, one column per scenario —
+    // column 0 ("Actual") is always the live main scenario (m_in) untouched;
+    // columns 1..N are m_simulationScenarios, each a copy of m_in with just
+    // its overridden axes replaced (see addSimulationScenario()). Returns
+    // { label, values[1+N], fmt, bold } × 10, with the value for the given
+    // year (0-9) in each row. Pure: never modifies m_in or m_r, so every
+    // non-overridden axis of every column tracks the main scenario live.
     Q_INVOKABLE QVariantList simulationForYear(int year) const;
 
     QVariantMap inputs()        const { return m_inputs; }
@@ -130,12 +126,14 @@ public:
     QString dataPath()          const { return m_dataPath; }
     int maxStaffPerRole()       const { return sim::kMaxStaffPerRole; }
     QVariantList comparisonScenarios() const { return m_comparisonScenarios; }
+    QVariantList simulationScenarios() const { return m_simulationScenarios; }
     QString pdfSaveDir()        const { return m_pdfSaveDir; }
     QString pdfSaveDirDefault() const;
 
 signals:
     void recalculated();
     void comparisonScenariosChanged();
+    void simulationScenariosChanged();
     void pdfSaveDirChanged();
 
 private:
@@ -172,4 +170,10 @@ private:
     //   via applyComparisonScenario(). Absent on scenarios saved before this
     //   field existed.) }.
     QVariantList m_comparisonScenarios;
+
+    // Manually added scenarios for "Simulación": each entry is
+    // { "overrides": QVariantMap (any subset of revenueEur/termYears/
+    //   ratePct/cashEur/marginPct) }. See addSimulationScenario()/
+    //   simulationForYear().
+    QVariantList m_simulationScenarios;
 };

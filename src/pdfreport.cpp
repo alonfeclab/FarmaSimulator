@@ -885,25 +885,20 @@ constexpr qreal kSimRowHeight = 18;
 // y increment of Doc::sectionTitle(): 8 (top gap) + 26 (title text + rule).
 constexpr qreal kSectionTitleHeight = 34;
 
-// Draws one year's worth of Simulación data: a single table merging every
-// Facturación Total group (igual / + un % configurable) — unlike
-// SimulacionView.qml, which shows one table per group, here the columns of
-// the same combination (plazo/interés/aportación) from each group are placed
-// next to each other, with a leading "Facturación" row identifying which
-// group's Facturación Total each column used. Only the columns still visible
-// in the UI are included ('combinaciones'/each row's "values" already
-// exclude the ones collapsed with the "eye" filter, see
-// Engine::exportSimulationPdf). If every column doesn't fit at a readable
-// width in a single table, it's split into as many side-by-side tables as
-// needed (each still labeled "Año N"), one after another — the page itself
-// isn't forced to break per year: tables simply keep flowing down the
-// document, breaking pages only when they run out of room (see
-// Doc::ensureSpace(), used internally by sectionTitle()/Table::header()).
-void simulationYearBlock(Doc& d, const QVariantList& rows, const QStringList& combinaciones, int year)
+// Draws one year's worth of Simulación data: a single table, one column per
+// scenario (column 0 "Actual" + one per saved scenario, same order as
+// SimulacionView.qml — see Engine::simulationForYear). If every column
+// doesn't fit at a readable width in a single table, it's split into as many
+// side-by-side tables as needed (each still labeled "Año N"), one after
+// another — the page itself isn't forced to break per year: tables simply
+// keep flowing down the document, breaking pages only when they run out of
+// room (see Doc::ensureSpace(), used internally by sectionTitle()/
+// Table::header()).
+void simulationYearBlock(Doc& d, const QVariantList& rows, const QStringList& scenarioLabels, int year)
 {
     const qreal wLabel = 190;
     const qreal wTotal = d.pageWidth() - 2 * kMargin;
-    const int totalCols = std::max(1, int(combinaciones.size()));
+    const int totalCols = std::max(1, int(scenarioLabels.size()));
 
     const int maxColsPerTable = std::max(1, int((wTotal - wLabel) / kMinSimColWidth));
     const int numTables = (totalCols + maxColsPerTable - 1) / maxColsPerTable;
@@ -926,7 +921,7 @@ void simulationYearBlock(Doc& d, const QVariantList& rows, const QStringList& co
 
         QVector<Col> cols{ { QStringLiteral("Concepto"), wLabel, Qt::AlignLeft } };
         for (int i = start; i < start + n; ++i)
-            cols.append({ combinaciones.at(i), wVal });
+            cols.append({ scenarioLabels.at(i), wVal });
 
         // Si la tabla completa no cabe en el resto de la página, se salta de
         // página entera aquí. Si ni siquiera cabe en una página en blanco
@@ -991,7 +986,7 @@ bool writeComparison(QIODevice* dev, const QVariantList& pages,
 }
 
 bool writeSimulation(QIODevice* dev, const QVariantList& years,
-                      const QStringList& combinacionLabels)
+                      const QStringList& scenarioLabels)
 {
     Doc d(dev);
     d.newPage(QPageLayout::Landscape, QStringLiteral("Simulación"));
@@ -1005,7 +1000,7 @@ bool writeSimulation(QIODevice* dev, const QVariantList& years,
     // en vez de forzar una página nueva por año: ver simulationYearBlock().
     for (const QVariant& yv : years) {
         const QVariantMap ypage = yv.toMap();
-        simulationYearBlock(d, ypage.value(QStringLiteral("rows")).toList(), combinacionLabels,
+        simulationYearBlock(d, ypage.value(QStringLiteral("rows")).toList(), scenarioLabels,
                                 ypage.value(QStringLiteral("year")).toInt());
     }
     return d.p.end();

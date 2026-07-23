@@ -22,20 +22,18 @@ bool writeComparison(QIODevice* dev, const QVariantList& pages,
                       const QStringList& scenarioNames);
 
 // Writes the "Simulación" sheet to 'dev': every entry of 'years' (QVariantMap
-// with "year" (1-10) and "rows", a single table already merging every
-// Facturación Total group — see Engine::exportSimulationPdf — shaped like
-// { label, values[], fmt, bold } per row, with a leading "Facturación" row
-// identifying which group's Facturación Total each column used, and with the
-// columns collapsed in the UI already left out) is laid out one after
-// another, as many per page as fit — not forced one page per year. If a
-// year's columns don't fit at a readable width in a single table, that year
-// is split into several side-by-side tables instead. Each individual table
-// is kept whole: if it doesn't fit in what's left of the current page, it
-// starts on the next page instead of being split mid-row (unless it's taller
-// than a full page, in which case it still spills over as a last resort).
-// 'combinacionLabels' names the remaining columns, in order (see
-// Engine::exportSimulationPdf). Returns false on failure.
+// with "year" (1-10) and "rows", shaped like { label, values[], fmt, bold }
+// per row — one column per scenario, see Engine::simulationForYear) is laid
+// out one after another, as many per page as fit — not forced one page per
+// year. If a year's columns don't fit at a readable width in a single table,
+// that year is split into several side-by-side tables instead. Each
+// individual table is kept whole: if it doesn't fit in what's left of the
+// current page, it starts on the next page instead of being split mid-row
+// (unless it's taller than a full page, in which case it still spills over
+// as a last resort). 'scenarioLabels' names the columns, in order ("Actual"
+// + one per saved scenario, see Engine::exportSimulationPdf). Returns false
+// on failure.
 bool writeSimulation(QIODevice* dev, const QVariantList& years,
-                      const QStringList& combinacionLabels);
+                      const QStringList& scenarioLabels);
 
 } // namespace pdf

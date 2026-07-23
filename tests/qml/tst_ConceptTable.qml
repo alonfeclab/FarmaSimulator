@@ -48,4 +48,22 @@ TestCase {
         const resumen = table.columnSummary(0)
         compare(resumen, "Año 1\nBeneficio neto mensual: 1.200 €")
     }
+
+    // firstClosableColumn permite excluir las primeras columnas del botón
+    // "✕" (p.ej. la columna "Actual" en Simulación no debe poder borrarse).
+    function test_firstClosableColumnExcludesLeadingColumnsFromClosing() {
+        const table = createTemporaryObject(tableComponent, testCase, {
+            width: 400,
+            height: 300,
+            closableColumns: true,
+            firstClosableColumn: 1,
+            headerLabels: ["Actual", "Escenario 1", "Escenario 2"],
+            model: [ { label: "Aportación inicial", values: [400000, 450000, 500000], fmt: "eur", bold: false } ]
+        })
+        verify(table !== null)
+
+        compare(table.isColumnClosable(0), false)
+        compare(table.isColumnClosable(1), true)
+        compare(table.isColumnClosable(2), true)
+    }
 }

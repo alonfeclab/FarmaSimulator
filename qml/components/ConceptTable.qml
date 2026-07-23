@@ -21,8 +21,16 @@ Flickable {
     // Cabeceras de columna alternativas a "Año N" (p.ej. nombres de escenario
     // en la hoja Comparación). Si está vacío se usa "Año N" como siempre.
     property var headerLabels: []
+    // Si false, la cabecera no muestra ningún texto (ni headerLabels ni
+    // "Año N"), solo sus iconos — p.ej. Simulación, donde las columnas se
+    // identifican por su posición (la 1ª es siempre "Actual") y no hace
+    // falta repetir un nombre.
+    property bool showHeaderLabels: true
     // Si true, cada cabecera de columna muestra un botón "✕" para quitarla.
     property bool closableColumns: false
+    // Primera columna que puede cerrarse (p.ej. 1 en Simulación, para que la
+    // columna 0 "Actual" no lleve el botón "✕" — ver SimulacionView.qml).
+    property int firstClosableColumn: 0
     signal closeColumn(int index)
 
     // Si true, cada cabecera de columna muestra un botón "aplicar" para
@@ -31,10 +39,9 @@ Flickable {
     signal applyColumn(int index)
 
     // Si true, cada cabecera de columna muestra un botón "ojo" para
-    // colapsarla/expandirla (filtro visual, ver Simulación). El array de
-    // índices colapsados vive fuera del componente (p.ej. en la página que
-    // lo controla), para poder compartir el mismo estado entre varias tablas
-    // sincronizadas.
+    // colapsarla/expandirla (filtro visual). El array de índices colapsados
+    // vive fuera del componente (p.ej. en la página que lo controla), para
+    // poder compartir el mismo estado entre varias tablas sincronizadas.
     property bool collapsibleColumns: false
     property var collapsedColumns: []
     readonly property int collapsedWidth: 32
@@ -42,6 +49,9 @@ Flickable {
 
     function isColumnCollapsed(index) {
         return root.collapsedColumns.indexOf(index) !== -1
+    }
+    function isColumnClosable(index) {
+        return root.closableColumns && index >= root.firstClosableColumn
     }
     function columnWidth(index) {
         return (root.collapsibleColumns && root.isColumnCollapsed(index)) ? root.collapsedWidth : root.wCell
@@ -129,6 +139,7 @@ Flickable {
                     id: hdrCell
                     required property int index
                     readonly property bool colapsada: root.collapsibleColumns && root.isColumnCollapsed(hdrCell.index)
+                    readonly property bool cerrable: root.isColumnClosable(hdrCell.index)
                     readonly property bool hasIcons: root.closableColumns || root.applyableColumns || root.collapsibleColumns
                     // Ancho reservado para los iconos (incluido el hueco que Row deja
                     // antes de cada uno), para poder acotar el ancho del nombre y que
@@ -136,7 +147,7 @@ Flickable {
                     // desbordar la columna.
                     readonly property real iconsWidth: (root.collapsibleColumns ? btnOjo.implicitWidth + headerContent.spacing : 0)
                                                        + (root.applyableColumns ? btnAplicar.implicitWidth + headerContent.spacing : 0)
-                                                       + (root.closableColumns ? btnCerrar.implicitWidth + headerContent.spacing : 0)
+                                                       + (hdrCell.cerrable ? btnCerrar.implicitWidth + headerContent.spacing : 0)
                     width: root.columnWidth(hdrCell.index); height: root.hRow; color: Tokens.bgBrandStrong
 
                     Row {
@@ -151,7 +162,7 @@ Flickable {
 
                         Text {
                             id: lbl
-                            visible: !hdrCell.colapsada
+                            visible: root.showHeaderLabels && !hdrCell.colapsada
                             anchors.verticalCenter: parent.verticalCenter
                             elide: Text.ElideRight
                             horizontalAlignment: Text.AlignHCenter
@@ -222,7 +233,7 @@ Flickable {
                         }
                         Text {
                             id: btnCerrar
-                            visible: root.closableColumns
+                            visible: hdrCell.cerrable
                             anchors.verticalCenter: parent.verticalCenter
                             text: "✕"
                             color: Tokens.textOnDark
