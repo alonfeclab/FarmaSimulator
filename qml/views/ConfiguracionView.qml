@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import FarmaciaSim
 
@@ -40,13 +41,13 @@ Flickable {
     function fixedPctKeys() {
         return ["feesPct", "ivaPct", "itpPct", "ajdPct", "inventoryPctYear10"]
     }
+    function salaryKeys() {
+        return ["salaryRaisePct"]
+    }
     function historicalSeriesKeys() {
         var ks = []
         for (var k = 0; k < 10; k++) { ks.push("ipcHistorical" + k); ks.push("realisticMarginSeries" + k) }
         return ks
-    }
-    function simulationKeys() {
-        return ["simulationRevenueIncreasePct"]
     }
 
     // Cabecera de columnas de una tabla de tramos.
@@ -328,6 +329,29 @@ Flickable {
             }
         }
 
+        // ---------------- Personal — subida salarial anual
+        Card {
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                SectionTitle { text: "Personal — subida salarial anual"; Layout.fillWidth: true }
+                ResetGroupButton { keys: page.salaryKeys() }
+            }
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: "#6b7a76"
+                text: "Porcentaje fijo con el que suben cada año los sueldos de la plantilla y los refuerzos de vacaciones en la Proyección a 10 años, independiente del IPC del escenario de crecimiento."
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Text { text: "Subida salarial anual"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                PctField { k: "salaryRaisePct"; decimals: 1 }
+            }
+        }
+
         // ---------------- IPC histórico y margen comercial (escenario Realista)
         Card {
             RowLayout {
@@ -371,27 +395,98 @@ Flickable {
             }
         }
 
-        // ---------------- Simulación
+        // ---------------- Carpeta de guardado de PDFs
         Card {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                SectionTitle { text: "Simulación"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.simulationKeys() }
+                SectionTitle { text: "Informes PDF — carpeta de guardado"; Layout.fillWidth: true }
+                Button {
+                    id: btnRestaurarCarpeta
+                    text: "Restaurar (Documentos)"
+                    font.pixelSize: 11
+                    implicitHeight: 28
+                    leftPadding: 10
+                    rightPadding: 10
+                    visible: Qt.platform.os !== "wasm"
+                    onClicked: Engine.setPdfSaveDir("")
+                    background: Rectangle {
+                        radius: 6
+                        color: btnRestaurarCarpeta.down ? "#eef5f1" : "white"
+                        border.color: (btnRestaurarCarpeta.hovered || btnRestaurarCarpeta.down) ? "#1a7a5e" : "#c9d6d0"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: btnRestaurarCarpeta.text
+                        color: "#1a5a45"
+                        font: btnRestaurarCarpeta.font
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: (mouse) => mouse.accepted = false
+                    }
+                }
             }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: "#6b7a76"
-                text: "% extra de Facturación Total con el que se calcula la segunda tabla de la hoja "
-                    + "Simulación (la primera siempre usa la Facturación Total actual, sin variar)."
+                visible: Qt.platform.os !== "wasm"
+                text: "Carpeta donde se guardan (y desde donde se abren) los informes PDF exportados desde Datos base, Comparación y Simulación. Déjala en blanco para usar la carpeta de Documentos del usuario."
+            }
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: "#6b7a76"
+                visible: Qt.platform.os === "wasm"
+                text: "En la versión web, los informes se descargan siempre a través del navegador; esta carpeta no aplica."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Facturación Total — segundo grupo (% extra)"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                PctField { k: "simulationRevenueIncreasePct"; decimals: 0 }
+                visible: Qt.platform.os !== "wasm"
+                Button {
+                    id: btnCarpetaPdf
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    font.pixelSize: 13
+                    text: Engine.pdfSaveDir.length > 0 ? Engine.pdfSaveDir : Engine.pdfSaveDirDefault
+                    onClicked: {
+                        dlgCarpetaPdf.currentFolder = Engine.pdfSaveDirUrl()
+                        dlgCarpetaPdf.open()
+                    }
+                    background: Rectangle {
+                        radius: 5
+                        color: "#fffbe8"
+                        border.color: (btnCarpetaPdf.hovered || btnCarpetaPdf.down) ? "#1a7a5e" : "#e0d6ac"
+                        border.width: 1
+                    }
+                    contentItem: Text {
+                        text: btnCarpetaPdf.text
+                        color: "#1e2b28"
+                        font: btnCarpetaPdf.font
+                        leftPadding: 10
+                        rightPadding: 10
+                        elide: Text.ElideMiddle
+                        horizontalAlignment: Text.AlignLeft
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPressed: (mouse) => mouse.accepted = false
+                    }
+                }
+                FolderDialog {
+                    id: dlgCarpetaPdf
+                    title: "Selecciona la carpeta donde guardar los PDFs"
+                    onAccepted: Engine.setPdfSaveDir(selectedFolder)
+                }
             }
         }
 

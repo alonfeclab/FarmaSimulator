@@ -4,12 +4,14 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import FarmaciaSim
 
-// Hoja "Simulación": agrupa por Facturación Total (igual / + un % configurable
-// en Configuración) las combinaciones de plazo e interés de la hipoteca
-// (mobiliaria e inmobiliaria, ligados) y aportación inicial, partiendo del
-// resto de los datos actuales. Cálculo puro (Engine.simulationForYear): no
-// guarda nada ni afecta a Datos base/Financiación. Un grupo por facturación,
-// apilados uno debajo de otro.
+// Hoja "Simulación": agrupa por Facturación Total (la actual / + un margen
+// editable en esta misma hoja) las combinaciones de plazo e interés de la
+// hipoteca (mobiliaria e inmobiliaria, ligados) y aportación inicial —cada
+// eje parte del valor real actual y le suma un margen también editable
+// aquí—, partiendo del resto de los datos actuales. El cálculo de la tabla
+// en sí (Engine.simulationForYear) es puro: no guarda nada ni afecta a Datos
+// base/Financiación; los márgenes editables sí se guardan, como cualquier
+// otro dato de la app. Un grupo por facturación, apilados uno debajo de otro.
 Flickable {
     id: page
 
@@ -18,8 +20,9 @@ Flickable {
     readonly property int hRow: 30
 
     // Se refresca cuando cambia el año elegido o cualquier input del motor
-    // (plazo, tipo, facturación en Datos base, el % de Configuración...).
-    // simulationForYear() es un método invocable que lee el estado interno
+    // (plazo, tipo, facturación en Datos base/Financiación, los márgenes
+    // editables de aquí arriba...). simulationForYear() es un método invocable
+    // que lee el estado interno
     // del motor directamente: un binding declarativo no basta (una lectura
     // "descartada" de Engine.inputs solo para forzar la dependencia puede
     // optimizarse fuera del QML precompilado, ya que su valor no se usa), así
@@ -102,11 +105,59 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: "Combinaciones de plazo e interés de la hipoteca (mobiliaria e inmobiliaria) y aportación "
-                  + "inicial, agrupadas por Facturación Total (igual / +" + Fmt.pct(Engine.inputs.simulationRevenueIncreasePct, 0)
-                  + ", configurable en Configuración). No se guarda ni afecta al resto de la app."
+                  + "inicial, agrupadas por Facturación Total: la primera columna de cada combinación usa "
+                  + "siempre el dato actual, la segunda le suma el margen configurado abajo. El cálculo en sí "
+                  + "no se guarda ni afecta a Datos base/Financiación."
             font.pixelSize: 12
             color: "#6b7a76"
             wrapMode: Text.WordWrap
+        }
+
+        Text {
+            text: "Margen de la 2ª columna de cada combinación (la 1ª usa siempre el dato actual)"
+            font.pixelSize: 13
+            font.bold: true
+            color: "#3c4a46"
+        }
+        Flow {
+            Layout.fillWidth: true
+            spacing: 12
+
+            Text {
+                text: "Facturación Total"
+                font.pixelSize: 13
+                color: "#3c4a46"
+                height: campoFacturacionDelta.implicitHeight
+                verticalAlignment: Text.AlignVCenter
+            }
+            MoneyField { id: campoFacturacionDelta; k: "simulationRevenueDeltaEur" }
+
+            Text {
+                text: "Años hipoteca (mobiliaria/inmobiliaria)"
+                font.pixelSize: 13
+                color: "#3c4a46"
+                height: campoAniosDelta.implicitHeight
+                verticalAlignment: Text.AlignVCenter
+            }
+            NumField { id: campoAniosDelta; k: "simulationTermDeltaYears"; suffix: " años" }
+
+            Text {
+                text: "Interés hipoteca (mobiliaria/inmobiliaria)"
+                font.pixelSize: 13
+                color: "#3c4a46"
+                height: campoInteresDelta.implicitHeight
+                verticalAlignment: Text.AlignVCenter
+            }
+            PctField { id: campoInteresDelta; k: "simulationRateDeltaPct"; decimals: 1 }
+
+            Text {
+                text: "Aportación inicial"
+                font.pixelSize: 13
+                color: "#3c4a46"
+                height: campoAportacionDelta.implicitHeight
+                verticalAlignment: Text.AlignVCenter
+            }
+            MoneyField { id: campoAportacionDelta; k: "simulationCashDeltaEur" }
         }
 
         Flow {

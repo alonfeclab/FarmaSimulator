@@ -34,6 +34,7 @@ Flickable {
             font.pixelSize: 14
             font.bold: true
             color: destacada ? "#14523f" : "#1e2b28"
+            Layout.alignment: Qt.AlignRight
         }
     }
 
@@ -44,7 +45,7 @@ Flickable {
         property string k
         property real multiplier: 1
         Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        MoneyField { k: editRow.k; multiplier: editRow.multiplier }
+        MoneyField { k: editRow.k; multiplier: editRow.multiplier; Layout.alignment: Qt.AlignRight }
     }
 
     ColumnLayout {
@@ -165,8 +166,8 @@ Flickable {
             Text {
                 Layout.fillWidth: true
                 text: escenarioCombo.currentIndex === 1
-                      ? "Se aplica el IPC indicado, constante, a los 10 años de la proyección."
-                      : "Se aplica el IPC histórico de España de los últimos 10 años a la proyección."
+                      ? "Se aplica el IPC indicado, constante, a los 10 años de la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
+                      : "Se aplica el IPC histórico de España de los últimos 10 años a la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
                 font.pixelSize: 12
                 color: "#6b7a76"
                 wrapMode: Text.WordWrap
@@ -188,15 +189,15 @@ Flickable {
                 }
                 RowCard {
                     Text { text: "Año 1"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "optimisticMarginYear1" }
+                    PctField { k: "optimisticMarginYear1"; Layout.alignment: Qt.AlignRight }
                 }
                 RowCard {
                     Text { text: "Año 2"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "optimisticMarginYear2" }
+                    PctField { k: "optimisticMarginYear2"; Layout.alignment: Qt.AlignRight }
                 }
                 RowCard {
                     Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true }
-                    PctField { k: "optimisticMarginYear3" }
+                    PctField { k: "optimisticMarginYear3"; Layout.alignment: Qt.AlignRight }
                 }
             }
         }

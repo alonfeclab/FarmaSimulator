@@ -71,6 +71,7 @@ void Engine::saveToDisk() const
     for (auto it = m_int.cbegin(); it != m_int.cend(); ++it)
         o[it.key()] = *it.value();
     o["comparisonScenarios"] = QJsonArray::fromVariantList(m_comparisonScenarios);
+    o["pdfSaveDir"] = m_pdfSaveDir;
 
 #ifdef Q_OS_WASM
     const QByteArray json = QJsonDocument(o).toJson(QJsonDocument::Compact);
@@ -309,6 +310,11 @@ void Engine::loadFromDisk()
         it != o.constEnd() && it->isArray()) {
         m_comparisonScenarios = it->toArray().toVariantList();
     }
+
+    if (const auto it = o.constFind(QStringLiteral("pdfSaveDir"));
+        it != o.constEnd() && it->isString()) {
+        m_pdfSaveDir = it->toString();
+    }
 }
 
 // Binds every input key to its field in 'i'. Shared by registerInputs()
@@ -330,6 +336,7 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
     // ---- Financiación: growth scenario
     dbl["growthScenario"]       = &i.growthScenario;
     dbl["ipcOptimistic"]        = &i.ipcOptimistic;
+    dbl["salaryRaisePct"]       = &i.salaryRaisePct;
     dbl["optimisticMarginYear1"] = &i.optimisticMarginYear1;
     dbl["optimisticMarginYear2"] = &i.optimisticMarginYear2;
     dbl["optimisticMarginYear3"] = &i.optimisticMarginYear3;
@@ -425,7 +432,10 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
         dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
     // ---- Hoja Simulación
-    dbl["simulationRevenueIncreasePct"] = &i.simulationRevenueIncreasePct;
+    dbl["simulationRevenueDeltaEur"] = &i.simulationRevenueDeltaEur;
+    dbl["simulationTermDeltaYears"]  = &i.simulationTermDeltaYears;
+    dbl["simulationRateDeltaPct"]    = &i.simulationRateDeltaPct;
+    dbl["simulationCashDeltaEur"]    = &i.simulationCashDeltaEur;
 }
 
 void Engine::registerInputs()
@@ -514,20 +524,27 @@ static void downloadInBrowser(const QByteArray& data, const QString& fileName)
 #endif
 
 // Saves/downloads the bytes of an already-generated PDF. Desktop: saves it to
-// Documents with the given prefix and opens it; WASM: the browser downloads
-// it. Returns the path (or "descargas del navegador" on WASM), empty on failure.
-static QString saveOrDownloadPdf(const QByteArray& data, const QString& filenamePrefix)
+// 'customDir' (or Documents if empty/not usable) with the given prefix and
+// opens it; WASM: the browser downloads it, ignoring 'customDir'. Returns the
+// path (or "descargas del navegador" on WASM), empty on failure.
+static QString saveOrDownloadPdf(const QByteArray& data, const QString& filenamePrefix, const QString& customDir)
 {
     const QString fileName = filenamePrefix + QLatin1Char('_')
         + QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_HHmm")) + QStringLiteral(".pdf");
 
 #ifdef Q_OS_WASM
+    Q_UNUSED(customDir);
     downloadInBrowser(data, fileName);
     return QStringLiteral("descargas del navegador");
 #else
-    QString dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    if (dir.isEmpty())
-        dir = QDir::homePath();
+    QString dir = customDir.trimmed();
+    if (!dir.isEmpty())
+        QDir().mkpath(dir);      // create it if it doesn't exist yet
+    if (dir.isEmpty() || !QFileInfo(dir).isDir()) {
+        dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+        if (dir.isEmpty())
+            dir = QDir::homePath();
+    }
     const QString path = dir + QLatin1Char('/') + fileName;
 
     QFile f(path);
@@ -542,6 +559,29 @@ static QString saveOrDownloadPdf(const QByteArray& data, const QString& filename
 #endif
 }
 
+QString Engine::pdfSaveDirDefault() const
+{
+    QString dir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    if (dir.isEmpty())
+        dir = QDir::homePath();
+    return dir;
+}
+
+void Engine::setPdfSaveDir(const QUrl& dir)
+{
+    const QString path = dir.isLocalFile() ? dir.toLocalFile() : QString();
+    if (path == m_pdfSaveDir)
+        return;
+    m_pdfSaveDir = path;
+    emit pdfSaveDirChanged();
+    saveToDisk();
+}
+
+QUrl Engine::pdfSaveDirUrl() const
+{
+    return QUrl::fromLocalFile(m_pdfSaveDir.isEmpty() ? pdfSaveDirDefault() : m_pdfSaveDir);
+}
+
 QString Engine::exportPdf()
 {
     QBuffer buf;
@@ -550,7 +590,7 @@ QString Engine::exportPdf()
         return {};
     buf.close();
 
-    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"));
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Informe"), m_pdfSaveDir);
 }
 
 // Same as ComparacionView.qml (tableRows), but always in "full view": the
@@ -603,7 +643,7 @@ QString Engine::exportComparisonPdf(int year)
         return {};
     buf.close();
 
-    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"));
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Comparacion"), m_pdfSaveDir);
 }
 
 QString Engine::exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup)
@@ -701,7 +741,7 @@ QString Engine::exportSimulationPdf(const QVariantList& hiddenColumnsPerGroup)
         return {};
     buf.close();
 
-    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Simulacion"));
+    return saveOrDownloadPdf(buf.data(), QStringLiteral("FarmaciaSim_Simulacion"), m_pdfSaveDir);
 }
 
 void Engine::recalc()
@@ -1081,27 +1121,42 @@ QVariantList Engine::financingComparison() const
 
 // ---------------------------------------------------------------- simulación (todas las combinaciones)
 
-// Un grupo por cada Facturación Total (igual / + un % configurable, ver
-// simulationRevenueIncreasePct en Configuración): dentro de cada
-// grupo, las 8 combinaciones (2×2×2) de aportación inicial, plazo e interés
-// de hipoteca comparten esa misma facturación, así que se muestran juntas y
-// los grupos se apilan uno debajo de otro (ver SimulacionView.qml).
+// Un grupo por cada Facturación Total (la actual / + un margen editable en
+// la propia hoja Simulación, ver simulationRevenueDeltaEur y los demás
+// simulation*Delta* en simcore.h): dentro de cada grupo, las 8 combinaciones
+// (2×2×2) de aportación inicial, plazo e interés de hipoteca comparten esa
+// misma facturación, así que se muestran juntas y los grupos se apilan uno
+// debajo de otro (ver SimulacionView.qml).
 QVariantList Engine::simulationForYear(int year) const
 {
-    // Ejes de variación. Facturación Total se aplica como factor sobre venta
-    // receta+libre (conserva su proporción). El plazo y el interés se
-    // aplican a la vez a la hipoteca mobiliaria (banco) e inmobiliaria
-    // (propiedades): ambas toman siempre el mismo valor dentro de cada
-    // combinación (no hay escenarios "mixtos" con tipos distintos).
-    // El segundo factor es configurable (Configuración: % extra de
-    // Facturación Total), no una constante fija: no puede ser 'static'.
-    const std::array<double,2> kFacturacionFactor { 1.0, 1.0 + m_in.simulationRevenueIncreasePct };
-    static const std::array<int,2>    kPlazoHipoteca     { 20, 25 };
-    static const std::array<double,2> kTipoHipoteca      { 0.035, 0.03 };
+    // Ejes de variación: cada uno usa el valor actual del dato real
+    // correspondiente (no una constante fija) para la primera columna, y ese
+    // mismo valor + un margen editable en la hoja Simulación para la
+    // segunda. Ninguno puede ser 'static' al depender de m_in.
+    //
+    // Facturación Total se aplica como factor sobre venta receta+libre
+    // (conserva su proporción): el margen en euros (simulationRevenueDeltaEur)
+    // se convierte al factor equivalente sobre la facturación actual.
+    const double facturacionActual = m_in.prescriptionSales + m_in.otcSales;
+    const double facFactorAlto = facturacionActual > 0
+        ? (facturacionActual + m_in.simulationRevenueDeltaEur) / facturacionActual
+        : 1.0;
+    const std::array<double,2> kFacturacionFactor { 1.0, facFactorAlto };
+
+    // El plazo y el interés se aplican a la vez a la hipoteca mobiliaria
+    // (banco) e inmobiliaria (propiedades): ambas toman siempre el mismo
+    // valor dentro de cada combinación (no hay escenarios "mixtos" con tipos
+    // distintos), tomado como referencia el de la hipoteca bancaria.
+    const std::array<int,2> kPlazoHipoteca {
+        m_in.bankTermYears, m_in.bankTermYears + int(std::lround(m_in.simulationTermDeltaYears))
+    };
+    const std::array<double,2> kTipoHipoteca { m_in.bankRate, m_in.bankRate + m_in.simulationRateDeltaPct };
+
     // La aportación inicial actual (Financiación: "Liquidez aportada") y esa
-    // misma cifra +50.000 €, no un par de constantes fijas: no puede ser
-    // 'static'.
-    const std::array<double,2> kAportacionInicial { m_in.contributedCash, m_in.contributedCash + 50000.0 };
+    // misma cifra + el margen editable en la hoja Simulación.
+    const std::array<double,2> kAportacionInicial {
+        m_in.contributedCash, m_in.contributedCash + m_in.simulationCashDeltaEur
+    };
 
     QVariantList groups;
 
@@ -1113,7 +1168,7 @@ QVariantList Engine::simulationForYear(int year) const
 
         // Aportación es el eje más externo (tras Facturación) para que, dentro
         // de cada grupo, todas las columnas con la aportación actual queden
-        // antes que las de esa cifra +50.000 €.
+        // antes que las de esa cifra + el margen configurado.
         for (double cash : kAportacionInicial)
         for (int plazoYears : kPlazoHipoteca)
         for (double tipo : kTipoHipoteca) {

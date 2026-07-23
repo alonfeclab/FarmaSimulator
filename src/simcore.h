@@ -42,6 +42,12 @@ struct Inputs {
     double growthScenario = 0;
     double ipcOptimistic   = 0.025;
 
+    // ---- Personal: annual salary raise, applied every projection year to
+    // every employee's salary (regular plantilla and vacation cover alike).
+    // Decoupled from the IPC growth scenario above: a single constant rate,
+    // editable from Configuración, regardless of Realistic/Optimistic.
+    double salaryRaisePct = 0.025;
+
     // ---- Optimistic scenario: commercial margin editable per year
     // (year 1, year 2, year 3 onward — constant from year 3).
     double optimisticMarginYear1 = 0.330;
@@ -240,10 +246,16 @@ struct Inputs {
     };
 
     // ---- Hoja Simulación
-    // % extra de Facturación Total para el segundo grupo de columnas de la
-    // hoja "Simulación" (el primero siempre usa la Facturación Total actual,
-    // sin variar). Editable en Configuración.
-    double simulationRevenueIncreasePct = 0.20; // +20% por defecto
+    // Rango superior de cada eje que varía en la hoja "Simulación": la
+    // primera columna de cada combinación usa siempre el valor actual (el de
+    // más arriba), la segunda le suma este margen. Editables en la propia
+    // hoja Simulación (no en Configuración): la simulación en sí sigue
+    // siendo un cálculo puro que no toca Datos base/Financiación, pero estos
+    // márgenes sí se guardan como cualquier otro dato de la app.
+    double simulationRevenueDeltaEur = 200000; // Facturación Total: +200.000 € por defecto
+    double simulationTermDeltaYears  = 5;      // Años hipoteca (mobiliaria e inmobiliaria): +5 años
+    double simulationRateDeltaPct    = 0.005;  // Interés hipoteca (mobiliaria e inmobiliaria): +0,5 %
+    double simulationCashDeltaEur    = 50000;  // Aportación inicial: +50.000 €
 };
 
 // ---------------------------------------------------------------- Outputs

@@ -38,6 +38,7 @@ Flickable {
             font.pixelSize: 14;
             font.bold: true
             color: calcRow.destacada ? "#14523f" : "#1e2b28"
+            Layout.alignment: Qt.AlignRight
         }
     }
 

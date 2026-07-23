@@ -4,7 +4,7 @@ project(FarmaciaSim VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Quick QuickControls2 Svg Test QuickTest)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Gui Quick QuickControls2 QuickDialogs2 Svg Test QuickTest)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -36,7 +36,7 @@ add_library(farmaciasim_ui STATIC
     src/amortmodel.cpp
 )
 target_include_directories(farmaciasim_ui PUBLIC src)
-target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core farmaciasim_pdf Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
+target_link_libraries(farmaciasim_ui PUBLIC farmaciasim_core farmaciasim_pdf Qt6::Quick Qt6::QuickControls2 Qt6::QuickDialogs2 Qt6::Svg)
 
 # Debe declararse ANTES de qt_add_qml_module
 set_source_files_properties(qml/Fmt.qml qml/Nav.qml PROPERTIES

@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QHash>
 #include <QStringList>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
@@ -31,6 +32,10 @@ class Engine : public QObject
     Q_PROPERTY(QString dataPath         READ dataPath     CONSTANT)
     Q_PROPERTY(int maxStaffPerRole      READ maxStaffPerRole CONSTANT)
     Q_PROPERTY(QVariantList comparisonScenarios READ comparisonScenarios NOTIFY comparisonScenariosChanged)
+    // Folder where exported PDFs are saved (desktop only). Empty means the
+    // default: the user's Documents folder (see pdfSaveDirDefault).
+    Q_PROPERTY(QString pdfSaveDir        READ pdfSaveDir        NOTIFY pdfSaveDirChanged)
+    Q_PROPERTY(QString pdfSaveDirDefault READ pdfSaveDirDefault CONSTANT)
 
 public:
     explicit Engine(QObject* parent = nullptr);
@@ -38,6 +43,16 @@ public:
     // Changes an input by its key (e.g. "prescriptionSales", "ipcOptimistic") and recalculates.
     Q_INVOKABLE void set(const QString& key, double value);
     Q_INVOKABLE void resetToDefaults();
+
+    // Sets the folder where exported PDFs are saved from now on, from the
+    // native folder picker's selectedFolder (ignored on WASM, which always
+    // downloads through the browser). Pass an empty/non-local url to restore
+    // the default (Documents).
+    Q_INVOKABLE void setPdfSaveDir(const QUrl& dir);
+
+    // pdfSaveDir (or the default, if unset) as a file:// url, for the native
+    // folder picker's initial currentFolder.
+    Q_INVOKABLE QUrl pdfSaveDirUrl() const;
 
     // Restores just the given keys (e.g. the ones in one Configuración
     // group) to their factory value, leaving every other input untouched.
@@ -85,16 +100,18 @@ public:
     // year) of each saved scenario, pivoted the same way as comparisonForYear().
     Q_INVOKABLE QVariantList financingComparison() const;
 
-    // "Simulación" sheet: agrupa por Facturación Total (igual / +X%, 2
-    // grupos; X = simulationRevenueIncreasePct, editable en Configuración)
-    // las 8 combinaciones (2×2×2) de aportación inicial y plazo/interés de
-    // hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin escenarios mixtos
-    // con tipos distintos), partiendo del resto de los inputs actuales. La
-    // aportación inicial usa la "Liquidez aportada" actual (Financiación:
-    // contributedCash) y esa misma cifra +50.000 €, no valores fijos.
-    // Devuelve una lista de 2 grupos: { "facturacion": double, "rows":
-    // [ {label, values[8], fmt, bold} × 8 ] }, con las columnas ordenadas por
-    // aportación (la actual primero) y el valor del año dado (0-9) en cada
+    // "Simulación" sheet: agrupa por Facturación Total (la actual / + un
+    // margen, 2 grupos) las 8 combinaciones (2×2×2) de aportación inicial y
+    // plazo/interés de hipoteca (mobiliaria/inmobiliaria, ambos ligados: sin
+    // escenarios mixtos con tipos distintos), partiendo del resto de los
+    // inputs actuales. Cada eje usa el valor real actual (Facturación Total,
+    // bankTermYears, bankRate, contributedCash) para su primera columna, y
+    // ese mismo valor + un margen editable en la propia hoja Simulación
+    // (simulationRevenueDeltaEur/simulationTermDeltaYears/
+    // simulationRateDeltaPct/simulationCashDeltaEur, en simcore.h) para la
+    // segunda. Devuelve una lista de 2 grupos: { "facturacion": double,
+    // "rows": [ {label, values[8], fmt, bold} × 8 ] }, con las columnas
+    // ordenadas por aportación (la actual primero) y el valor del año dado (0-9) en cada
     // fila. Pura: no modifica m_in ni m_r.
     Q_INVOKABLE QVariantList simulationForYear(int year) const;
 
@@ -113,10 +130,13 @@ public:
     QString dataPath()          const { return m_dataPath; }
     int maxStaffPerRole()       const { return sim::kMaxStaffPerRole; }
     QVariantList comparisonScenarios() const { return m_comparisonScenarios; }
+    QString pdfSaveDir()        const { return m_pdfSaveDir; }
+    QString pdfSaveDirDefault() const;
 
 signals:
     void recalculated();
     void comparisonScenariosChanged();
+    void pdfSaveDirChanged();
 
 private:
     void registerInputs();
@@ -141,6 +161,7 @@ private:
     QVariantMap  m_inputs, m_baseData, m_financing, m_staff, m_schedule, m_taxes, m_analysis;
     QVariantList m_projection;
     QString m_dataPath;
+    QString m_pdfSaveDir; // empty = default (Documents); see pdfSaveDirDefault()
 
     // Frozen scenarios for comparison: each entry is
     // { "id": qint64, "name": QString, "projection": QVariantList (copy of m_projection),

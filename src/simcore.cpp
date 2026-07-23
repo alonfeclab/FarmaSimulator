@@ -401,10 +401,11 @@ Results compute(const Inputs& in)
                 : P.rent[i-1]) * (1.0 + ipc);                                 // row 13
             // row 14: Plantilla cost only counts employees already hired by
             // this projection year (in.startYear + i); vacation-cover cost
-            // isn't staggered. Both grow year over year by IPC like every
-            // other line, including year 1 itself (see comment above).
-            for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + ipc);
-            vacationCost *= (1.0 + ipc);
+            // isn't staggered. Both grow year over year by the fixed
+            // salaryRaisePct (decoupled from IPC), including year 1 itself
+            // (see comment above).
+            for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + in.salaryRaisePct);
+            vacationCost *= (1.0 + in.salaryRaisePct);
             const int currentYear = in.startYear + i;
             double regularStaffCost = 0;
             for (int r = 1; r <= 3; ++r)

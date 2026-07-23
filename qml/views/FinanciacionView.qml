@@ -34,6 +34,7 @@ Flickable {
         Text {
             text: Fmt.eur(calcRow.value); font.pixelSize: 14; font.bold: true
             color: calcRow.destacada ? "#14523f" : "#1e2b28"
+            Layout.alignment: Qt.AlignRight
         }
     }
 
@@ -49,7 +50,7 @@ Flickable {
         spacing: 2
         RowCard {
             Text { text: editRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-            MoneyField { k: editRow.k; invalid: editRow.invalid }
+            MoneyField { k: editRow.k; invalid: editRow.invalid; Layout.alignment: Qt.AlignRight }
         }
         Text {
             text: "Mínimo recomendado: " + Fmt.eur(editRow.minimo)
@@ -95,7 +96,7 @@ Flickable {
         property string k
         property int decimals: 1
         Text { text: pctRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        PctField { k: pctRow.k; decimals: pctRow.decimals }
+        PctField { k: pctRow.k; decimals: pctRow.decimals; Layout.alignment: Qt.AlignRight }
     }
 
     component PlazoRow: RowCard {
@@ -103,7 +104,7 @@ Flickable {
         property string label
         property string k
         Text { text: plazoRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        NumField { k: plazoRow.k; suffix: " años" }
+        NumField { k: plazoRow.k; suffix: " años"; Layout.alignment: Qt.AlignRight }
     }
 
     component MesesRow: RowCard {
@@ -111,7 +112,7 @@ Flickable {
         property string label
         property string k
         Text { text: mesesRow.label; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-        NumField { k: mesesRow.k; suffix: " meses" }
+        NumField { k: mesesRow.k; suffix: " meses"; Layout.alignment: Qt.AlignRight }
     }
 
     // Agrupa visualmente todos los valores relacionados con una misma fuente de financiación
@@ -158,7 +159,7 @@ Flickable {
             SectionTitle { text: "Inversión operación" }
             RowCard {
                 Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: "#3c4a46"; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                NumField { k: "goodwillMultiple"; decimals: 2 }
+                NumField { k: "goodwillMultiple"; decimals: 2; Layout.alignment: Qt.AlignRight }
             }
             CalcRow { label: "Fondo de comercio"; value: Engine.financing.goodwill }
             EditRow { label: "Existencias"; k: "inventory" }
