@@ -39,7 +39,7 @@ Flickable {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 24
-        width: Math.min(page.width - 88, 960)
+        width: page.width - 88
         spacing: 14
 
         Text {
@@ -53,18 +53,6 @@ Flickable {
         // ---------------- Cuota de autónomo
         Card {
             SectionTitle { text: "Cuota de autónomo (RETA)" }
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 8
-                Text {
-                    text: "Cuota anual año 1"
-                    font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap
-                }
-                Text {
-                    text: Fmt.eur(Engine.baseData.selfEmployedQuota)
-                    font.pixelSize: 15; font.bold: true; color: Tokens.textHeading
-                }
-            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap

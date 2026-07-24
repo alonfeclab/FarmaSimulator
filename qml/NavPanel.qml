@@ -43,7 +43,7 @@ Rectangle {
                 id: btnTema
                 checkable: true
                 checked: !Tokens.dark
-                onCheckedChanged: Tokens.dark = !checked
+                onCheckedChanged: Engine.darkTheme = !checked
                 Layout.preferredWidth: 34
                 Layout.preferredHeight: 34
                 Layout.alignment: Qt.AlignVCenter

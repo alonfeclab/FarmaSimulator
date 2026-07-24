@@ -79,7 +79,9 @@ Item {
                 font.bold: true
                 color: Tokens.textHeading
                 horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
                 Layout.alignment: Qt.AlignHCenter
+                Layout.maximumWidth: 360
             }
             Text {
                 text: "Ve a la hoja \"Datos base\" y pulsa \"Añadir a comparación\" para guardar el escenario actual."

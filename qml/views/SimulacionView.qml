@@ -91,6 +91,8 @@ Flickable {
         font.pixelSize: 14
         color: Tokens.textPrimary
         selectByMouse: true
+        selectionColor: Tokens.bgSelection
+        selectedTextColor: Tokens.textOnDark
         inputMethodHints: Qt.ImhFormattedNumbersOnly
 
         background: Rectangle {
@@ -102,7 +104,16 @@ Flickable {
 
         Component.onCompleted: fld.text = fld.display(fld.mainValue)
         onMainValueChanged: if (!fld.touched) fld.text = fld.display(fld.mainValue)
-        onTextEdited: fld.touched = true
+        onTextEdited: {
+            fld.touched = true
+            if (fld.kind === "eur") {
+                const r = Fmt.liveGroup(fld.text, fld.cursorPosition)
+                if (r.text !== fld.text) {
+                    fld.text = r.text
+                    fld.cursorPosition = r.cursor
+                }
+            }
+        }
         onAccepted: focus = false
     }
 
@@ -112,7 +123,7 @@ Flickable {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.margins: 24
         anchors.topMargin: 24
-        width: Math.min(page.width - 48, 1040)
+        width: page.width - 48
         spacing: 14
 
         Text { text: "Simulación"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }

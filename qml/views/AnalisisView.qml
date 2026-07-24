@@ -50,7 +50,7 @@ Flickable {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 24
-        width: Math.min(page.width - 88, 860)
+        width: page.width - 88
         spacing: 14
 
         Text {

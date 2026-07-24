@@ -72,6 +72,7 @@ void Engine::saveToDisk() const
     o["comparisonScenarios"] = QJsonArray::fromVariantList(m_comparisonScenarios);
     o["simulationScenarios"] = QJsonArray::fromVariantList(m_simulationScenarios);
     o["pdfSaveDir"] = m_pdfSaveDir;
+    o["darkTheme"] = m_darkTheme;
 
 #ifdef Q_OS_WASM
     const QByteArray json = QJsonDocument(o).toJson(QJsonDocument::Compact);
@@ -319,6 +320,11 @@ void Engine::loadFromDisk()
     if (const auto it = o.constFind(QStringLiteral("pdfSaveDir"));
         it != o.constEnd() && it->isString()) {
         m_pdfSaveDir = it->toString();
+    }
+
+    if (const auto it = o.constFind(QStringLiteral("darkTheme"));
+        it != o.constEnd() && it->isBool()) {
+        m_darkTheme = it->toBool();
     }
 }
 
@@ -582,6 +588,15 @@ QUrl Engine::pdfSaveDirUrl() const
     return QUrl::fromLocalFile(m_pdfSaveDir.isEmpty() ? pdfSaveDirDefault() : m_pdfSaveDir);
 }
 
+void Engine::setDarkTheme(bool dark)
+{
+    if (dark == m_darkTheme)
+        return;
+    m_darkTheme = dark;
+    emit darkThemeChanged();
+    saveToDisk();
+}
+
 QString Engine::exportPdf()
 {
     QBuffer buf;
@@ -827,6 +842,12 @@ void Engine::buildMaps()
 
     // ---- Proyección (rows as in the sheet)
     const auto& Y = m_r.projection;
+    // EBITDA: operating result before interest (Y.interest is stored negative,
+    // so subtracting it adds back the interest cost). There's no separate D&A
+    // or corporate-tax line in this model, so profit minus interest is exactly
+    // earnings before interest/taxes/D&A.
+    std::array<double,10> ebitda{};
+    for (int i = 0; i < 10; ++i) ebitda[i] = Y.profit[i] - Y.interest[i];
     m_projection = QVariantList{
         projectionRow("Venta receta",                  Y.prescriptionSales),
         projectionRow("Venta libre",                   Y.otcSales),
@@ -842,6 +863,7 @@ void Engine::buildMaps()
         projectionRow("% Gastos de personal",           Y.staffCostPct, "pct1"),
         projectionRow("Cuota autónomos",                Y.selfEmployedQuota),
         projectionRow("Otros gastos",                   Y.otherExpenses),
+        projectionRow("EBITDA",                         ebitda, "eur", true),
         projectionRow("Intereses de deudas",            Y.interest),
         projectionRow("Beneficio farmacia",             Y.profit, "eur", true),
         projectionRow("Pago impuestos",                 Y.taxPayment),

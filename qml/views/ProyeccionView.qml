@@ -4,7 +4,7 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import FarmaciaSim
 
-// Hoja "Proyección 10 Años": tabla de 19 conceptos x 10 años.
+// Hoja "Proyección 10 Años": tabla de 20 conceptos x 10 años.
 Item {
     id: page
 
@@ -39,14 +39,6 @@ Item {
                 model: Engine.projection
                 ScrollBar.vertical: ScrollBar {}
             }
-        }
-
-        Text {
-            Layout.fillWidth: true
-            text: "El escenario de crecimiento (Realista/Optimista) se elige en la hoja Financiación."
-            font.pixelSize: 12
-            color: Tokens.textMuted
-            wrapMode: Text.WordWrap
         }
     }
 }

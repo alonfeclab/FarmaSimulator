@@ -27,6 +27,38 @@ QtObject {
         return parseFloat(clean)
     }
 
+    // Reagrupa los miles de "text" mientras se escribe, conservando la
+    // posición del cursor (en dígitos, no en caracteres) para que insertar/
+    // borrar en medio del número no salte el cursor de sitio.
+    function groupInt(intPart) {
+        const neg = intPart.charAt(0) === "-"
+        const digits = neg ? intPart.slice(1) : intPart
+        const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+        return (neg ? "-" : "") + grouped
+    }
+
+    function liveGroup(text, cursorPos) {
+        const digitsBefore = text.slice(0, cursorPos).replace(/\./g, "").length
+        const raw = text.replace(/\./g, "")
+        const commaIdx = raw.indexOf(",")
+        const intPart = commaIdx === -1 ? raw : raw.slice(0, commaIdx)
+        const rest = commaIdx === -1 ? "" : raw.slice(commaIdx)
+        const groupedInt = groupInt(intPart)
+
+        let newCursor
+        if (digitsBefore <= intPart.length) {
+            let seen = 0, periodsBefore = 0
+            for (let i = 0; i < groupedInt.length && seen < digitsBefore; i++) {
+                if (groupedInt.charAt(i) === ".") periodsBefore++
+                else seen++
+            }
+            newCursor = digitsBefore + periodsBefore
+        } else {
+            newCursor = groupedInt.length + (digitsBefore - intPart.length)
+        }
+        return { text: groupedInt + rest, cursor: newCursor }
+    }
+
     function byFmt(v, f) {
         if (f === "pct1") return pct(v, 1)
         if (f === "pct2") return pct(v, 2)

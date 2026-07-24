@@ -567,6 +567,11 @@ void projectionSheet(Doc& d, const sim::Results& r)
     d.sheetTitle(QStringLiteral("3. Proyección a 10 años"));
 
     const auto& Y = r.projection;
+    // EBITDA: operating result before interest (Y.interest is stored negative,
+    // so subtracting it adds back the interest cost); no separate D&A or
+    // corporate-tax line exists in this model.
+    std::array<double,10> ebitda{};
+    for (int i = 0; i < 10; ++i) ebitda[i] = Y.profit[i] - Y.interest[i];
     struct Row { QString label; const std::array<double,10>& v; bool isEur; bool bold; };
     const Row rows[] = {
         { QStringLiteral("Venta receta"),                     Y.prescriptionSales, true,  false },
@@ -580,6 +585,7 @@ void projectionSheet(Doc& d, const sim::Results& r)
         { QStringLiteral("Gastos personal + SS"),             Y.staffCost,         true,  false },
         { QStringLiteral("Cuota autónomos"),                  Y.selfEmployedQuota, true,  false },
         { QStringLiteral("Otros gastos"),                     Y.otherExpenses,     true,  false },
+        { QStringLiteral("EBITDA"),                           ebitda,              true,  true  },
         { QStringLiteral("Intereses de deudas"),              Y.interest,          true,  false },
         { QStringLiteral("Beneficio farmacia"),                Y.profit,           true,  true  },
         { QStringLiteral("Pago impuestos"),                   Y.taxPayment,        true,  false },

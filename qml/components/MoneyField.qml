@@ -24,6 +24,8 @@ TextField {
     font.pixelSize: 14
     color: Tokens.textPrimary
     selectByMouse: true
+    selectionColor: Tokens.bgSelection
+    selectedTextColor: Tokens.textOnDark
     inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     background: Rectangle {
@@ -44,10 +46,17 @@ TextField {
     onValueChanged: if (!activeFocus) text = display()
     onActiveFocusChanged: {
         if (activeFocus) {
-            text = Fmt.num(value, Math.max(decimals, 2)).replace(/\./g, "")
+            text = Fmt.num(value, Math.max(decimals, 2))
             selectAll()
         } else {
             text = display()
+        }
+    }
+    onTextEdited: {
+        const r = Fmt.liveGroup(text, cursorPosition)
+        if (r.text !== text) {
+            text = r.text
+            cursorPosition = r.cursor
         }
     }
     onAccepted: focus = false

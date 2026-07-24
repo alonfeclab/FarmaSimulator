@@ -20,6 +20,8 @@ TextField {
     font.pixelSize: 14
     color: Tokens.textPrimary
     selectByMouse: true
+    selectionColor: Tokens.bgSelection
+    selectedTextColor: Tokens.textOnDark
     inputMethodHints: Qt.ImhFormattedNumbersOnly
 
     background: Rectangle {

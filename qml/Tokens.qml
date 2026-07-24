@@ -1,10 +1,14 @@
 pragma Singleton
 import QtQuick
+import FarmaciaSim
 
 // Tokens de color de la app, con soporte de tema claro/oscuro: cada token
 // es un color derivado de "dark" (ver botón sol/luna en NavPanel.qml), así
 // que cambiar "dark" repinta toda la app al vuelo sin tocar ninguna vista
-// (todas usan Tokens.xxx, nunca colores sueltos).
+// (todas usan Tokens.xxx, nunca colores sueltos). "dark" sigue en vivo a
+// Engine.darkTheme (persistido en disco, ver Engine::setDarkTheme); el botón
+// sol/luna llama a Engine.setDarkTheme() en vez de tocar esta propiedad
+// directamente, para no romper el binding.
 // Un mismo color hexadecimal puede aparecer en varios tokens cuando cumple
 // roles de diseño distintos (p.ej. blanco de tarjeta vs. blanco de fila de
 // tabla): eso es intencionado, no duplicación. Ver qml/design-tokens.json
@@ -12,7 +16,7 @@ import QtQuick
 QtObject {
     id: tokens
 
-    property bool dark: false
+    property bool dark: Engine.darkTheme
 
     readonly property color bgApp: dark ? "#101915" : "#eef2f0"
     readonly property color bgNav: dark ? "#0b2018" : "#123f31"
@@ -25,6 +29,7 @@ QtObject {
     readonly property color bgTableRowEmphasis: dark ? "#234133" : "#e3efe9"
     readonly property color bgTableRowSeparator: dark ? "#24352c" : "#dde9e2"
     readonly property color bgAccentTint: dark ? "#1b3229" : "#eef5f1"
+    readonly property color bgSelection: dark ? "#0c4a38" : "#1a7a5e"
     readonly property color bgInput: dark ? "#332c19" : "#fffbe8"
     readonly property color bgInputInvalid: dark ? "#3a211d" : "#fdecea"
     readonly property color bgInputPressed: dark ? "#4a3f24" : "#e0d6ac"

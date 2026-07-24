@@ -37,6 +37,8 @@ class Engine : public QObject
     // default: the user's Documents folder (see pdfSaveDirDefault).
     Q_PROPERTY(QString pdfSaveDir        READ pdfSaveDir        NOTIFY pdfSaveDirChanged)
     Q_PROPERTY(QString pdfSaveDirDefault READ pdfSaveDirDefault CONSTANT)
+    // Tema claro/oscuro elegido en el panel lateral, persistido en disco.
+    Q_PROPERTY(bool darkTheme READ darkTheme WRITE setDarkTheme NOTIFY darkThemeChanged)
 
 public:
     explicit Engine(QObject* parent = nullptr);
@@ -129,12 +131,15 @@ public:
     QVariantList simulationScenarios() const { return m_simulationScenarios; }
     QString pdfSaveDir()        const { return m_pdfSaveDir; }
     QString pdfSaveDirDefault() const;
+    bool darkTheme()            const { return m_darkTheme; }
+    void setDarkTheme(bool dark);
 
 signals:
     void recalculated();
     void comparisonScenariosChanged();
     void simulationScenariosChanged();
     void pdfSaveDirChanged();
+    void darkThemeChanged();
 
 private:
     void registerInputs();
@@ -160,6 +165,7 @@ private:
     QVariantList m_projection;
     QString m_dataPath;
     QString m_pdfSaveDir; // empty = default (Documents); see pdfSaveDirDefault()
+    bool m_darkTheme = false;
 
     // Frozen scenarios for comparison: each entry is
     // { "id": qint64, "name": QString, "projection": QVariantList (copy of m_projection),
