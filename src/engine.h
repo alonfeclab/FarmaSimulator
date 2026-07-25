@@ -25,6 +25,7 @@ class Engine : public QObject
     Q_PROPERTY(QVariantList projection  READ projection   NOTIFY recalculated)
     Q_PROPERTY(QVariantMap taxes        READ taxes        NOTIFY recalculated)
     Q_PROPERTY(QVariantMap analysis     READ analysis     NOTIFY recalculated)
+    Q_PROPERTY(QVariantMap dashboard    READ dashboard    NOTIFY recalculated)
     Q_PROPERTY(AmortModel* bank         READ bank         CONSTANT)
     Q_PROPERTY(AmortModel* cooperative  READ cooperative  CONSTANT)
     Q_PROPERTY(AmortModel* family       READ family       CONSTANT)
@@ -121,6 +122,7 @@ public:
     QVariantList projection()   const { return m_projection; }
     QVariantMap taxes()         const { return m_taxes; }
     QVariantMap analysis()      const { return m_analysis; }
+    QVariantMap dashboard()     const { return m_dashboard; }
     AmortModel* bank()          const { return m_bank; }
     AmortModel* cooperative()   const { return m_coop; }
     AmortModel* family()        const { return m_family; }
@@ -161,7 +163,7 @@ private:
     AmortModel* m_family = nullptr;
     AmortModel* m_properties = nullptr;
 
-    QVariantMap  m_inputs, m_baseData, m_financing, m_staff, m_schedule, m_taxes, m_analysis;
+    QVariantMap  m_inputs, m_baseData, m_financing, m_staff, m_schedule, m_taxes, m_analysis, m_dashboard;
     QVariantList m_projection;
     QString m_dataPath;
     QString m_pdfSaveDir; // empty = default (Documents); see pdfSaveDirDefault()

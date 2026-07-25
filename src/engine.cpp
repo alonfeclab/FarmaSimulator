@@ -874,6 +874,40 @@ void Engine::buildMaps()
         projectionRow("Salario neto mensual titular",   Y.netMonthlySalary, "eur", true),
     };
 
+    // ---- Dashboard: series y KPIs pensados para gráficos (no para
+    // ConceptTable, que es fila-por-concepto). Payback: años hasta que la
+    // suma acumulada del salario neto anual del titular (ya descuenta la
+    // devolución de deuda) iguala la aportación propia real (m_in.contributedCash).
+    // -1 si no se recupera dentro de los 10 años.
+    double cumulativeNetSalary = 0.0;
+    double paybackYears = -1.0;
+    for (int i = 0; i < 10; ++i) {
+        const double before = cumulativeNetSalary;
+        cumulativeNetSalary += Y.netAnnualSalary[i];
+        if (paybackYears < 0.0 && cumulativeNetSalary >= m_in.contributedCash) {
+            const double needed = m_in.contributedCash - before;
+            const double frac = Y.netAnnualSalary[i] > 0.0 ? needed / Y.netAnnualSalary[i] : 1.0;
+            paybackYears = i + frac;
+        }
+    }
+    m_dashboard = QVariantMap{
+        { "totalSales",      toList10(Y.totalSales) },
+        { "marginAfterRd",   toList10(Y.marginAfterRd) },
+        { "ebitda",          toList10(ebitda) },
+        { "profit",          toList10(Y.profit) },
+        { "cashAfterTax",    toList10(Y.cashAfterTax) },
+        { "netAnnualSalary", toList10(Y.netAnnualSalary) },
+        { "costBreakdownYear1", QVariantMap{
+            { "costOfGoods",       D.costOfGoods },
+            { "staffCost",         D.totalStaffCost },
+            { "rent",              Y.rent[0] },
+            { "selfEmployedQuota", Y.selfEmployedQuota[0] },
+            { "rdDeduction",       D.rdDeduction },
+            { "otherExpenses",     D.totalOtherExpenses },
+        } },
+        { "paybackYears",    paybackYears },
+    };
+
     // ---- Impuestos (IRPF, v2)
     const auto& I = m_r.taxes;
     QVariantList bracketsList;

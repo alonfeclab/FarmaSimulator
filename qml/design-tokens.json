@@ -59,5 +59,12 @@
   "color.border.switch.track.off": "#a8b8b0",
 
   "color.icon.onDark": "#ffffff",
-  "color.icon.accent": "#ffe9a8"
+  "color.icon.accent": "#ffe9a8",
+
+  "color.chart.series1": "#0e7a53",
+  "color.chart.series2": "#2a78d6",
+  "color.chart.series3": "#c98500",
+  "color.chart.series4": "#4a3aa7",
+  "color.chart.series5": "#e34948",
+  "color.chart.series6": "#eb6834"
 }

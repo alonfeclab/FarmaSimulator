@@ -80,4 +80,17 @@ QtObject {
 
     readonly property color iconOnDark: "#ffffff"
     readonly property color iconAccent: "#ffe9a8"
+
+    // Paleta categórica para series de gráficos (Dashboard): orden fijo,
+    // nunca se reasignan por valor. No son variantes del verde de marca
+    // (a diferencia de la mayoría de tokens de arriba) porque necesitan
+    // distinguirse entre sí a simple vista: validado con la skill "dataviz"
+    // (banda de luminosidad, chroma, separación bajo daltonismo Machado-2009
+    // y contraste) contra bgSurface, en ambos temas.
+    readonly property color chartSeries1: dark ? "#21a37d" : "#0e7a53"
+    readonly property color chartSeries2: dark ? "#3987e5" : "#2a78d6"
+    readonly property color chartSeries3: "#c98500"
+    readonly property color chartSeries4: dark ? "#9085e9" : "#4a3aa7"
+    readonly property color chartSeries5: dark ? "#e66767" : "#e34948"
+    readonly property color chartSeries6: dark ? "#d95926" : "#eb6834"
 }
