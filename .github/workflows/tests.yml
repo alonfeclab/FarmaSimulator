@@ -17,7 +17,7 @@ jobs:
       - uses: jurplel/install-qt-action@v4
         with:
           version: '6.11.1'
-          modules: 'qtgraphs qtquick3d'
+          modules: 'qtgraphs qtquick3d qtshadertools'
 
       - name: Configurar y compilar
         run: |

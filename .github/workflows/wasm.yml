@@ -30,7 +30,7 @@ jobs:
           host: 'all_os'
           target: 'wasm'
           arch: 'wasm_singlethread'
-          modules: 'qtgraphs qtquick3d'
+          modules: 'qtgraphs qtquick3d qtshadertools'
           extra: '--autodesktop'
 
       - name: Configurar y compilar
