@@ -359,48 +359,54 @@ Flickable {
             rowSpacing: 14
             columnSpacing: 16
 
-            Card {
-                SectionTitle { text: "Ventas y margen comercial (10 años)" }
+            CollapsibleCard {
+                title: "Ventas y margen comercial (10 años)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "ventas"; titulo: "Ventas y margen comercial (10 años)"
                     VentasChart { anchors.fill: parent }
                 }
             }
 
-            Card {
-                SectionTitle { text: "EBITDA y beneficio neto (10 años)" }
+            CollapsibleCard {
+                title: "EBITDA y beneficio neto (10 años)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "ebitda"; titulo: "EBITDA y beneficio neto (10 años)"
                     EbitdaChart { anchors.fill: parent }
                 }
             }
 
-            Card {
-                SectionTitle { text: "Liquidez (10 años)" }
+            CollapsibleCard {
+                title: "Liquidez (10 años)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "liquidez"; titulo: "Liquidez (10 años)"
                     LiquidezChart { anchors.fill: parent }
                 }
             }
 
-            Card {
-                SectionTitle { text: "TIR y CAGR por escenario (año 10)" }
+            CollapsibleCard {
+                title: "TIR y CAGR por escenario (año 10)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "tircagr"; titulo: "TIR y CAGR por escenario (año 10)"
                     TirCagrChart { anchors.fill: parent }
                 }
             }
 
-            Card {
-                SectionTitle { text: "Estructura de costes (año 1)" }
+            CollapsibleCard {
+                title: "Estructura de costes (año 1)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "costes"; titulo: "Estructura de costes (año 1)"
                     CostesChart { anchors.fill: parent }
                 }
             }
 
-            Card {
-                SectionTitle { text: "Inversión y financiación (año 0)" }
+            CollapsibleCard {
+                title: "Inversión y financiación (año 0)"
+                Layout.alignment: Qt.AlignTop
                 ChartThumb {
                     id_: "invfin"; titulo: "Inversión y financiación (año 0)"
                     RowLayout {

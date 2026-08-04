@@ -345,7 +345,7 @@ struct ProjectionResult {           // 10 values = years 1..10
         costOfGoods{}, grossMargin{}, rdDeduction{}, marginAfterRd{},
         rent{}, staffCost{}, selfEmployedQuota{}, otherExpenses{}, interest{},
         profit{}, taxPayment{}, cashAfterTax{}, bankPrincipalRepayment{},
-        coopPrincipalRepayment{}, netAnnualSalary{}, netMonthlySalary{},
+        coopPrincipalRepayment{}, familyPrincipalRepayment{}, netAnnualSalary{}, netMonthlySalary{},
         staffCostPct{};
     // Series applied by the growth scenario (informational only).
     std::array<double,10> ipcApplied{}, commercialMarginPct{};

@@ -51,8 +51,8 @@ Flickable {
         }
 
         // ---------------- Cuota de autónomo
-        Card {
-            SectionTitle { text: "Cuota de autónomo (RETA)" }
+        CollapsibleCard {
+            title: "Cuota de autónomo (RETA)"
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -92,8 +92,8 @@ Flickable {
         }
 
         // ---------------- Datos de personal
-        Card {
-            SectionTitle { text: "Salarios base de personal" }
+        CollapsibleCard {
+            title: "Salarios base de personal"
 
             Flickable {
                 id: flickDatosPersonal
@@ -184,8 +184,8 @@ Flickable {
         }
 
         // ---------------- Plantilla recomendada
-        Card {
-            SectionTitle { text: "Plantilla" }
+        CollapsibleCard {
+            title: "Plantilla"
 
             Flickable {
                 id: flickPlantilla
@@ -316,8 +316,8 @@ Flickable {
         }
 
         // ---------------- Refuerzos de vacaciones
-        Card {
-            SectionTitle { text: "Refuerzos de vacaciones" }
+        CollapsibleCard {
+            title: "Refuerzos de vacaciones"
 
             Flickable {
                 id: flickVacaciones

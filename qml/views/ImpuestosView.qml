@@ -58,8 +58,8 @@ Flickable {
         }
 
         // ---------------- Paso 1: parámetros y base amortizable
-        Card {
-            SectionTitle { text: "Parámetros y base amortizable" }
+        CollapsibleCard {
+            title: "Parámetros y base amortizable"
 
             GridLayout {
                 columns: width >= 2 * (page.wLabel + page.wCell) + columnSpacing ? 2 : 1
@@ -91,8 +91,8 @@ Flickable {
         }
 
         // ---------------- Pasos 2 y 3: tabla a 10 años
-        Card {
-            SectionTitle { text: "Amortizaciones e IRPF por tramos"; }
+        CollapsibleCard {
+            title: "Amortizaciones e IRPF por tramos"
 
             ConceptTable {
                 Layout.fillWidth: true

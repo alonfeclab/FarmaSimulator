@@ -62,8 +62,8 @@ Flickable {
         }
 
         // ---------------- Valor patrimonio año 10
-        Card {
-            SectionTitle { text: "Valor patrimonio año 10" }
+        CollapsibleCard {
+            title: "Valor patrimonio año 10"
 
             Flickable {
                 id: flickPatrimonio
@@ -137,8 +137,8 @@ Flickable {
         }
 
         // ---------------- Liquidez mensual
-        Card {
-            SectionTitle { text: "Liquidez mensual" }
+        CollapsibleCard {
+            title: "Liquidez mensual"
             Flickable {
                 id: flickLiquidez
                 Layout.fillWidth: true

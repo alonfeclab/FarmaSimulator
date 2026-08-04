@@ -60,8 +60,8 @@ Flickable {
         Text { text: "Datos base del estudio"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         // ---------------- Escenario de crecimiento
-        Card {
-            SectionTitle { text: "Escenario de crecimiento" }
+        CollapsibleCard {
+            title: "Escenario de crecimiento"
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -203,22 +203,22 @@ Flickable {
         }
 
         // ---------------- Ventas
-        Card {
-            SectionTitle { text: "Ventas" }
+        CollapsibleCard {
+            title: "Ventas"
             EditRow { label: "Venta receta";  k: "prescriptionSales" }
             EditRow { label: "Venta libre";   k: "otcSales" }
             CalcRow { label: "Venta total";   value: Engine.baseData.totalSales; destacada: true }
         }
 
         // ---------------- Alquiler
-        Card {
-            SectionTitle { text: "Alquiler" }
+        CollapsibleCard {
+            title: "Alquiler"
             EditRow { label: "Alquiler local (mensual)"; k: "premisesRent"; multiplier: 12 }
         }
 
         // ---------------- Otros gastos
-        Card {
-            SectionTitle { text: "Otros gastos" }
+        CollapsibleCard {
+            title: "Otros gastos"
             EditRow { label: "Suministros"; k: "utilities" }
             EditRow { label: "Gastos asesoría"; k: "advisoryFees" }
             EditRow { label: "Mantenimiento informático"; k: "maintenance" }

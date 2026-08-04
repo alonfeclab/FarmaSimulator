@@ -147,13 +147,9 @@ Flickable {
         }
 
         // ---------------- IRPF
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "IRPF — escala general 2026"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.irpfKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "IRPF — escala general 2026"
+            headerContent: ResetGroupButton { keys: page.irpfKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -191,13 +187,9 @@ Flickable {
         }
 
         // ---------------- RETA autónomos
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "RETA — cuota de autónomos"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.retaKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "RETA — cuota de autónomos"
+            headerContent: ResetGroupButton { keys: page.retaKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -241,13 +233,9 @@ Flickable {
         }
 
         // ---------------- Reales Decretos
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "Reales decretos (RD 823/2008, art. 2.5)"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.rdKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "Reales decretos (RD 823/2008, art. 2.5)"
+            headerContent: ResetGroupButton { keys: page.rdKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -285,13 +273,9 @@ Flickable {
         }
 
         // ---------------- Porcentajes fijos de la compraventa
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "Compraventa de la farmacia — porcentajes fijos"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.fixedPctKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "Compraventa de la farmacia — porcentajes fijos"
+            headerContent: ResetGroupButton { keys: page.fixedPctKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -332,13 +316,9 @@ Flickable {
         }
 
         // ---------------- Personal — subida salarial anual
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "Personal — subida salarial anual"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.salaryKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "Personal — subida salarial anual"
+            headerContent: ResetGroupButton { keys: page.salaryKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -355,13 +335,9 @@ Flickable {
         }
 
         // ---------------- IPC histórico y margen comercial (escenario Realista)
-        Card {
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "Escenario realista — series históricas"; Layout.fillWidth: true }
-                ResetGroupButton { keys: page.historicalSeriesKeys(); compact: page.angosto }
-            }
+        CollapsibleCard {
+            title: "Escenario realista — series históricas"
+            headerContent: ResetGroupButton { keys: page.historicalSeriesKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
@@ -400,13 +376,10 @@ Flickable {
         // ---------------- Carpeta de guardado de PDFs
         // No aplica en la versión web (los informes siempre se descargan a
         // través del navegador), así que la tarjeta entera se oculta ahí.
-        Card {
+        CollapsibleCard {
             visible: Qt.platform.os !== "wasm"
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                SectionTitle { text: "Informes PDF — carpeta de guardado"; Layout.fillWidth: true }
-                Button {
+            title: "Informes PDF — carpeta de guardado"
+            headerContent: Button {
                     id: btnRestaurarCarpeta
                     text: "Restaurar (Documentos)"
                     font.pixelSize: 11
@@ -439,7 +412,6 @@ Flickable {
                         onPressed: (mouse) => mouse.accepted = false
                     }
                 }
-            }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap

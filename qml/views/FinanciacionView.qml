@@ -155,8 +155,8 @@ Flickable {
         Text { text: "Estudio de financiación"; font.pixelSize: 22; font.bold: true; color: Tokens.textHeading }
 
         // ---------------- Inversión operación
-        Card {
-            SectionTitle { text: "Inversión operación" }
+        CollapsibleCard {
+            title: "Inversión operación"
             RowCard {
                 Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 NumField { k: "goodwillMultiple"; decimals: 2; Layout.alignment: Qt.AlignRight }
@@ -184,8 +184,8 @@ Flickable {
         }
 
         // ---------------- Financiación (tipo, plazo e importes agrupados por fuente)
-        Card {
-            SectionTitle { text: "Financiación" }
+        CollapsibleCard {
+            title: "Financiación"
 
             EditRow {
                 label: "Liquidez aportada"

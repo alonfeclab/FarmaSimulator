@@ -870,6 +870,7 @@ void Engine::buildMaps()
         projectionRow("Liquidez después de imp.",       Y.cashAfterTax, "eur", true),
         projectionRow("Devolución banco",               Y.bankPrincipalRepayment),
         projectionRow("Devolución cooperativa",         Y.coopPrincipalRepayment),
+        projectionRow("Devolución familiar",            Y.familyPrincipalRepayment),
         projectionRow("Salario neto anual titular",     Y.netAnnualSalary, "eur", true),
         projectionRow("Salario neto mensual titular",   Y.netMonthlySalary, "eur", true),
     };

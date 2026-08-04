@@ -415,7 +415,9 @@ Results compute(const Inputs& in)
                 ? R.baseData.totalOtherExpenses                                 // B15 = D29 (rent shown separately in row 13)
                 : P.otherExpenses[i-1]) * (1.0 + ipc);                            // row 15
             P.interest[i] = annualSum(R.bankAmort, i, true)
-                           + annualSum(R.propertiesAmort,  i, true);                 // row 16 (negative)
+                           + annualSum(R.propertiesAmort,  i, true)
+                           + annualSum(R.coopAmort,  i, true)
+                           + annualSum(R.familyAmort,  i, true);                 // row 16 (negative)
             const double profitBeforeQuota = P.marginAfterRd[i] - P.rent[i]
                            - P.staffCost[i] - P.otherExpenses[i] + P.interest[i];
             // Self-employed (RETA) quota for the year: year 1 uses the flat
@@ -471,7 +473,9 @@ Results compute(const Inputs& in)
             P.bankPrincipalRepayment[i] = annualSum(R.bankAmort, i, false)
                                  + annualSum(R.propertiesAmort,  i, false);          // row 20 (negative)
             P.coopPrincipalRepayment[i]  = annualSum(R.coopAmort,  i, false);          // row 21
-            P.netAnnualSalary[i]   = P.cashAfterTax[i] + P.bankPrincipalRepayment[i] + P.coopPrincipalRepayment[i]; // row 23
+            P.familyPrincipalRepayment[i] = annualSum(R.familyAmort, i, false);
+            P.netAnnualSalary[i]   = P.cashAfterTax[i] + P.bankPrincipalRepayment[i]
+                           + P.coopPrincipalRepayment[i] + P.familyPrincipalRepayment[i]; // row 23
             P.netMonthlySalary[i] = P.netAnnualSalary[i] / 12.0;            // row 24
             P.staffCostPct[i] = (P.totalSales[i] != 0.0)
                 ? P.staffCost[i] / P.totalSales[i] : 0.0;                 // row 25 (IFERROR)
@@ -486,6 +490,7 @@ Results compute(const Inputs& in)
         const double bankBalanceAt120 = R.bankAmort.rows[119].endingBalance; // I137
         const double coopBalanceAt120  = R.coopAmort .rows[119].endingBalance;
         const double propertiesBalanceAt120  = R.propertiesAmort .rows[119].endingBalance;
+        const double familyBalanceAt120  = R.familyAmort .rows[119].endingBalance;
 
         // Revaluation of the premises over 10 years with the IPC actually applied each year.
         double ipcFactor10 = 1.0;
@@ -501,7 +506,7 @@ Results compute(const Inputs& in)
             A.premisesSaleValue[s]  = in.premisesPrice * ipcFactor10;            // row 10
             A.inventoryYear10[s]    = P.totalSales[9] * in.inventoryPctYear10;      // row 11
             A.fdcOutstanding[s]     = R.taxes.fdc - fdcDepreciationAccum10;          // row 12
-            A.debt[s]            = -(bankBalanceAt120 + coopBalanceAt120 + propertiesBalanceAt120); // row 14
+            A.debt[s]            = -(bankBalanceAt120 + coopBalanceAt120 + propertiesBalanceAt120 + familyBalanceAt120); // row 14
             A.grossEquity[s]  = A.fdcSaleValue[s] + A.premisesSaleValue[s]
                                   + A.inventoryYear10[s] + A.debt[s];            // row 15
             A.netEquity[s]   = A.grossEquity[s] + in.saleTaxes[s];// row 16
@@ -519,7 +524,8 @@ Results compute(const Inputs& in)
         for (int k = 0; k < 3; ++k) {
             const int y = yrs[k];
             A.monthlyCashFlow[k]        = P.cashAfterTax[y] / 12.0;                              // row 22
-            A.monthlyPrincipalRepayment[k] = -(P.bankPrincipalRepayment[y] + P.coopPrincipalRepayment[y]) / 12.0; // row 23
+            A.monthlyPrincipalRepayment[k] = -(P.bankPrincipalRepayment[y] + P.coopPrincipalRepayment[y]
+                                     + P.familyPrincipalRepayment[y]) / 12.0; // row 23
             A.monthlyInterest[k]  = -P.interest[y] / 12.0;                            // row 24
             A.ownerNetIncome[k]       = P.netMonthlySalary[y];                           // row 25
         }
