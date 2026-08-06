@@ -26,7 +26,7 @@ ApplicationWindow {
     property bool navCollapsed: false
 
     readonly property var hojas: [
-        { nombre: "Dashboard",           icono: "qrc:/qt/qml/FarmaciaSim/icons/dashboard.svg" },
+        // Dashboard oculto temporalmente (no borrar).
         { nombre: "Datos base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
         { nombre: "Proyección 10 años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
@@ -191,7 +191,7 @@ ApplicationWindow {
                 else if (item.contentY !== undefined) item.contentY = 0
             }
 
-            DashboardView {}
+            // DashboardView oculta temporalmente (no borrar).
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}

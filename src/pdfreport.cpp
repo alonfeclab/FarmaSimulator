@@ -404,9 +404,7 @@ void coverPage(Doc& d, const sim::Inputs& in, const sim::Results& r)
         "1.  Datos base — PyG estimada del estudio",
         "2.  Estudio de financiación",
         "3.  Proyección a 10 años",
-        "4.  Impuestos (IRPF por tramos)",
-        "5.  Análisis de la inversión",
-        "6.  Personal",
+        "4.  Personal",
     };
     d.p.setFont(d.f(9.5));
     for (const char* line : tableOfContents) {
@@ -752,66 +750,31 @@ void analysisSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 void staffSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 {
     Q_UNUSED(in)
-    d.newPage(QPageLayout::Portrait, QStringLiteral("6 · Personal"));
-    d.sheetTitle(QStringLiteral("6. Personal"));
+    d.newPage(QPageLayout::Portrait, QStringLiteral("4 · Personal"));
+    d.sheetTitle(QStringLiteral("4. Personal"));
 
     const auto& P = r.staff;
     const qreal wTotal = d.pageWidth() - 2 * kMargin;
 
-    static const char* roleLabelsData[3] = { "Farmacéutico", "Auxiliar de farmacia", "Técnico" };
-    d.sectionTitle(QStringLiteral("Datos salariales"));
-    {
-        const qreal wP = wTotal - 6 * 88;
-        Table t(d, { { QStringLiteral("Puesto"),       wP, Qt::AlignLeft },
-                     { QStringLiteral("Bruto FT"),     88 },
-                     { QStringLiteral("Jornada"),      88 },
-                     { QStringLiteral("% S.S."),       88 },
-                     { QStringLiteral("Coste S.S."),   88 },
-                     { QStringLiteral("Salario real"), 88 },
-                     { QStringLiteral("Coste total"),  88 } });
-        for (int k = 0; k < 3; ++k) {
-            const auto& row = P.byRole[size_t(k)];
-            t.dataRow({ QString::fromUtf8(roleLabelsData[k]), d.eur(row.grossFte),
-                          d.num(row.fte * 8.0, 1) + QStringLiteral(" h"), d.pct(row.socialSecurityPct, 0),
-                          d.eur(row.socialSecurityCost), d.eur(row.actualSalary), d.eur(row.totalCost) });
-        }
-        t.dataRow({ QStringLiteral("Total"), QString(), QString(), QString(),
-                      d.eur(P.totalSocialSecurityCost), d.eur(P.totalActualSalary), d.eur(P.totalCost) }, true);
-    }
-
     static const char* roleLabelsHeadcount[4] = { "Propietario farmacéutico", "Farmacéutico empleado",
                                          "Auxiliar de farmacia", "Técnico especialista" };
-    static const char* roles[4] = {
-        "L-V 9:00–17:00 · 20% mostrador · 80% gestión/dirección",
-        "L-V 13:00–21:00 · Turno de cierre",
-        "Turnos escalonados · Apoyo en mostrador en hora punta",
-        "Media jornada · Stock, pedidos, administración" };
 
-    d.sectionTitle(QStringLiteral("Plantilla recomendada"));
+    d.sectionTitle(QStringLiteral("Gastos de personal"));
     {
-        const qreal wP = wTotal - 6 * 88;
+        const qreal wP = wTotal - 4 * 100;
         Table t(d, { { QStringLiteral("Puesto"),        wP, Qt::AlignLeft },
-                     { QStringLiteral("Jornada"),       88 },
-                     { QStringLiteral("Personas"),      88 },
-                     { QStringLiteral("Bruto real"),    88 },
-                     { QStringLiteral("Coste S.S."),    88 },
-                     { QStringLiteral("Coste/persona"), 88 },
-                     { QStringLiteral("Coste total"),   88 } });
+                     { QStringLiteral("Jornada"),       100 },
+                     { QStringLiteral("Personas"),      100 },
+                     { QStringLiteral("Salario real"),  100 },
+                     { QStringLiteral("Coste total"),   100 } });
         for (int k = 0; k < 4; ++k) {
             const auto& row = P.headcountPlan[size_t(k)];
             t.dataRow({ QString::fromUtf8(roleLabelsHeadcount[k]), d.num(row.fte * 8.0, 1) + QStringLiteral(" h"),
-                          d.num(row.headcount, 0), d.eur(row.actualGross),
-                          d.eur(row.socialSecurityCost), d.eur(row.costPerPerson), d.eur(row.totalCost) });
+                          d.num(row.headcount, 0), d.eur(row.actualGross), d.eur(row.totalCost) });
         }
         t.dataRow({ QStringLiteral("Total"), QString(), d.num(P.totalHeadcount, 0),
-                      d.eur(P.totalActualGross), d.eur(P.totalSocialSecurity), QString(),
-                      d.eur(P.totalHeadcountCost) }, true);
+                      d.eur(P.totalActualGross), d.eur(P.totalHeadcountCost) }, true);
     }
-
-    d.sectionTitle(QStringLiteral("Organización orientativa"));
-    for (int k = 0; k < 4; ++k)
-        d.note(QStringLiteral("%1 — %2").arg(QString::fromUtf8(roleLabelsHeadcount[k]),
-                                             QString::fromUtf8(roles[k])));
 
     d.y += 8;
     d.ensureSpace(52);
@@ -972,8 +935,8 @@ bool writeReport(QIODevice* dev, const sim::Inputs& in, const sim::Results& r)
     baseDataSheet(d, in, r);
     financingSheet(d, in, r);
     projectionSheet(d, r);
-    taxesSheet(d, in, r);
-    analysisSheet(d, in, r);
+    // taxesSheet/analysisSheet omitidas: corresponden a las hojas Impuestos y
+    // Análisis inversión, ocultas temporalmente en Main.qml (no borrar).
     staffSheet(d, in, r);
 
     return d.p.end();

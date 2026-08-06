@@ -1013,9 +1013,10 @@ void Engine::removeComparisonScenario(int index)
 
 // 'overrides' contiene solo los ejes que el usuario rellenó al pulsar
 // "Añadir escenario" en SimulacionView.qml (revenueEur/termYears/ratePct/
-// cashEur/marginPct, cualquier subconjunto, incluso vacío): el eje que falte
-// sigue el valor real actual (m_in) en simulationForYear(), así que el
-// escenario se actualiza solo si cambia el dato principal correspondiente.
+// cashEur/propertiesEur/coopEur/marginPct, cualquier subconjunto, incluso
+// vacío): el eje que falte sigue el valor real actual (m_in) en
+// simulationForYear(), así que el escenario se actualiza solo si cambia el
+// dato principal correspondiente.
 void Engine::addSimulationScenario(const QVariantMap& overrides)
 {
     m_simulationScenarios.append(QVariantMap{ { "overrides", overrides } });
@@ -1125,11 +1126,11 @@ QVariantList Engine::financingComparison() const
 // Columna 0 ("Actual") es siempre el escenario principal (m_in) sin tocar.
 // Cada entrada de m_simulationScenarios añade una columna más, aplicando
 // sobre una copia de m_in solo los ejes presentes en su mapa "overrides"
-// (revenueEur/termYears/ratePct/cashEur/marginPct, cualquier subconjunto): el
-// eje ausente sigue el valor real actual de m_in, así que esa columna se
-// recalcula sola cuando cambia el dato principal correspondiente (Datos
-// base, Financiación...) — ver Engine::addSimulationScenario() y
-// SimulacionView.qml.
+// (revenueEur/termYears/ratePct/cashEur/propertiesEur/coopEur/marginPct,
+// cualquier subconjunto): el eje ausente sigue el valor real actual de m_in,
+// así que esa columna se recalcula sola cuando cambia el dato principal
+// correspondiente (Datos base, Financiación...) — ver
+// Engine::addSimulationScenario() y SimulacionView.qml.
 QVariantList Engine::simulationForYear(int year) const
 {
     QVector<sim::Inputs> columns{ m_in };
@@ -1162,6 +1163,10 @@ QVariantList Engine::simulationForYear(int year) const
         }
         if (const auto it = overrides.constFind(QStringLiteral("cashEur")); it != overrides.constEnd())
             in.contributedCash = it->toDouble();
+        if (const auto it = overrides.constFind(QStringLiteral("propertiesEur")); it != overrides.constEnd())
+            in.propertiesFinancing = it->toDouble();
+        if (const auto it = overrides.constFind(QStringLiteral("coopEur")); it != overrides.constEnd())
+            in.initialOrder = it->toDouble();
         if (const auto it = overrides.constFind(QStringLiteral("marginPct")); it != overrides.constEnd()) {
             // in.marginPct por sí solo NO alimenta la proyección a 10 años
             // (sim::compute() usa in.realisticMarginSeries u
@@ -1182,7 +1187,8 @@ QVariantList Engine::simulationForYear(int year) const
     }
 
     QVariantList facturacionV, aniosMobiliaria, tipoMobiliaria, aniosInmobiliaria, tipoInmobiliaria,
-                 aportacion, margenComercial, costeTotal, interesesTotales, beneficio;
+                 aportacion, aportacionPropiedades, aportacionCooperativa, margenComercial, costeTotal,
+                 interesesTotales, beneficio;
 
     for (const sim::Inputs& in : columns) {
         const sim::Results r = sim::compute(in);
@@ -1194,6 +1200,8 @@ QVariantList Engine::simulationForYear(int year) const
         aniosInmobiliaria  << in.propertiesTermYears;
         tipoInmobiliaria    << in.propertiesRate;
         aportacion          << in.contributedCash;
+        aportacionPropiedades << in.propertiesFinancing;
+        aportacionCooperativa << in.initialOrder;
         margenComercial      << in.marginPct;
         costeTotal          << r.financing.totalInvestment;
         // Solo las hipotecas mobiliaria e inmobiliaria varían con plazo/
@@ -1216,6 +1224,10 @@ QVariantList Engine::simulationForYear(int year) const
                      { "values", tipoInmobiliaria }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
         QVariantMap{ { "label", QStringLiteral("Aportación inicial") },
                      { "values", aportacion }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+        QVariantMap{ { "label", QStringLiteral("Aportación propiedades (hipoteca)") },
+                     { "values", aportacionPropiedades }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
+        QVariantMap{ { "label", QStringLiteral("Aportación cooperativa") },
+                     { "values", aportacionCooperativa }, { "fmt", QStringLiteral("eur") }, { "bold", false } },
         QVariantMap{ { "label", QStringLiteral("Margen comercial") },
                      { "values", margenComercial }, { "fmt", QStringLiteral("pct1") }, { "bold", false } },
         QVariantMap{ { "label", QStringLiteral("Coste total farmacia") },

@@ -8,9 +8,10 @@ import FarmaciaSim
 // nombres de columna ni "ojo" — solo el botón "✕" para borrar (salvo en la
 // columna 0). La columna 0 ("Actual") es siempre el escenario principal
 // (Datos base/Financiación...) sin tocar. El botón "Añadir escenario" congela
-// una columna más a partir de los 5 campos de arriba (Facturación Total,
+// una columna más a partir de los 7 campos de arriba (Facturación Total,
 // años/interés de la hipoteca —mobiliaria e inmobiliaria, ligados—,
-// aportación inicial y margen comercial), precargados con el valor actual:
+// aportación inicial, aportación propiedades (hipoteca), aportación
+// cooperativa y margen comercial), precargados con el valor actual:
 // el campo que no se edite hace que ese eje de la nueva columna siga el
 // escenario principal para siempre (se recalcula solo si cambia, p.ej. en
 // Datos base), y el que se edite queda fijo en ese número. El cálculo en sí
@@ -179,6 +180,16 @@ Flickable {
             }
 
             RowCard {
+                Text { text: "Aportación propiedades (hipoteca)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoPropiedadesNueva; kind: "eur"; mainValue: Engine.inputs.propertiesFinancing; Layout.alignment: Qt.AlignRight }
+            }
+
+            RowCard {
+                Text { text: "Aportación cooperativa"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
+                ScenarioField { id: campoCooperativaNueva; kind: "eur"; mainValue: Engine.inputs.initialOrder; Layout.alignment: Qt.AlignRight }
+            }
+
+            RowCard {
                 Text { text: "Margen comercial"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
                 ScenarioField { id: campoMargenNueva; kind: "pct1"; mainValue: Engine.inputs.marginPct; Layout.alignment: Qt.AlignRight }
             }
@@ -201,12 +212,16 @@ Flickable {
                         if (campoAniosNueva.overrideValue !== null) overrides.termYears = campoAniosNueva.overrideValue
                         if (campoInteresNueva.overrideValue !== null) overrides.ratePct = campoInteresNueva.overrideValue
                         if (campoAportacionNueva.overrideValue !== null) overrides.cashEur = campoAportacionNueva.overrideValue
+                        if (campoPropiedadesNueva.overrideValue !== null) overrides.propertiesEur = campoPropiedadesNueva.overrideValue
+                        if (campoCooperativaNueva.overrideValue !== null) overrides.coopEur = campoCooperativaNueva.overrideValue
                         if (campoMargenNueva.overrideValue !== null) overrides.marginPct = campoMargenNueva.overrideValue
                         Engine.addSimulationScenario(overrides)
                         campoFacturacionNueva.resetToMain()
                         campoAniosNueva.resetToMain()
                         campoInteresNueva.resetToMain()
                         campoAportacionNueva.resetToMain()
+                        campoPropiedadesNueva.resetToMain()
+                        campoCooperativaNueva.resetToMain()
                         campoMargenNueva.resetToMain()
                     }
                     background: Rectangle {
