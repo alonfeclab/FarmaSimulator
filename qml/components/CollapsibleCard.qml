@@ -42,6 +42,7 @@ Card {
             Rectangle {
                 id: chevron
                 visible: root.collapsible
+                Layout.alignment: Qt.AlignBottom
                 implicitWidth: 28
                 implicitHeight: 28
                 radius: 6
@@ -60,6 +61,7 @@ Card {
             // A la derecha del icono de colapsar, fuera del área clicable.
             RowLayout {
                 id: extraHeader
+                Layout.alignment: Qt.AlignBottom
                 spacing: 8
             }
         }

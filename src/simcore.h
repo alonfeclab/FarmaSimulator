@@ -36,16 +36,20 @@ struct Inputs {
     double insurance         = 4000;     // D27
     double otherExpenses     = 15000;    // D28
 
-    // ---- Financiación: growth scenario
-    // 0 = Realistic (uses the ipcHistorical series, editable in Configuración)
-    // 1 = Optimistic (constant IPC entered by the user)
+    // ---- Financiación: growth scenario ("Aumento de facturación" in the UI —
+    // deliberately not called IPC, since it's a revenue-growth assumption,
+    // not a real inflation figure). Drives sales, rent and rdDeduction.
+    // 0 = Realistic (uses the annualRevenueIncrease series, editable in Configuración)
+    // 1 = Optimistic (constant rate entered by the user)
     double growthScenario = 0;
     double ipcOptimistic   = 0.025;
 
-    // ---- Personal: annual salary raise, applied every projection year to
-    // every employee's salary (regular plantilla and vacation cover alike).
-    // Decoupled from the IPC growth scenario above: a single constant rate,
-    // editable from Configuración, regardless of Realistic/Optimistic.
+    // ---- Personal: annual "IPC" (Configuración > Personal), applied every
+    // projection year to every employee's salary (regular plantilla and
+    // vacation cover alike) AND to otros gastos, since general expenses
+    // track real inflation rather than the pharmacy's own revenue-growth
+    // assumption above. A single constant rate, editable from Configuración,
+    // regardless of Realistic/Optimistic.
     double salaryRaisePct = 0.025;
 
     // ---- Optimistic scenario: commercial margin editable per year
@@ -234,10 +238,10 @@ struct Inputs {
     // during the first 12 months of activity.
     double retaFlatMonthlyFee = 88.64;
 
-    // Spain's historical CPI (IPC) (INE, average annual change), last 10
-    // available years — "Realistic" scenario.
-    std::array<double,10> ipcHistorical {
-        -0.005, -0.002, 0.020, 0.017, 0.007, -0.003, 0.031, 0.084, 0.035, 0.028
+    // "Aumento de facturación" historical series
+    // "Realistic" scenario.
+    std::array<double,10> annualRevenueIncrease {
+        0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025
     };
 
     // Simulated commercial margin evolution, "Realistic" scenario.

@@ -174,7 +174,11 @@ static const QHash<QString, QString>& legacyKeyMap()
         }
         m[QStringLiteral("tarifaPlanaMensual")] = QStringLiteral("retaFlatMonthlyFee");
         for (int k = 0; k < 10; ++k) {
-            m[QStringLiteral("ipcHistorico%1").arg(k)]       = QStringLiteral("ipcHistorical%1").arg(k);
+            m[QStringLiteral("ipcHistorico%1").arg(k)]       = QStringLiteral("annualRevenueIncrease%1").arg(k);
+            // ipcHistorical was itself the current key before being renamed
+            // to annualRevenueIncrease — kept so already-saved sessions
+            // don't lose this series.
+            m[QStringLiteral("ipcHistorical%1").arg(k)]      = QStringLiteral("annualRevenueIncrease%1").arg(k);
             m[QStringLiteral("margenComercialSim%1").arg(k)] = QStringLiteral("realisticMarginSeries%1").arg(k);
         }
         // Financing-comparison sub-keys (not otherwise reachable from the flat map above).
@@ -439,7 +443,7 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
     }
     dbl["retaFlatMonthlyFee"] = &i.retaFlatMonthlyFee;
     for (int k = 0; k < 10; ++k) {
-        dbl[QStringLiteral("ipcHistorical%1").arg(k)]        = &i.ipcHistorical[k];
+        dbl[QStringLiteral("annualRevenueIncrease%1").arg(k)] = &i.annualRevenueIncrease[k];
         dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
 }
@@ -852,7 +856,7 @@ void Engine::buildMaps()
         projectionRow("Venta receta",                  Y.prescriptionSales),
         projectionRow("Venta libre",                   Y.otcSales),
         projectionRow("Venta total",                   Y.totalSales, "eur", true),
-        projectionRow("IPC aplicado",                  Y.ipcApplied, "pct1"),
+        projectionRow("Aumento facturación aplicado",  Y.ipcApplied, "pct1"),
         projectionRow("Coste mercancía",               Y.costOfGoods),
         projectionRow("M. comercial %",                Y.commercialMarginPct, "pct1"),
         projectionRow("M. comercial bruto",            Y.grossMargin),

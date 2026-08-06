@@ -8,6 +8,8 @@ import FarmaciaSim
 Flickable {
     id: page
 
+    readonly property bool angosto: width < 640
+
     contentWidth: width
     contentHeight: col.implicitHeight + 48
     clip: true
@@ -15,6 +17,15 @@ Flickable {
 
     KeyboardAvoider { target: page }
     FastWheel { flick: page }
+
+    // Claves de las series históricas (aumento de facturación INE y margen
+    // comercial simulado), usadas por el botón "Restaurar valores por
+    // defecto" del grupo "Escenario de crecimiento".
+    function historicalSeriesKeys() {
+        var ks = []
+        for (var k = 0; k < 10; k++) { ks.push("annualRevenueIncrease" + k); ks.push("realisticMarginSeries" + k) }
+        return ks
+    }
 
     // Fila calculada (solo lectura). El estilo de la caja (fondo/borde) vive
     // en RowCard; aquí solo se define el contenido de esta hoja.
@@ -61,7 +72,12 @@ Flickable {
 
         // ---------------- Escenario de crecimiento
         CollapsibleCard {
-            title: "Escenario de crecimiento"
+            title: "Escenario de crecimiento de facturación"
+            headerContent: ResetGroupButton {
+                keys: page.historicalSeriesKeys()
+                compact: page.angosto
+                visible: escenarioCombo.currentIndex === 0
+            }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -154,20 +170,33 @@ Flickable {
                     }
                 }
                 Text {
-                    text: "IPC"
+                    text: "Aumento de facturación"
                     font.pixelSize: 13; color: Tokens.textSecondary
-                    visible: escenarioCombo.currentIndex === 1
+                    visible: escenarioCombo.currentIndex === 1 && !page.angosto
                 }
                 PctField {
                     k: "ipcOptimistic"
-                    visible: escenarioCombo.currentIndex === 1
+                    visible: escenarioCombo.currentIndex === 1 && !page.angosto
                 }
+            }
+            // En pantallas angostas no cabe el campo en la misma fila del
+            // combo (se corta): baja a una fila propia, justo debajo.
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                visible: escenarioCombo.currentIndex === 1 && page.angosto
+
+                Text {
+                    text: "Aumento de facturación"
+                    font.pixelSize: 13; color: Tokens.textSecondary
+                    Layout.fillWidth: true
+                }
+                PctField { k: "ipcOptimistic" }
             }
             Text {
                 Layout.fillWidth: true
-                text: escenarioCombo.currentIndex === 1
-                      ? "Se aplica el IPC indicado, constante, a los 10 años de la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
-                      : "Se aplica el IPC histórico de España de los últimos 10 años a la proyección (ventas, alquiler y otros gastos; los sueldos suben aparte, según la subida salarial fija de Configuración)."
+                visible: escenarioCombo.currentIndex === 1
+                text: "Se aplica el aumento de facturación indicado, constante, a los 10 años de la proyección (ventas y alquiler); los sueldos y otros gastos suben aparte, según el IPC fijo de Configuración."
                 font.pixelSize: 12
                 color: Tokens.textMuted
                 wrapMode: Text.WordWrap
@@ -198,6 +227,43 @@ Flickable {
                 RowCard {
                     Text { text: "Año 3 y siguientes"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true }
                     PctField { k: "optimisticMarginYear3"; Layout.alignment: Qt.AlignRight }
+                }
+            }
+
+            // Series históricas del escenario Realista (aumento de
+            // facturación INE y margen comercial simulado), editables desde
+            // aquí en lugar de Configuración.
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                visible: escenarioCombo.currentIndex === 0
+                spacing: 8
+
+                Text { text: "Aumento de facturación"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary }
+                Flickable {
+                    id: scrollIpc
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: serieIpc.implicitHeight
+                    contentWidth: serieIpc.implicitWidth
+                    contentHeight: serieIpc.implicitHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+                    FastWheel { flick: scrollIpc; fallback: page }
+                    SerieAnualEdit { id: serieIpc; prefix: "annualRevenueIncrease" }
+                }
+                Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary; Layout.topMargin: 8 }
+                Flickable {
+                    id: scrollMargen
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: serieMargen.implicitHeight
+                    contentWidth: serieMargen.implicitWidth
+                    contentHeight: serieMargen.implicitHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+                    FastWheel { flick: scrollMargen; fallback: page }
+                    SerieAnualEdit { id: serieMargen; prefix: "realisticMarginSeries" }
                 }
             }
         }

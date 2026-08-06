@@ -342,11 +342,13 @@ Results compute(const Inputs& in)
     {
         auto& P = R.projection;
 
-        // Growth scenario: Realistic uses the last 10 years' historical IPC;
-        // Optimistic uses the constant IPC set by the user.
+        // Growth scenario ("Aumento de facturación"): Realistic uses the last
+        // 10 years' historical series; Optimistic uses the constant rate set
+        // by the user. Drives sales, rent and rdDeduction — not salaries or
+        // otros gastos, which instead follow the fixed IPC (salaryRaisePct).
         const std::array<double,10> annualIpc = (in.growthScenario >= 0.5)
             ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimistic); return a; }()
-            : in.ipcHistorical;
+            : in.annualRevenueIncrease;
         const std::array<double,10> annualCommercialMargin = (in.growthScenario >= 0.5)
             ? optimisticMarginSeries(in)
             : in.realisticMarginSeries;
@@ -402,8 +404,11 @@ Results compute(const Inputs& in)
             // row 14: Plantilla cost only counts employees already hired by
             // this projection year (in.startYear + i); vacation-cover cost
             // isn't staggered. Both grow year over year by the fixed
-            // salaryRaisePct (decoupled from IPC), including year 1 itself
-            // (see comment above).
+            // salaryRaisePct ("IPC" in Configuración, decoupled from the
+            // facturación growth scenario), including year 1 itself (see
+            // comment above). Otros gastos (row 15) grows by the same IPC,
+            // since general expenses track real inflation rather than the
+            // pharmacy's own revenue-growth assumption.
             for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + in.salaryRaisePct);
             vacationCost *= (1.0 + in.salaryRaisePct);
             const int currentYear = in.startYear + i;
@@ -413,7 +418,7 @@ Results compute(const Inputs& in)
             P.staffCost[i] = regularStaffCost + vacationCost;
             P.otherExpenses[i] = (i == 0
                 ? R.baseData.totalOtherExpenses                                 // B15 = D29 (rent shown separately in row 13)
-                : P.otherExpenses[i-1]) * (1.0 + ipc);                            // row 15
+                : P.otherExpenses[i-1]) * (1.0 + in.salaryRaisePct);              // row 15
             P.interest[i] = annualSum(R.bankAmort, i, true)
                            + annualSum(R.propertiesAmort,  i, true)
                            + annualSum(R.coopAmort,  i, true)

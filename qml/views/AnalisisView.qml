@@ -107,7 +107,7 @@ Flickable {
                         NumField { k: "saleFactor2"; decimals: 1; Layout.preferredWidth: page.wCell }
                     }
                     Row3 { label: "Valor venta FdC año 10"; vals: Engine.analysis.fdcSaleValue }
-                    Row3 { label: "Valor venta local (incr. IPC)"; vals: Engine.analysis.premisesSaleValue }
+                    Row3 { label: "Valor venta local (incr. facturación)"; vals: Engine.analysis.premisesSaleValue }
                     Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.inventoryPctYear10) + " factur.)"; vals: Engine.analysis.inventoryYear10 }
                     Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analysis.fdcOutstanding }
                     RowLayout {

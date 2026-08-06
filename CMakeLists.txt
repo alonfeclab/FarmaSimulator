@@ -97,6 +97,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/components/ConceptTable.qml
         qml/components/RowCard.qml
         qml/components/ResetGroupButton.qml
+        qml/components/SerieAnualEdit.qml
     RESOURCES
         qml/icons/dashboard.svg
         qml/icons/datos_base.svg

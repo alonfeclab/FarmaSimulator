@@ -493,7 +493,7 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
         t.dataRow({ QStringLiteral("Escenario"),
                       in.growthScenario >= 0.5 ? QStringLiteral("Optimista") : QStringLiteral("Realista") });
         if (in.growthScenario >= 0.5)
-            t.dataRow({ QStringLiteral("IPC"), d.pct(in.ipcOptimistic) });
+            t.dataRow({ QStringLiteral("Aumento de facturación"), d.pct(in.ipcOptimistic) });
     }
 
     d.sectionTitle(QStringLiteral("Inversión operación"));
@@ -693,7 +693,7 @@ void analysisSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
         row3(QStringLiteral("Inversión inicial"),               A.initialInvestment);
         row3(QStringLiteral("Factor de venta"),                 { in.saleFactor[0], in.saleFactor[1], in.saleFactor[2] }, QStringLiteral("num"));
         row3(QStringLiteral("Valor venta FdC año 10"),          A.fdcSaleValue);
-        row3(QStringLiteral("Valor venta local (incr. IPC)"),   A.premisesSaleValue);
+        row3(QStringLiteral("Valor venta local (incr. facturación)"), A.premisesSaleValue);
         row3(QStringLiteral("Existencias (%1 factur.)").arg(d.pct(in.inventoryPctYear10)), A.inventoryYear10);
         row3(QStringLiteral("Fondo de comercio pendiente"),     A.fdcOutstanding);
         row3(QStringLiteral("Impuestos venta"),                 { in.saleTaxes[0], in.saleTaxes[1], in.saleTaxes[2] });

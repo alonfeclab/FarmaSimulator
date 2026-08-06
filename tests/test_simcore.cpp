@@ -224,12 +224,15 @@ void TestSimCore::compute_goldenValues()
     const Inputs in;
     const Results r = compute(in);
 
+    // 2026-08-06: regenerated after moving otros gastos' annual growth from
+    // the "Aumento de facturación" scenario to the fixed "IPC" (salaryRaisePct),
+    // which now also drives otros gastos, not just salaries — see simcore.cpp.
     QVERIFY(std::fabs(r.baseData.profitBeforeTax - 169851.78448) < 1e-3);
     QVERIFY(std::fabs(r.financing.totalInvestment - 2512177.0505050505) < 1e-2);
     QVERIFY(std::fabs(r.bankAmort.monthlyPayment - (-10937.6465475271)) < 1e-6);
-    QVERIFY(std::fabs(r.projection.profit[9] - 197557.796236802) < 1e-4);
+    QVERIFY(std::fabs(r.projection.profit[9] - 192393.81115530) < 1e-4);
     QVERIFY(std::fabs(r.taxes.payment[0] - 0.0) < 1e-6);
-    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1610866688) < 1e-6);
+    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1472017982) < 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)

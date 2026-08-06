@@ -74,16 +74,12 @@ Flickable {
             return Fmt.num(v, 0) + " €"
         }
         // Override fijado por el usuario, o null si el campo aún sigue al
-        // escenario principal (no editado desde el último resetToMain()).
+        // escenario principal (no editado por el usuario).
         readonly property var overrideValue: {
             if (!fld.touched) return null
             const v = Fmt.parse(fld.text)
             if (isNaN(v)) return null
             return fld.kind === "pct1" ? v / 100 : v
-        }
-        function resetToMain() {
-            fld.touched = false
-            fld.text = fld.display(fld.mainValue)
         }
 
         implicitWidth: fld.kind === "eur" ? 130 : 90
@@ -216,13 +212,6 @@ Flickable {
                         if (campoCooperativaNueva.overrideValue !== null) overrides.coopEur = campoCooperativaNueva.overrideValue
                         if (campoMargenNueva.overrideValue !== null) overrides.marginPct = campoMargenNueva.overrideValue
                         Engine.addSimulationScenario(overrides)
-                        campoFacturacionNueva.resetToMain()
-                        campoAniosNueva.resetToMain()
-                        campoInteresNueva.resetToMain()
-                        campoAportacionNueva.resetToMain()
-                        campoPropiedadesNueva.resetToMain()
-                        campoCooperativaNueva.resetToMain()
-                        campoMargenNueva.resetToMain()
                     }
                     background: Rectangle {
                         radius: 8

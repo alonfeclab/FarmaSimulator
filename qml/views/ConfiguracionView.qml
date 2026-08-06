@@ -6,10 +6,11 @@ import QtQuick.Layouts
 import FarmaciaSim
 
 // Hoja "Configuración": escalas y series oficiales que usa el motor de
-// cálculo (IRPF, RETA, Reales Decretos, IPC histórico, margen comercial del
-// escenario Realista...). Editables, agrupadas por concepto, con los valores
-// vigentes como valor por defecto ("Restaurar valores" en el panel lateral
-// también las restaura).
+// cálculo (IRPF, RETA, Reales Decretos...). Editables, agrupadas por
+// concepto, con los valores vigentes como valor por defecto ("Restaurar
+// valores" en el panel lateral también las restaura). Las series del
+// escenario Realista (aumento de facturación histórico y margen comercial)
+// viven en Datos base, junto al combo de tipo de escenario.
 Flickable {
     id: page
 
@@ -46,11 +47,6 @@ Flickable {
     function salaryKeys() {
         return ["salaryRaisePct"]
     }
-    function historicalSeriesKeys() {
-        var ks = []
-        for (var k = 0; k < 10; k++) { ks.push("ipcHistorical" + k); ks.push("realisticMarginSeries" + k) }
-        return ks
-    }
 
     // Cabecera de columnas de una tabla de tramos.
     component CabeceraTabla: Row {
@@ -80,47 +76,6 @@ Flickable {
         implicitWidth: wCell
         implicitHeight: 44
         color: par ? Tokens.bgTableRowPrimary : Tokens.bgTableRowAlt
-    }
-
-    // Serie editable de 10 años (IPC histórico, margen comercial...).
-    component SerieAnualEdit: ColumnLayout {
-        id: serie
-        required property string prefix
-        property int wCell: 84
-        Layout.fillWidth: true
-        spacing: 0
-
-        Row {
-            Repeater {
-                model: 10
-                Rectangle {
-                    id: hdrCell
-                    required property int index
-                    width: serie.wCell; height: 26; color: Tokens.bgBrandStrong
-                    Text {
-                        anchors.centerIn: parent
-                        text: "Año " + (hdrCell.index + 1)
-                        color: Tokens.textOnDark; font.bold: true; font.pixelSize: 11
-                    }
-                }
-            }
-        }
-        Row {
-            Repeater {
-                model: 10
-                Rectangle {
-                    id: celda
-                    required property int index
-                    width: serie.wCell; height: 40
-                    color: celda.index % 2 ? Tokens.bgTableRowAlt : Tokens.bgTableRowPrimary
-                    PctField {
-                        anchors.centerIn: parent
-                        implicitWidth: serie.wCell - 8
-                        k: serie.prefix + celda.index
-                    }
-                }
-            }
-        }
     }
 
     ColumnLayout {
@@ -315,61 +270,22 @@ Flickable {
             }
         }
 
-        // ---------------- Personal — subida salarial anual
+        // ---------------- Personal — IPC
         CollapsibleCard {
-            title: "Personal — subida salarial anual"
+            title: "Personal — IPC"
             headerContent: ResetGroupButton { keys: page.salaryKeys(); compact: page.angosto }
             Text {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: Tokens.textMuted
-                text: "Porcentaje fijo con el que suben cada año los sueldos de la plantilla y los refuerzos de vacaciones en la Proyección a 10 años, independiente del IPC del escenario de crecimiento."
+                text: "Porcentaje fijo (IPC) con el que suben cada año los sueldos de la plantilla, los refuerzos de vacaciones y los Otros gastos en la Proyección a 10 años, independiente del aumento de facturación del escenario de crecimiento."
             }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
-                Text { text: "Subida salarial anual"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                Text { text: "IPC"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 PctField { k: "salaryRaisePct"; decimals: 1 }
-            }
-        }
-
-        // ---------------- IPC histórico y margen comercial (escenario Realista)
-        CollapsibleCard {
-            title: "Escenario realista — series históricas"
-            headerContent: ResetGroupButton { keys: page.historicalSeriesKeys(); compact: page.angosto }
-            Text {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.pixelSize: 12
-                color: Tokens.textMuted
-                text: "Series que alimenta el escenario de crecimiento \"Realista\" en Financiación y Proyección."
-            }
-            Text { text: "IPC histórico (INE)"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary }
-            Flickable {
-                id: scroll4
-                Layout.fillWidth: true
-                Layout.preferredHeight: serieIpc.implicitHeight
-                contentWidth: serieIpc.implicitWidth
-                contentHeight: serieIpc.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
-                FastWheel { flick: scroll4; fallback: page }
-                SerieAnualEdit { id: serieIpc; prefix: "ipcHistorical" }
-            }
-            Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary; Layout.topMargin: 8 }
-            Flickable {
-                id: scroll5
-                Layout.fillWidth: true
-                Layout.preferredHeight: serieMargen.implicitHeight
-                contentWidth: serieMargen.implicitWidth
-                contentHeight: serieMargen.implicitHeight
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
-                FastWheel { flick: scroll5; fallback: page }
-                SerieAnualEdit { id: serieMargen; prefix: "realisticMarginSeries" }
             }
         }
 
