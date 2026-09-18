@@ -47,7 +47,7 @@ set_source_files_properties(qml/Fmt.qml qml/Nav.qml qml/Tokens.qml PROPERTIES
 # (ruta relativa a la raíz del proyecto), pero el QML los referencia como
 # "qrc:/qt/qml/FarmaciaSim/icons/xxx.svg" (sin el "qml/" intermedio), por lo
 # que QQuickImage no los encuentra en tiempo de ejecución.
-foreach(_icono dashboard datos_base financiacion proyeccion comparacion simulacion impuestos analisis banco cooperativa familiar propiedades personal configuracion eye sun moon)
+foreach(_icono dashboard datos_base financiacion proyeccion venta comparacion simulacion impuestos analisis banco cooperativa familiar propiedades personal configuracion eye sun moon)
     set_source_files_properties(qml/icons/${_icono}.svg PROPERTIES
         QT_RESOURCE_ALIAS icons/${_icono}.svg
     )
@@ -77,6 +77,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/views/DatosBaseView.qml
         qml/views/FinanciacionView.qml
         qml/views/ProyeccionView.qml
+        qml/views/VentaView.qml
         qml/views/ComparacionView.qml
         qml/views/SimulacionView.qml
         qml/views/ImpuestosView.qml
@@ -103,6 +104,7 @@ qt_add_qml_module(farmaciasim_ui
         qml/icons/datos_base.svg
         qml/icons/financiacion.svg
         qml/icons/proyeccion.svg
+        qml/icons/venta.svg
         qml/icons/comparacion.svg
         qml/icons/simulacion.svg
         qml/icons/impuestos.svg

@@ -93,4 +93,9 @@ Las tres suites corren automáticamente en GitHub Actions en cada push/PR
   mes 241 en el préstamo bancario), exactamente como la hoja.
 - Los "Impuestos venta" del Análisis de Inversión son constantes en el Excel
   (no fórmula), por lo que aquí son campos editables.
+- La hoja **Venta** no existe en el Excel: calcula, año a año, qué patrimonio
+  queda si se vende la farmacia en las mismas condiciones en que se compró
+  (mismo coeficiente, mismo precio del local), descontando la deuda viva y los
+  impuestos de la plusvalía, para saber a partir de qué año se puede vender sin
+  perder dinero.
 - El botón «Restaurar valores» devuelve todas las entradas a los valores del Excel.

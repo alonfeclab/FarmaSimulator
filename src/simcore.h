@@ -181,6 +181,7 @@ struct Inputs {
     double investmentPremisesDeprPct = 0.04;  // B31
     double inventoryPctYear10  = 0.1;         // row 11: estimated 10-year inventory, % of year-10 total sales
 
+
     // Loan start date (F5): 01/2027
     int startYear  = 2027;
     int startMonth = 1;
@@ -196,6 +197,18 @@ struct Inputs {
         {  35200,     60000, 0.37 },
         {  60000,    300000, 0.45 },
         { 300000, 999999999, 0.47 },
+    }};
+
+    // IRPF savings-base scale 2026 (base liquidable del ahorro, state +
+    // regional rates combined; top bracket raised to 30% by Ley 7/2024 from
+    // 2025 on). Used by the Venta sheet: the capital gain of selling the
+    // pharmacy is a ganancia patrimonial taxed in the savings base.
+    std::array<IrpfBracket,5> savingsBrackets {{
+        {      0,      6000, 0.19 },
+        {   6000,     50000, 0.21 },
+        {  50000,    200000, 0.23 },
+        { 200000,    300000, 0.27 },
+        { 300000, 999999999, 0.30 },
     }};
 
     // "Reales Decretos" deduction scale (RD 823/2008, art. 2.5): brackets on
@@ -368,6 +381,39 @@ struct AnalysisResult {
         premisesDepreciation{}, taxableBase{}, fdcOutstandingSim{};
 };
 
+// Hoja "Venta": year-by-year equity accumulated by the buyer, to answer
+// "when can I sell without losing a euro?". For each projected year it values
+// a sale of the pharmacy under the very same terms as the purchase (same
+// goodwill multiple applied to that year's sales, same price for the
+// commercial premises), nets out the debt still outstanding and the tax on the
+// gain, and compares the result with the cash originally put in.
+// Every array is 10 values = years 1..10.
+struct SaleResult {
+    std::array<double,10> totalSales{},   // that year's total sales (Proyeccion)
+        goodwillValue{},                  // totalSales x goodwillMultiple
+        premisesValue{},                  // premisesPrice (same as the purchase)
+        inventoryValue{},                 // totalSales x inventoryPctYear10
+        grossValue{},                     // sum of the three above
+        bankDebt{}, propertiesDebt{}, coopDebt{}, familyDebt{}, // outstanding balance (negative)
+        totalDebt{},
+        valueAfterDebt{},                 // grossValue + totalDebt
+        bookValue{},                      // remaining tax book value (goodwill + premises + inventory)
+        taxableGain{},                    // max(0, grossValue - bookValue)
+        gainTax{},                        // savings-scale tax on taxableGain (negative)
+        effectiveTaxRate{},               // -gainTax / taxableGain (0 if no gain)
+        netProceeds{},                    // cash left after debt and tax
+        cumulativeOwnerSalary{},          // netAnnualSalary summed up to this year
+        equityExSalary{},                 // netProceeds - initialCash
+        equity{};                         // equityExSalary + cumulativeOwnerSalary
+    double initialCash   = 0;  // contributed cash (the money actually put in)
+    double bankFinancing = 0;  // mortgage taken from the bank (pharmacy + premises + properties)
+    // First year (1-based) whose equity is >= 0, i.e. the first year the
+    // pharmacy can be sold without losing a euro; -1 if never within 10 years.
+    // Whole years, not interpolated: the sale is only valued at year end.
+    double breakEvenYear         = -1;
+    double breakEvenYearExSalary = -1;  // same, ignoring the salary already drawn
+};
+
 struct Results {
     StaffResult      staff;
     ScheduleResult   schedule;
@@ -377,6 +423,7 @@ struct Results {
     ProjectionResult projection;
     TaxResult        taxes;
     AnalysisResult   analysis;
+    SaleResult       sale;
 };
 
 // "Reales Decretos" deduction (RD 823/2008 art. 2.5): progressive bracket
@@ -390,6 +437,11 @@ double calculateRdDeduction(double annualPrescriptionSales, const std::array<RdB
 // locate the bracket, and the minimum monthly quota of that bracket is
 // applied (includes the 0.9% MEI).
 double calculateSelfEmployedQuota(double annualProfit, const std::array<RetaBracket,15>& table);
+
+// IRPF on a gain taxed in the savings base: progressive bracket scale, each
+// bracket's rate applied only to the slice of 'gain' that falls inside it.
+// Returns a positive amount (0 for gain <= 0).
+double calculateSavingsTax(double gain, const std::array<IrpfBracket,5>& table);
 
 // Excel's PMT: constant (negative) payment of a loan.
 double pmt(double monthlyRate, int numPayments, double principal);

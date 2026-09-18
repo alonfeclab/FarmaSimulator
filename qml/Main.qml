@@ -30,6 +30,7 @@ ApplicationWindow {
         { nombre: "Datos base",          icono: "qrc:/qt/qml/FarmaciaSim/icons/datos_base.svg" },
         { nombre: "Financiación",        icono: "qrc:/qt/qml/FarmaciaSim/icons/financiacion.svg" },
         { nombre: "Proyección 10 años",  icono: "qrc:/qt/qml/FarmaciaSim/icons/proyeccion.svg" },
+        { nombre: "Venta",               icono: "qrc:/qt/qml/FarmaciaSim/icons/venta.svg" },
         // Impuestos y Análisis inversión ocultos temporalmente (no borrar).
         { nombre: "Amort. banco",        icono: "qrc:/qt/qml/FarmaciaSim/icons/banco.svg" },
         { nombre: "Amort. cooperativa",  icono: "qrc:/qt/qml/FarmaciaSim/icons/cooperativa.svg" },
@@ -195,6 +196,7 @@ ApplicationWindow {
             DatosBaseView {}
             FinanciacionView {}
             ProyeccionView {}
+            VentaView {}
             // ImpuestosView y AnalisisView ocultos temporalmente (no borrar).
             AmortView {
                 loan: Engine.bank

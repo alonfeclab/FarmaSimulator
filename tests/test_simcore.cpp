@@ -1,5 +1,7 @@
 // Tests unitarios del motor de cálculo puro (simcore.cpp), corridos con Qt Test / CTest.
 #include <QtTest>
+#include <algorithm>
+#include <array>
 #include <cmath>
 #include "simcore.h"
 
@@ -25,10 +27,13 @@ private slots:
     void irr_npvIsZeroAtSolution();
     void realesDecretos_matchesTramoTable();
     void cuotaAutonomos_matchesTramoTable();
+    void savingsTax_matchesBracketScale();
     void compute_datosBaseInvariants();
     void compute_amortBancoFullyAmortizes();
     void compute_familyAmortGracePeriod();
     void compute_personalTotalsSumRows();
+    void compute_ventaRowsAddUp();
+    void compute_ventaBreakEvenIsFirstNonNegativeYear();
     void compute_goldenValues();
 };
 
@@ -103,6 +108,20 @@ void TestSimCore::realesDecretos_matchesTramoTable()
         const double expected = (89081.17 + (650000.0 - 600000.0) * 0.200) * 12.0;
         QVERIFY(std::fabs(calculateRdDeduction(anual, tabla) - expected) < 1e-6);
     }
+}
+
+void TestSimCore::savingsTax_matchesBracketScale()
+{
+    const Inputs in;
+    const auto& t = in.savingsBrackets;
+    QCOMPARE(calculateSavingsTax(0, t), 0.0);
+    QCOMPARE(calculateSavingsTax(-1000, t), 0.0);
+    QVERIFY(std::fabs(calculateSavingsTax(5000, t) - 950.0) < 1e-9);          // 5.000 x 19%
+    // 6.000x19% + 44.000x21% + 50.000x23% = 1.140 + 9.240 + 11.500
+    QVERIFY(std::fabs(calculateSavingsTax(100000, t) - 21880.0) < 1e-9);
+    // ... + 150.000x23% + 100.000x27% + 100.000x30% (tramo final, Ley 7/2024)
+    QVERIFY(std::fabs(calculateSavingsTax(400000, t)
+                      - (1140.0 + 9240.0 + 34500.0 + 27000.0 + 30000.0)) < 1e-9);
 }
 
 void TestSimCore::cuotaAutonomos_matchesTramoTable()
@@ -214,6 +233,90 @@ void TestSimCore::compute_personalTotalsSumRows()
     QVERIFY(std::fabs(brutoReal - P.totalActualGross) < 1e-6);
     QVERIFY(std::fabs(ss - P.totalSocialSecurity) < 1e-6);
     QVERIFY(std::fabs(plantilla - P.totalHeadcountCost) < 1e-6);
+}
+
+void TestSimCore::compute_ventaRowsAddUp()
+{
+    Inputs in;
+    const Results r = compute(in);
+    const auto& V = r.sale;
+    const auto& P = r.projection;
+
+    QCOMPARE(V.initialCash, in.contributedCash);
+    QVERIFY(std::fabs(V.bankFinancing
+                      - (r.financing.pharmacyBankFinancing + r.financing.premisesBankFinancing
+                         + in.propertiesFinancing * in.propertiesFinancingPct)) < 1e-6);
+
+    double salarioAcumulado = 0;
+    for (int i = 0; i < 10; ++i) {
+        // Mismas condiciones que la compra: mismo coeficiente, mismo local.
+        QVERIFY(std::fabs(V.totalSales[i] - P.totalSales[i]) < 1e-9);
+        QVERIFY(std::fabs(V.goodwillValue[i] - P.totalSales[i] * in.goodwillMultiple) < 1e-6);
+        QCOMPARE(V.premisesValue[i], in.premisesPrice);
+        QVERIFY(std::fabs(V.grossValue[i]
+                          - (V.goodwillValue[i] + V.premisesValue[i] + V.inventoryValue[i])) < 1e-6);
+
+        // Deuda: negativa (o cero si ya está pagada) y coincide con el saldo
+        // del cuadro de amortización al cierre del año.
+        QVERIFY(V.totalDebt[i] <= 0.0);
+        QVERIFY(std::fabs(V.bankDebt[i]
+                          + std::max(0.0, r.bankAmort.rows[i * 12 + 11].endingBalance)) < 1e-6);
+        QVERIFY(std::fabs(V.totalDebt[i] - (V.bankDebt[i] + V.propertiesDebt[i]
+                                            + V.coopDebt[i] + V.familyDebt[i])) < 1e-6);
+        QVERIFY(std::fabs(V.valueAfterDebt[i] - (V.grossValue[i] + V.totalDebt[i])) < 1e-6);
+
+        // Impuestos de la venta: nunca negativos como plusvalía, siempre un
+        // cargo (<= 0) sobre la liquidez de la venta.
+        QVERIFY(V.taxableGain[i] >= 0.0);
+        QVERIFY(V.gainTax[i] <= 0.0);
+        QVERIFY(std::fabs(V.gainTax[i] + calculateSavingsTax(V.taxableGain[i], in.savingsBrackets)) < 1e-6);
+        QVERIFY(V.effectiveTaxRate[i] >= 0.0 && V.effectiveTaxRate[i] <= 0.30 + 1e-12);
+        QVERIFY(std::fabs(V.netProceeds[i] - (V.valueAfterDebt[i] + V.gainTax[i])) < 1e-6);
+
+        salarioAcumulado += P.netAnnualSalary[i];
+        QVERIFY(std::fabs(V.cumulativeOwnerSalary[i] - salarioAcumulado) < 1e-6);
+        QVERIFY(std::fabs(V.equityExSalary[i] - (V.netProceeds[i] - V.initialCash)) < 1e-6);
+        QVERIFY(std::fabs(V.equity[i] - (V.equityExSalary[i] + salarioAcumulado)) < 1e-6);
+    }
+
+    // Sin impuestos de venta, la liquidez de la venta es el valor bruto menos
+    // la deuda, sin recorte alguno.
+    for (auto& tramo : in.savingsBrackets) tramo.rate = 0;
+    const Results sinImpuestos = compute(in);
+    for (int i = 0; i < 10; ++i) {
+        QCOMPARE(sinImpuestos.sale.gainTax[i], 0.0);
+        QVERIFY(std::fabs(sinImpuestos.sale.netProceeds[i] - sinImpuestos.sale.valueAfterDebt[i]) < 1e-9);
+    }
+}
+
+void TestSimCore::compute_ventaBreakEvenIsFirstNonNegativeYear()
+{
+    const Inputs in;
+    const Results r = compute(in);
+    const auto& V = r.sale;
+
+    // El año de recuperación es el primero (1-based) con patrimonio >= 0, o
+    // -1 si no llega a positivo en los 10 años proyectados.
+    const auto comprobarAnio = [](double anio, const std::array<double,10>& valores) {
+        if (anio < 0) {
+            for (int i = 0; i < 10; ++i)
+                QVERIFY(valores[i] < 0.0);
+            return;
+        }
+        QVERIFY(anio >= 1 && anio <= 10);
+        QVERIFY(valores[int(anio) - 1] >= 0.0);
+        for (int i = 0; i < int(anio) - 1; ++i)
+            QVERIFY(valores[i] < 0.0);
+    };
+    comprobarAnio(V.breakEvenYear, V.equity);
+    comprobarAnio(V.breakEvenYearExSalary, V.equityExSalary);
+
+    // Contar el salario ya cobrado solo puede adelantar (nunca retrasar) el
+    // año en que se puede vender sin perder dinero, mientras ese salario sea
+    // positivo — que lo es en el escenario por defecto.
+    QVERIFY(V.cumulativeOwnerSalary[0] > 0.0);
+    if (V.breakEvenYearExSalary > 0)
+        QVERIFY(V.breakEvenYear > 0 && V.breakEvenYear <= V.breakEvenYearExSalary);
 }
 
 void TestSimCore::compute_goldenValues()

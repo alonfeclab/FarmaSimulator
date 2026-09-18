@@ -31,6 +31,11 @@ Flickable {
         for (var k = 0; k < 6; k++) { ks.push("irpfFrom" + k); ks.push("irpfTo" + k); ks.push("irpfRate" + k) }
         return ks
     }
+    function savingsKeys() {
+        var ks = []
+        for (var k = 0; k < 5; k++) { ks.push("savingsFrom" + k); ks.push("savingsTo" + k); ks.push("savingsRate" + k) }
+        return ks
+    }
     function retaKeys() {
         var ks = ["retaFlatMonthlyFee"]
         for (var k = 0; k < 15; k++) { ks.push("retaFrom" + k); ks.push("retaQuota" + k) }
@@ -135,6 +140,46 @@ Flickable {
                             Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfFrom" + filaIrpf.index } }
                             Celda { par: filaIrpf.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "irpfTo" + filaIrpf.index } }
                             Celda { par: filaIrpf.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "irpfRate"  + filaIrpf.index; decimals: 1 } }
+                        }
+                    }
+                }
+            }
+        }
+
+        // ---------------- IRPF base del ahorro
+        CollapsibleCard {
+            title: "IRPF — escala del ahorro 2026"
+            headerContent: ResetGroupButton { keys: page.savingsKeys(); compact: page.angosto }
+            Text {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                font.pixelSize: 12
+                color: Tokens.textMuted
+                text: "Tramos de la base liquidable del ahorro, usados en la hoja Venta para calcular los impuestos de la plusvalía al vender la farmacia."
+            }
+            Flickable {
+                id: scrollAhorro
+                Layout.fillWidth: true
+                Layout.preferredHeight: tablaAhorro.implicitHeight
+                contentWidth: tablaAhorro.implicitWidth
+                contentHeight: tablaAhorro.implicitHeight
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+                FastWheel { flick: scrollAhorro; fallback: page }
+
+                ColumnLayout {
+                    id: tablaAhorro
+                    spacing: 0
+                    CabeceraTabla { etiquetas: ["Desde", "Hasta", "Tipo"] }
+                    Repeater {
+                        model: 5
+                        Row {
+                            id: filaAhorro
+                            required property int index
+                            Celda { par: filaAhorro.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "savingsFrom" + filaAhorro.index } }
+                            Celda { par: filaAhorro.index % 2 === 0; MoneyField { anchors.centerIn: parent; k: "savingsTo" + filaAhorro.index } }
+                            Celda { par: filaAhorro.index % 2 === 0; PctField   { anchors.centerIn: parent; k: "savingsRate" + filaAhorro.index; decimals: 1 } }
                         }
                     }
                 }

@@ -432,6 +432,11 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
         dbl[QStringLiteral("irpfTo%1").arg(k)]   = &i.irpfBrackets[k].to;
         dbl[QStringLiteral("irpfRate%1").arg(k)] = &i.irpfBrackets[k].rate;
     }
+    for (int k = 0; k < 5; ++k) {
+        dbl[QStringLiteral("savingsFrom%1").arg(k)] = &i.savingsBrackets[k].from;
+        dbl[QStringLiteral("savingsTo%1").arg(k)]   = &i.savingsBrackets[k].to;
+        dbl[QStringLiteral("savingsRate%1").arg(k)] = &i.savingsBrackets[k].rate;
+    }
     for (int k = 0; k < 9; ++k) {
         dbl[QStringLiteral("rdFrom%1").arg(k)] = &i.rdBrackets[k].from;
         dbl[QStringLiteral("rdBase%1").arg(k)] = &i.rdBrackets[k].base;
@@ -743,6 +748,37 @@ static QVariantMap projectionRow(const QString& label, const std::array<double,1
              { "fmt", fmt }, { "bold", bold } };
 }
 
+// Full-width group title inside a ConceptTable (no value cells); understood by
+// both the QML table and the PDF backend.
+static QVariantMap separatorRow(const QString& label)
+{
+    return { { "label", label }, { "separator", true } };
+}
+
+// Same 10 values in every year: for a concept that doesn't vary by year but
+// still belongs in the table (e.g. the initial cash put in).
+static QVariantMap constantRow(const QString& label, double value,
+                           const QString& fmt = QStringLiteral("eur"), bool bold = false)
+{
+    std::array<double,10> vals{};
+    vals.fill(value);
+    return projectionRow(label, vals, fmt, bold);
+}
+
+// "2,5 %" in es-ES, to embed an editable percentage in a row label.
+static QString pctLabel(double fraction, int decimals = 1)
+{
+    static const QLocale loc(QLocale::Spanish, QLocale::Spain);
+    return loc.toString(fraction * 100.0, 'f', decimals) + QStringLiteral(" %");
+}
+
+// "2,25" in es-ES, to embed an editable plain number in a row label.
+static QString numLabel(double value, int decimals = 2)
+{
+    static const QLocale loc(QLocale::Spanish, QLocale::Spain);
+    return loc.toString(value, 'f', decimals);
+}
+
 void Engine::buildMaps()
 {
     // ---- inputs
@@ -961,6 +997,43 @@ void Engine::buildMaps()
         { "premisesDepreciation", toList10(A.premisesDepreciation) },
         { "taxableBase",       toList10(A.taxableBase) },
         { "fdcOutstandingSim", toList10(A.fdcOutstandingSim) },
+    };
+
+    // ---- Venta: one table of concepts x 10 years (same shape as Proyeccion)
+    // plus the KPIs the view shows above it.
+    const auto& V = m_r.sale;
+    m_sale = QVariantMap{
+        { "initialCash",           V.initialCash },
+        { "bankFinancing",         V.bankFinancing },
+        { "breakEvenYear",         V.breakEvenYear },
+        { "breakEvenYearExSalary", V.breakEvenYearExSalary },
+        { "equity",                toList10(V.equity) },
+        { "equityExSalary",        toList10(V.equityExSalary) },
+        { "rows", QVariantList{
+            separatorRow(QStringLiteral("Valor de venta (mismas condiciones que la compra)")),
+            projectionRow("Venta total del año",            V.totalSales),
+            projectionRow("Fondo de comercio (coef. " + numLabel(m_in.goodwillMultiple) + ")", V.goodwillValue),
+            projectionRow("Local comercial",                 V.premisesValue),
+            projectionRow("Existencias (" + pctLabel(m_in.inventoryPctYear10) + " facturación)", V.inventoryValue),
+            projectionRow("Valor de venta bruto",            V.grossValue, "eur", true),
+            separatorRow(QStringLiteral("A descontar al vender")),
+            projectionRow("Deuda pendiente banco (farmacia)", V.bankDebt),
+            projectionRow("Deuda pendiente local y propiedades", V.propertiesDebt),
+            projectionRow("Deuda pendiente cooperativa",      V.coopDebt),
+            projectionRow("Deuda pendiente familiar",         V.familyDebt),
+            projectionRow("Deuda pendiente total",            V.totalDebt, "eur", true),
+            projectionRow("Valor de venta menos deuda",       V.valueAfterDebt, "eur", true),
+            projectionRow("Valor contable pendiente",         V.bookValue),
+            projectionRow("Plusvalía de la venta",            V.taxableGain),
+            projectionRow("Impuestos de la venta (escala del ahorro)", V.gainTax),
+            projectionRow("Tipo efectivo sobre la plusvalía", V.effectiveTaxRate, "pct1"),
+            projectionRow("Liquidez neta de la venta",        V.netProceeds, "eur", true),
+            separatorRow(QStringLiteral("Resultado acumulado para el titular")),
+            constantRow("Aportación líquida inicial",        -V.initialCash),
+            projectionRow("Patrimonio sin contar el salario", V.equityExSalary, "eur", true),
+            projectionRow("Salario neto acumulado del titular", V.cumulativeOwnerSalary),
+            projectionRow("Patrimonio acumulado",             V.equity, "eur", true),
+        } },
     };
 }
 

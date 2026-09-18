@@ -14,9 +14,20 @@ Flickable {
     property int fontSize: 13
     property string headerLabel: "Concepto"
 
-    // -1 = usa la longitud de "values" de la primera fila (todas las columnas).
+    // -1 = usa la longitud de "values" de la primera fila que tenga valores
+    // (todas las columnas). No basta con mirar la fila 0: las filas
+    // separadoras de grupo no llevan "values" y pueden ir primero (p.ej. la
+    // hoja Venta, cuya tabla arranca con el título de un grupo).
     property int numYears: -1
-    readonly property int cols: numYears >= 0 ? numYears : (model.length > 0 ? model[0].values.length : 0)
+    readonly property int cols: numYears >= 0 ? numYears : root.colsFromModel()
+
+    function colsFromModel() {
+        for (let i = 0; i < root.model.length; ++i) {
+            const valores = root.model[i].values
+            if (valores && valores.length > 0) return valores.length
+        }
+        return 0
+    }
 
     // Cabeceras de columna alternativas a "Año N" (p.ej. nombres de escenario
     // en la hoja Comparación). Si está vacío se usa "Año N" como siempre.
@@ -317,7 +328,11 @@ Flickable {
                         anchors.centerIn: parent
                         text: Fmt.byFmt(valor, fila.modelData.fmt)
                         font.pixelSize: root.fontSize
-                        font.bold: fila.modelData.bold
+                        // Este Text se instancia para TODAS las filas (aunque su
+                        // Rectangle solo sea visible en las "merged"), y una fila
+                        // separadora no lleva "bold": sin el "!!", asignar
+                        // undefined a un bool avisa por consola en cada repintado.
+                        font.bold: !!fila.modelData.bold
                         color: valor < 0 ? Tokens.textNegative
                              : fila.modelData.bold ? Tokens.textHeading : Tokens.textPrimary
                     }

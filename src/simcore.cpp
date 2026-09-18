@@ -117,6 +117,14 @@ double calculateRdDeduction(double annualPrescriptionSales, const std::array<RdB
     return monthlyDeduction * 12.0;
 }
 
+double calculateSavingsTax(double gain, const std::array<IrpfBracket,5>& table)
+{
+    double tax = 0;
+    for (const auto& t : table)
+        tax += std::max(0.0, std::min(gain, t.to) - t.from) * t.rate;
+    return tax;
+}
+
 double calculateSelfEmployedQuota(double annualProfit, const std::array<RetaBracket,15>& table)
 {
     const double monthly = std::max(0.0, annualProfit) / 12.0;
@@ -549,6 +557,72 @@ Results compute(const Inputs& in)
             remaining = (i == 0) ? std::max(0.0, in.fdcInitialSim - A.fdcDepreciation[i])
                             : std::max(0.0, remaining - A.fdcDepreciation[i]);               // row 40
             A.fdcOutstandingSim[i] = remaining;
+        }
+    }
+
+    // ================================================= Venta (equity year by year)
+    // What the owner walks away with by selling the pharmacy at the end of
+    // each of the 10 projected years, under the very same terms they bought it
+    // (same goodwill multiple on that year's sales, same price for the
+    // premises), net of the debt still outstanding and of the tax on the gain.
+    // The first year with equity >= 0 is the first one where the pharmacy can
+    // be sold without losing a euro.
+    {
+        auto& V = R.sale;
+        const auto& P = R.projection;
+
+        V.initialCash   = in.contributedCash;
+        V.bankFinancing = R.financing.pharmacyBankFinancing + R.financing.premisesBankFinancing
+                        + in.propertiesFinancing * in.propertiesFinancingPct;
+
+        // Outstanding balance of a loan at the end of year 'i' (0-based). The
+        // schedules always have 300 rows and, once the loan is paid off, the
+        // balance drifts negative (exact replica of the Excel, see amortize()):
+        // clamped at 0 here, since a repaid loan is not an asset on the sale.
+        auto outstanding = [](const AmortResult& a, int i) {
+            return std::max(0.0, a.rows[i * 12 + 11].endingBalance);
+        };
+
+        double cumulativeSalary = 0;
+        double fdcDepreciationAccum = 0;
+        for (int i = 0; i < 10; ++i) {
+            V.totalSales[i]     = P.totalSales[i];
+            V.goodwillValue[i]  = P.totalSales[i] * in.goodwillMultiple;   // same multiple as the purchase
+            V.premisesValue[i]  = in.premisesPrice;                        // same price for the premises
+            V.inventoryValue[i] = P.totalSales[i] * in.inventoryPctYear10;
+            V.grossValue[i]     = V.goodwillValue[i] + V.premisesValue[i] + V.inventoryValue[i];
+
+            V.bankDebt[i]       = -outstanding(R.bankAmort,       i);
+            V.propertiesDebt[i] = -outstanding(R.propertiesAmort, i);
+            V.coopDebt[i]       = -outstanding(R.coopAmort,       i);
+            V.familyDebt[i]     = -outstanding(R.familyAmort,     i);
+            V.totalDebt[i]      = V.bankDebt[i] + V.propertiesDebt[i]
+                                + V.coopDebt[i] + V.familyDebt[i];
+            V.valueAfterDebt[i] = V.grossValue[i] + V.totalDebt[i];
+
+            // Remaining tax book value: the goodwill's depreciable base (FdC +
+            // fees + AJD, Impuestos sheet) less what has already been
+            // depreciated, plus the premises less their annual depreciation,
+            // plus the inventory bought (current asset, transferred at cost).
+            fdcDepreciationAccum += R.taxes.fdcDepreciation[i];
+            const double fdcBookValue = std::max(0.0, R.taxes.depreciableBase - fdcDepreciationAccum);
+            const double premisesBookValue = std::max(0.0,
+                in.premisesPrice * (1.0 - in.taxPremisesDeprPct * (i + 1)));
+            V.bookValue[i]   = fdcBookValue + premisesBookValue + in.inventory;
+            V.taxableGain[i] = std::max(0.0, V.grossValue[i] - V.bookValue[i]);
+            V.gainTax[i]     = -calculateSavingsTax(V.taxableGain[i], in.savingsBrackets);
+            V.effectiveTaxRate[i] = V.taxableGain[i] > 0.0 ? -V.gainTax[i] / V.taxableGain[i] : 0.0;
+            V.netProceeds[i] = V.valueAfterDebt[i] + V.gainTax[i];
+
+            cumulativeSalary += P.netAnnualSalary[i];
+            V.cumulativeOwnerSalary[i] = cumulativeSalary;
+            V.equityExSalary[i] = V.netProceeds[i] - V.initialCash;
+            V.equity[i]         = V.equityExSalary[i] + cumulativeSalary;
+
+            if (V.breakEvenYear < 0 && V.equity[i] >= 0)
+                V.breakEvenYear = i + 1;
+            if (V.breakEvenYearExSalary < 0 && V.equityExSalary[i] >= 0)
+                V.breakEvenYearExSalary = i + 1;
         }
     }
 
