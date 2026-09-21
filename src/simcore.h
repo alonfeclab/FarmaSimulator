@@ -357,7 +357,7 @@ struct FinancingResult {
     // properties, more money is being put in than the bank can lend.
     // Informational only: not part of totalFinancing.
     double contributionExcess=0;
-    double minimumCash=0;    // Recommended minimum contribution = max(0, (totalInvestment-premisesPrice)*(1-pharmacyFinancingPct) - propertiesFinancing*propertiesFinancingPct - initialOrder) + premisesPrice*(1-premisesFinancingPct)
+    double minimumCash=0;    // Recommended minimum contribution = max(0, (totalInvestment-premisesPrice) - goodwill*pharmacyFinancingPct - propertiesFinancing*propertiesFinancingPct - initialOrder) + premisesPrice*(1-premisesFinancingPct)
     bool   cashBelowMinimum=false; // contributedCash < minimumCash
 };
 

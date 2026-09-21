@@ -36,6 +36,7 @@ private slots:
     void compute_ventaBreakEvenIsFirstNonNegativeYear();
     void compute_goldenValues();
     void compute_ipcNotAppliedInYear1();
+    void compute_minimumCashOnlyFinancesGoodwill();
 };
 
 void TestSimCore::pmt_matchesClosedFormAnnuity()
@@ -363,6 +364,27 @@ void TestSimCore::compute_ipcNotAppliedInYear1()
     QVERIFY(std::fabs(P.staffCost[1] - P.staffCost[0] * 1.05) < 1e-6);
     QVERIFY(std::fabs(P.rent[1] - P.rent[0] * 1.05) < 1e-6);
     QVERIFY(std::fabs(P.otherExpenses[1] - P.otherExpenses[0] * 1.05) < 1e-6);
+}
+
+void TestSimCore::compute_minimumCashOnlyFinancesGoodwill()
+{
+    // El % del banco solo se aplica al fondo de comercio: honorarios, IVA,
+    // existencias, impuestos, gastos varios y apertura van con fondos propios.
+    Inputs in;
+    in.propertiesFinancing = 0;
+    in.initialOrder        = 0;
+    const Results r = compute(in);
+    const auto& F = r.financing;
+
+    const double expected = (F.totalInvestment - in.premisesPrice)
+                          - F.goodwill * in.pharmacyFinancingPct
+                          + in.premisesPrice * (1.0 - in.premisesFinancingPct);
+    QVERIFY(std::fabs(F.minimumCash - expected) < 1e-6);
+
+    // Todo lo que no es fondo de comercio ni local sale íntegro de la aportación.
+    const double nonGoodwillCosts = F.totalInvestment - F.goodwill - in.premisesPrice;
+    QVERIFY(nonGoodwillCosts > 0);
+    QVERIFY(F.minimumCash >= nonGoodwillCosts + F.goodwill * (1.0 - in.pharmacyFinancingPct) - 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)

@@ -325,7 +325,11 @@ Results compute(const Inputs& in)
         // Properties/cooperative financing offsets the pharmacy cash requirement
         // euro-for-euro (they are loan sources, not partial collateral), clamped
         // at zero so surplus guarantees don't produce a negative minimum.
-        const double pharmacyCashNeed = (F.totalInvestment - in.premisesPrice) * (1 - in.pharmacyFinancingPct)
+        // The bank's % only covers the goodwill (fondo de comercio): fees,
+        // IVA, inventory, taxes, gastos varios and the mortgage opening cost
+        // have to be paid entirely from the buyer's own funds.
+        const double pharmacyCashNeed = (F.totalInvestment - in.premisesPrice)
+                                          - F.goodwill * in.pharmacyFinancingPct
                                           - in.propertiesFinancing * in.propertiesFinancingPct
                                           - in.initialOrder;
         F.minimumCash = std::max(0.0, pharmacyCashNeed) + in.premisesPrice * (1-in.premisesFinancingPct);

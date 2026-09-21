@@ -82,7 +82,8 @@ Flickable {
         Text {
             text: "(máx(0, (Total inversión " + Fmt.eur(Engine.financing.totalInvestment)
                   + " − Local comercial " + Fmt.eur(Engine.inputs.premisesPrice)
-                  + ") × (1 − % Financiación farmacia " + Fmt.pct(Engine.inputs.pharmacyFinancingPct) + ")"
+                  + " − Fondo de comercio " + Fmt.eur(Engine.financing.goodwill)
+                  + " × % Financiación farmacia " + Fmt.pct(Engine.inputs.pharmacyFinancingPct) + ")"
                   + " − Financiación propiedades " + Fmt.eur(Engine.inputs.propertiesFinancing * Engine.inputs.propertiesFinancingPct)
                   + " − Pedido inicial " + Fmt.eur(Engine.inputs.initialOrder)
                   + "))"
@@ -217,7 +218,7 @@ Flickable {
                 title: "Banco"
                 PctRow   { label: "Tipo interés"; k: "bankRate"; decimals: 3 }
                 PlazoRow { label: "Plazo"; k: "bankTermYears" }
-                PctRow   { label: "% Financiación farmacia"; k: "pharmacyFinancingPct" }
+                PctRow   { label: "% Financiación farmacia (sobre fondo de comercio)"; k: "pharmacyFinancingPct" }
                 CalcRow  { label: "Financiación farmacia"; value: Engine.financing.pharmacyBankFinancing }
             }
 
