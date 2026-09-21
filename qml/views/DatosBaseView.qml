@@ -23,7 +23,12 @@ Flickable {
     // defecto" del grupo "Escenario de crecimiento".
     function historicalSeriesKeys() {
         var ks = []
-        for (var k = 0; k < 10; k++) { ks.push("annualRevenueIncrease" + k); ks.push("realisticMarginSeries" + k) }
+        for (var k = 0; k < 10; k++) {
+            ks.push("annualRevenueIncrease" + k)
+            ks.push("annualRevenueIncreasePrescription" + k)
+            ks.push("realisticMarginSeries" + k)
+        }
+        ks.push("sameRealisticGrowth")
         return ks
     }
 
@@ -169,34 +174,52 @@ Flickable {
                         }
                     }
                 }
-                Text {
-                    text: "Aumento de facturación"
-                    font.pixelSize: 13; color: Tokens.textSecondary
-                    visible: escenarioCombo.currentIndex === 1 && !page.angosto
-                }
-                PctField {
-                    k: "ipcOptimistic"
-                    visible: escenarioCombo.currentIndex === 1 && !page.angosto
-                }
             }
-            // En pantallas angostas no cabe el campo en la misma fila del
-            // combo (se corta): baja a una fila propia, justo debajo.
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                visible: escenarioCombo.currentIndex === 1 && page.angosto
 
-                Text {
-                    text: "Aumento de facturación"
-                    font.pixelSize: 13; color: Tokens.textSecondary
-                    Layout.fillWidth: true
+            // Aumento de facturación del escenario Optimista, separado por
+            // tipo de venta. Con "Mismo crecimiento" marcado, el de venta
+            // receta copia siempre el de venta libre y su campo se oculta.
+            ColumnLayout {
+                id: aumentoOptimista
+                Layout.fillWidth: true
+                visible: escenarioCombo.currentIndex === 1
+                spacing: 4
+
+                readonly property bool mismoCrecimiento: Engine.inputs.sameOptimisticGrowth === undefined
+                                                         || Engine.inputs.sameOptimisticGrowth !== 0
+
+                CheckField {
+                    text: "Mismo crecimiento"
+                    checked: aumentoOptimista.mismoCrecimiento
+                    onToggled: {
+                        Engine.set("sameOptimisticGrowth", checked ? 1 : 0)
+                        if (checked)
+                            Engine.set("ipcOptimisticPrescription", Engine.inputs.ipcOptimistic)
+                    }
                 }
-                PctField { k: "ipcOptimistic" }
+                RowCard {
+                    Text { text: aumentoOptimista.mismoCrecimiento ? "Aumento de facturación" : "Aumento de facturación venta libre"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                    PctField {
+                        k: "ipcOptimistic"
+                        Layout.alignment: Qt.AlignRight
+                        onValueChanged: if (aumentoOptimista.mismoCrecimiento
+                                            && Engine.inputs.ipcOptimisticPrescription !== value)
+                                            Engine.set("ipcOptimisticPrescription", value)
+                    }
+                }
+                RowCard {
+                    visible: !aumentoOptimista.mismoCrecimiento
+                    Text { text: "Aumento de facturación venta receta (seguro)"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                    PctField {
+                        k: "ipcOptimisticPrescription"
+                        Layout.alignment: Qt.AlignRight
+                    }
+                }
             }
             Text {
                 Layout.fillWidth: true
                 visible: escenarioCombo.currentIndex === 1
-                text: "Se aplica el aumento de facturación indicado, constante, a los 10 años de la proyección (ventas y alquiler); los sueldos y otros gastos suben aparte, según el IPC fijo de Configuración."
+                text: "Se aplica el aumento de facturación indicado, constante, a los 10 años de la proyección: el de venta libre a la venta libre; el de venta receta a la venta receta y a los Reales Decretos. Los sueldos, el alquiler y otros gastos suben aparte, según el IPC fijo de Configuración."
                 font.pixelSize: 12
                 color: Tokens.textMuted
                 wrapMode: Text.WordWrap
@@ -233,13 +256,31 @@ Flickable {
             // Series históricas del escenario Realista (aumento de
             // facturación INE y margen comercial simulado), editables desde
             // aquí en lugar de Configuración.
+            // El aumento de facturación va separado por tipo de venta, igual
+            // que en Optimista: con "Mismo crecimiento" marcado, la serie de
+            // venta receta copia siempre la de venta libre y se oculta.
             ColumnLayout {
+                id: seriesRealista
                 Layout.fillWidth: true
                 Layout.topMargin: 4
                 visible: escenarioCombo.currentIndex === 0
                 spacing: 8
 
-                Text { text: "Aumento de facturación"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary }
+                readonly property bool mismoCrecimiento: Engine.inputs.sameRealisticGrowth === undefined
+                                                         || Engine.inputs.sameRealisticGrowth !== 0
+
+                CheckField {
+                    text: "Mismo crecimiento"
+                    checked: seriesRealista.mismoCrecimiento
+                    onToggled: {
+                        Engine.set("sameRealisticGrowth", checked ? 1 : 0)
+                        if (checked)
+                            for (var y = 0; y < 10; y++)
+                                Engine.set("annualRevenueIncreasePrescription" + y,
+                                           Engine.inputs["annualRevenueIncrease" + y])
+                    }
+                }
+                Text { text: seriesRealista.mismoCrecimiento ? "Aumento de facturación" : "Aumento de facturación venta libre"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary }
                 Flickable {
                     id: scrollIpc
                     Layout.fillWidth: true
@@ -250,7 +291,28 @@ Flickable {
                     boundsBehavior: Flickable.StopAtBounds
                     ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                     FastWheel { flick: scrollIpc; fallback: page }
-                    SerieAnualEdit { id: serieIpc; prefix: "annualRevenueIncrease" }
+                    SerieAnualEdit {
+                        id: serieIpc
+                        prefix: "annualRevenueIncrease"
+                        mirrorPrefix: seriesRealista.mismoCrecimiento ? "annualRevenueIncreasePrescription" : ""
+                    }
+                }
+                Text { text: "Aumento de facturación venta receta (seguro)"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary; Layout.topMargin: 8; visible: !seriesRealista.mismoCrecimiento }
+                Flickable {
+                    id: scrollIpcReceta
+                    visible: !seriesRealista.mismoCrecimiento
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: serieIpcReceta.implicitHeight
+                    contentWidth: serieIpcReceta.implicitWidth
+                    contentHeight: serieIpcReceta.implicitHeight
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
+                    FastWheel { flick: scrollIpcReceta; fallback: page }
+                    SerieAnualEdit {
+                        id: serieIpcReceta
+                        prefix: "annualRevenueIncreasePrescription"
+                    }
                 }
                 Text { text: "Margen comercial simulado"; font.pixelSize: 12; font.bold: true; color: Tokens.textSecondary; Layout.topMargin: 8 }
                 Flickable {
@@ -279,7 +341,7 @@ Flickable {
         // ---------------- Alquiler
         CollapsibleCard {
             title: "Alquiler"
-            EditRow { label: "Alquiler local (mensual)"; k: "premisesRent"; multiplier: 12 }
+            EditRow { label: "Alquiler local (mensual, sin IVA)"; k: "premisesRent"; multiplier: 12 }
         }
 
         // ---------------- Otros gastos

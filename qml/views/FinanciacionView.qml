@@ -25,11 +25,21 @@ Flickable {
         property string label
         property real value
         property bool indent: false
-        Text {
-            text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
-            color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary; Layout.fillWidth: true
+        // Texto de ayuda opcional: si no está vacío, se muestra un icono "?"
+        // junto a la etiqueta con este texto como tooltip.
+        property string hint: ""
+        RowLayout {
+            Layout.fillWidth: true
             Layout.leftMargin: calcRow.indent ? 16 : 0
-            wrapMode: Text.WordWrap
+            spacing: 6
+            Text {
+                text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
+                color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary
+                Layout.fillWidth: calcRow.hint === ""
+                wrapMode: Text.WordWrap
+            }
+            HintIcon { text: calcRow.hint }
+            Item { visible: calcRow.hint !== ""; Layout.fillWidth: true }
         }
         Text {
             text: Fmt.eur(calcRow.value); font.pixelSize: 14; font.bold: true
@@ -157,26 +167,34 @@ Flickable {
         // ---------------- Inversión operación
         CollapsibleCard {
             title: "Inversión operación"
+            EditRow { label: "Fondo de comercio"; k: "goodwillPrice" }
+            // Coeficiente calculado: fondo de comercio / venta total (Datos base).
             RowCard {
                 Text { text: "Coeficiente s/venta total"; font.pixelSize: 13; color: Tokens.textSecondary; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-                NumField { k: "goodwillMultiple"; decimals: 2; Layout.alignment: Qt.AlignRight }
+                Text {
+                    text: Fmt.num(Engine.financing.goodwillMultiple, 2)
+                    font.pixelSize: 14; font.bold: true
+                    color: Tokens.textPrimary
+                    Layout.alignment: Qt.AlignRight
+                }
             }
-            CalcRow { label: "Fondo de comercio"; value: Engine.financing.goodwill }
             EditRow { label: "Existencias"; k: "inventory" }
-            CalcRow { label: "Honorarios (" + Fmt.pct(Engine.inputs.feesPct) + ")"; value: Engine.financing.fees }
-            CalcRow { label: "IVA (" + Fmt.pct(Engine.inputs.ivaPct) + ")"; value: Engine.financing.iva }
+            CalcRow {
+                label: "Honorarios (" + Fmt.pct(Engine.inputs.feesPct) + ")"
+                value: Engine.financing.fees
+                hint: "Modifica el % de honorarios en Configuración"
+            }
+            CalcRow { label: "IVA (" + Fmt.pct(Engine.inputs.ivaPct) + ")"; value: Engine.financing.iva; hint: "Modifica el % de IVA en Configuración" }
             CalcRow { label: "Total impuestos"; value: Engine.financing.taxes; destacada: true }
-            CalcRow { label: "ITP (" + Fmt.pct(Engine.inputs.itpPct) + ")"; value: Engine.financing.itpTax; indent: true }
-            CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.financing.ajd; indent: true}
-            EditRow { label: "Notario"; k: "notaryFees" }
-            EditRow { label: "Registro"; k: "registryFees" }
-            EditRow { label: "Gastos varios operación"; k: "miscExpenses" }
+            CalcRow { label: "ITP (" + Fmt.pct(Engine.inputs.itpPct) + ")"; value: Engine.financing.itpTax; indent: true; hint: "Modifica el % de ITP en Configuración" }
+            CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.financing.ajd; indent: true; hint: "Modifica el % de AJD en Configuración" }
+            EditRow { label: "Gastos varios"; k: "miscExpenses" }
             PctRow  { label: "% Apertura hipoteca"; k: "mortgageOpeningPct" }
             CalcRow { label: "Gastos de apertura hipoteca"; value: Engine.financing.mortgageOpeningCost }
             CalcRow {
                 label: "Otros gastos"
                 value: Engine.financing.fees + Engine.financing.iva + Engine.financing.taxes
-                       + Engine.inputs.notaryFees + Engine.inputs.registryFees + Engine.inputs.miscExpenses
+                       + Engine.inputs.miscExpenses
                        + Engine.financing.mortgageOpeningCost
                 destacada: true
             }
@@ -241,6 +259,13 @@ Flickable {
             }
 
             CalcRow { label: "Total financiación"; value: Engine.financing.totalFinancing; destacada: true }
+            CalcRow {
+                label: "Exceso/defecto de aportación"
+                value: Engine.financing.contributionExcess
+                hint: "Total inversión − Liquidez aportada − Valor propiedades × % Financiación propiedades"
+                      + " + Local comercial × % Financiación local − Pedido inicial (cooperativa)"
+                      + " − Aportación familiar − Financiación farmacia"
+            }
         }
 
         Item { Layout.preferredHeight: 8 }

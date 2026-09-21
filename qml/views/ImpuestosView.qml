@@ -27,11 +27,19 @@ Flickable {
         property string label
         property real value
         property string fmt: "eur"
-        Text {
-            text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
-            color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary;
+        // Texto de ayuda opcional: icono "?" con tooltip junto a la etiqueta.
+        property string hint: ""
+        RowLayout {
             Layout.fillWidth: true
-            wrapMode: Text.WordWrap
+            spacing: 6
+            Text {
+                text: calcRow.label; font.pixelSize: 13; font.bold: calcRow.destacada
+                color: calcRow.destacada ? Tokens.textHeading : Tokens.textSecondary;
+                Layout.fillWidth: calcRow.hint === ""
+                wrapMode: Text.WordWrap
+            }
+            HintIcon { text: calcRow.hint }
+            Item { visible: calcRow.hint !== ""; Layout.fillWidth: true }
         }
         Text {
             text: Fmt.byFmt(calcRow.value, calcRow.fmt);
@@ -73,7 +81,7 @@ Flickable {
                     Layout.alignment: Qt.AlignTop
                     CalcRow { label: "Fondo de comercio farmacia"; value: Engine.taxes.fdc }
                     CalcRow { label: "Honorarios"; value: Engine.taxes.fees }
-                    CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.taxes.ajd }
+                    CalcRow { label: "AJD (" + Fmt.pct(Engine.inputs.ajdPct) + ")"; value: Engine.taxes.ajd; hint: "Modifica el % de AJD en Configuración" }
                     CalcRow { label: "Base amortizable farmacia"; value: Engine.taxes.depreciableBase; destacada: true }
                     CalcRow { label: "Coste local comercial"; value: Engine.taxes.premisesCost }
                 }

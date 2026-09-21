@@ -35,9 +35,17 @@ Flickable {
         id: calcRow
         property string label
         property string value
-        Text {
-            text: calcRow.label; font.pixelSize: 13; color: Tokens.textSecondary
-            Layout.fillWidth: true; wrapMode: Text.WordWrap
+        // Texto de ayuda opcional: icono "?" con tooltip junto a la etiqueta.
+        property string hint: ""
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 6
+            Text {
+                text: calcRow.label; font.pixelSize: 13; color: Tokens.textSecondary
+                Layout.fillWidth: calcRow.hint === ""; wrapMode: Text.WordWrap
+            }
+            HintIcon { text: calcRow.hint }
+            Item { visible: calcRow.hint !== ""; Layout.fillWidth: true }
         }
         Text {
             text: calcRow.value; font.pixelSize: 14; font.bold: true
@@ -102,13 +110,14 @@ Flickable {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: Tokens.textMuted
-                text: "El coeficiente, el precio del local y el porcentaje de existencias son los "
-                    + "mismos de la compra: se editan en Financiación y Configuración, no aquí."
+                text: "El coeficiente (fondo de comercio de la compra / venta total), el precio del "
+                    + "local y el porcentaje de existencias son los mismos de la compra: se editan en "
+                    + "Financiación y Configuración, no aquí."
             }
 
             CalcRow {
                 label: "Coeficiente s/venta total"
-                value: Fmt.num(Engine.inputs.goodwillMultiple, 2)
+                value: Fmt.num(Engine.financing.goodwillMultiple, 2)
             }
             CalcRow {
                 label: "Local comercial"
@@ -117,10 +126,12 @@ Flickable {
             CalcRow {
                 label: "Existencias (% s/venta total del año)"
                 value: Fmt.pct(Engine.inputs.inventoryPctYear10)
+                hint: "Modifica el % de existencias en Configuración"
             }
             CalcRow {
                 label: "Impuestos de la venta"
                 value: "Escala del ahorro"
+                hint: "Modifica la escala del ahorro del IRPF en Configuración"
             }
             Text {
                 Layout.fillWidth: true

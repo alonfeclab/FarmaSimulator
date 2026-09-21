@@ -22,15 +22,26 @@ Flickable {
 
     // Fila de 3 escenarios / 3 columnas, solo lectura
     component Row3: RowLayout {
+        id: row3
         property string label
         property var vals
         property string fmt: "eur"
         property bool destacada: false
+        // Texto de ayuda opcional: icono "?" con tooltip junto a la etiqueta.
+        property string hint: ""
         Layout.fillWidth: true
-        Text {
-            text: label; font.pixelSize: 13; font.bold: destacada
-            color: destacada ? Tokens.textHeading : Tokens.textSecondary; Layout.preferredWidth: page.wLabelEscenarios
-            elide: Text.ElideRight
+        RowLayout {
+            Layout.preferredWidth: page.wLabelEscenarios
+            spacing: 6
+            Text {
+                text: row3.label; font.pixelSize: 13; font.bold: row3.destacada
+                color: row3.destacada ? Tokens.textHeading : Tokens.textSecondary
+                Layout.fillWidth: row3.hint === ""
+                Layout.maximumWidth: page.wLabelEscenarios - (row3.hint === "" ? 0 : 24)
+                elide: Text.ElideRight
+            }
+            HintIcon { text: row3.hint }
+            Item { visible: row3.hint !== ""; Layout.fillWidth: true }
         }
         Repeater {
             model: vals
@@ -108,7 +119,7 @@ Flickable {
                     }
                     Row3 { label: "Valor venta FdC año 10"; vals: Engine.analysis.fdcSaleValue }
                     Row3 { label: "Valor venta local (incr. facturación)"; vals: Engine.analysis.premisesSaleValue }
-                    Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.inventoryPctYear10) + " factur.)"; vals: Engine.analysis.inventoryYear10 }
+                    Row3 { label: "Existencias (" + Fmt.pct(Engine.inputs.inventoryPctYear10) + " factur.)"; vals: Engine.analysis.inventoryYear10; hint: "Modifica el % de existencias a 10 años en Configuración" }
                     Row3 { label: "Fondo de comercio pendiente"; vals: Engine.analysis.fdcOutstanding }
                     RowLayout {
                         Layout.fillWidth: true

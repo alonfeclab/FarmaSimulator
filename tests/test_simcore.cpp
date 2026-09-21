@@ -35,6 +35,7 @@ private slots:
     void compute_ventaRowsAddUp();
     void compute_ventaBreakEvenIsFirstNonNegativeYear();
     void compute_goldenValues();
+    void compute_ipcNotAppliedInYear1();
 };
 
 void TestSimCore::pmt_matchesClosedFormAnnuity()
@@ -251,7 +252,7 @@ void TestSimCore::compute_ventaRowsAddUp()
     for (int i = 0; i < 10; ++i) {
         // Mismas condiciones que la compra: mismo coeficiente, mismo local.
         QVERIFY(std::fabs(V.totalSales[i] - P.totalSales[i]) < 1e-9);
-        QVERIFY(std::fabs(V.goodwillValue[i] - P.totalSales[i] * in.goodwillMultiple) < 1e-6);
+        QVERIFY(std::fabs(V.goodwillValue[i] - P.totalSales[i] * r.financing.goodwillMultiple) < 1e-6);
         QCOMPARE(V.premisesValue[i], in.premisesPrice);
         QVERIFY(std::fabs(V.grossValue[i]
                           - (V.goodwillValue[i] + V.premisesValue[i] + V.inventoryValue[i])) < 1e-6);
@@ -330,12 +331,38 @@ void TestSimCore::compute_goldenValues()
     // 2026-08-06: regenerated after moving otros gastos' annual growth from
     // the "Aumento de facturación" scenario to the fixed "IPC" (salaryRaisePct),
     // which now also drives otros gastos, not just salaries — see simcore.cpp.
+    // 2026-09-21: profit[9] and irr[1] regenerated after rent moved to the
+    // IPC as well (commit 0724d62) and the IPC stopped applying to year 1
+    // (sueldos, refuerzos, alquiler and otros gastos use their base amounts
+    // in year 1, so it matches the Personal page).
     QVERIFY(std::fabs(r.baseData.profitBeforeTax - 169851.78448) < 1e-3);
     QVERIFY(std::fabs(r.financing.totalInvestment - 2512177.0505050505) < 1e-2);
     QVERIFY(std::fabs(r.bankAmort.monthlyPayment - (-10937.6465475271)) < 1e-6);
-    QVERIFY(std::fabs(r.projection.profit[9] - 192393.81115530) < 1e-4);
+    QVERIFY(std::fabs(r.projection.profit[9] - 209240.40508492) < 1e-4);
     QVERIFY(std::fabs(r.taxes.payment[0] - 0.0) < 1e-6);
-    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1472017982) < 1e-6);
+    QVERIFY(std::fabs(r.analysis.irr[1] - 0.1906060102) < 1e-6);
+}
+
+void TestSimCore::compute_ipcNotAppliedInYear1()
+{
+    // El IPC de Configuración solo se aplica a partir del año 2: el año 1 de
+    // la proyección usa los importes base (Personal, alquiler con IVA, otros gastos).
+    Inputs in;
+    in.salaryRaisePct = 0.05;
+    in.premisesRent   = 12000;
+    for (auto& role : in.staffHireYearEach)
+        role.fill(in.startYear);            // toda la plantilla desde el año 1
+    const Results r = compute(in);
+    const auto& P = r.projection;
+
+    const double personal = r.staff.totalHeadcountCost + r.staff.totalVacationCost;
+    QVERIFY(std::fabs(P.staffCost[0] - personal) < 1e-6);
+    QVERIFY(std::fabs(P.rent[0] - in.premisesRent * (1.0 + in.ivaPct)) < 1e-6);
+    QVERIFY(std::fabs(P.otherExpenses[0] - r.baseData.totalOtherExpenses) < 1e-6);
+
+    QVERIFY(std::fabs(P.staffCost[1] - P.staffCost[0] * 1.05) < 1e-6);
+    QVERIFY(std::fabs(P.rent[1] - P.rent[0] * 1.05) < 1e-6);
+    QVERIFY(std::fabs(P.otherExpenses[1] - P.otherExpenses[0] * 1.05) < 1e-6);
 }
 
 QTEST_APPLESS_MAIN(TestSimCore)

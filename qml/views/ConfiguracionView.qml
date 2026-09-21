@@ -324,7 +324,7 @@ Flickable {
                 wrapMode: Text.WordWrap
                 font.pixelSize: 12
                 color: Tokens.textMuted
-                text: "Porcentaje fijo (IPC) con el que suben cada año los sueldos de la plantilla, los refuerzos de vacaciones y los Otros gastos en la Proyección a 10 años, independiente del aumento de facturación del escenario de crecimiento."
+                text: "Porcentaje fijo (IPC) con el que suben cada año los sueldos de la plantilla, los refuerzos de vacaciones, el alquiler del local y los Otros gastos en la Proyección a 10 años a partir del segundo año (el primer año usa los importes base), independiente del aumento de facturación del escenario de crecimiento."
             }
             RowLayout {
                 Layout.fillWidth: true

@@ -450,7 +450,7 @@ void baseDataSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
 
     d.sectionTitle(QStringLiteral("Alquiler"));
     Table tRent = kv(d);
-    tRent.dataRow({ QStringLiteral("Alquiler local"),          d.eur(in.premisesRent) }, true);
+    tRent.dataRow({ QStringLiteral("Alquiler local (sin IVA)"), d.eur(in.premisesRent) }, true);
 
     d.sectionTitle(QStringLiteral("Otros gastos"));
     Table t3 = kv(d);
@@ -492,13 +492,17 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
         Table t = kv(d);
         t.dataRow({ QStringLiteral("Escenario"),
                       in.growthScenario >= 0.5 ? QStringLiteral("Optimista") : QStringLiteral("Realista") });
-        if (in.growthScenario >= 0.5)
-            t.dataRow({ QStringLiteral("Aumento de facturación"), d.pct(in.ipcOptimistic) });
+        if (in.growthScenario >= 0.5) {
+            const double prescriptionRate = (in.sameOptimisticGrowth != 0.0)
+                ? in.ipcOptimistic : in.ipcOptimisticPrescription;
+            t.dataRow({ QStringLiteral("Aumento de facturación venta libre"),  d.pct(in.ipcOptimistic) });
+            t.dataRow({ QStringLiteral("Aumento de facturación venta receta"), d.pct(prescriptionRate) });
+        }
     }
 
     d.sectionTitle(QStringLiteral("Inversión operación"));
     Table t2 = kv(d);
-    t2.dataRow({ QStringLiteral("Coeficiente s/venta total"),         d.num(in.goodwillMultiple, 2) });
+    t2.dataRow({ QStringLiteral("Coeficiente s/venta total"),         d.num(F.goodwillMultiple, 2) });
     t2.dataRow({ QStringLiteral("Fondo de comercio"),                 d.eur(F.goodwill) });
     t2.dataRow({ QStringLiteral("Local comercial"),                   d.eur(in.premisesPrice) });
     t2.dataRow({ QStringLiteral("Existencias"),                       d.eur(in.inventory) });
@@ -507,9 +511,7 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t2.dataRow({ QStringLiteral("ITP (%1)").arg(d.pct(in.itpPct)),               d.eur(F.itpTax) });
     t2.dataRow({ QStringLiteral("AJD (%1)").arg(d.pct(in.ajdPct)),               d.eur(F.ajd) });
     t2.dataRow({ QStringLiteral("Impuestos"),                         d.eur(F.taxes) });
-    t2.dataRow({ QStringLiteral("Notario"),                           d.eur(in.notaryFees) });
-    t2.dataRow({ QStringLiteral("Registro"),                          d.eur(in.registryFees) });
-    t2.dataRow({ QStringLiteral("Gastos varios operación"),           d.eur(in.miscExpenses) });
+    t2.dataRow({ QStringLiteral("Gastos varios"),                     d.eur(in.miscExpenses) });
     t2.dataRow({ QStringLiteral("Gastos de apertura hipoteca"),       d.eur(F.mortgageOpeningCost) });
     t2.dataRow({ QStringLiteral("Total inversión"),                   d.eur(F.totalInvestment) }, true);
 
@@ -540,7 +542,7 @@ void financingSheet(Doc& d, const sim::Inputs& in, const sim::Results& r)
     t3.dataRow({ QStringLiteral("Financiación propiedades"),          d.eur(in.propertiesFinancing * in.propertiesFinancingPct) });
     t3.dataRow({ QStringLiteral("Financiación bancaria local"),       d.eur(F.premisesBankFinancing) });
     t3.dataRow({ QStringLiteral("Total propiedades"),                 d.eur(in.propertiesFinancing * in.propertiesFinancingPct + F.premisesBankFinancing) }, true);
-    t3.dataRow({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(in.contributionExcess) });
+    t3.dataRow({ QStringLiteral("Exceso/defecto de aportación"),      d.eur(F.contributionExcess) });
     t3.dataRow({ QStringLiteral("Pedido inicial (cooperativa)"),      d.eur(in.initialOrder) });
     t3.dataRow({ QStringLiteral("Total financiación"),                d.eur(F.totalFinancing) }, true);
 

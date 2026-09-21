@@ -28,7 +28,7 @@ struct Inputs {
     double prescriptionSales = 800000;   // D10
     double otcSales          = 200000;   // D11
     double marginPct         = 0.34;     // D15
-    double premisesRent      = 0;        // D22
+    double premisesRent      = 0;        // D22 (sin IVA; ivaPct is added in the calcs)
     double utilities         = 2500;     // D23
     double advisoryFees      = 5000;     // D24
     double maintenance       = 3000;     // D25
@@ -38,15 +38,21 @@ struct Inputs {
 
     // ---- Financiación: growth scenario ("Aumento de facturación" in the UI —
     // deliberately not called IPC, since it's a revenue-growth assumption,
-    // not a real inflation figure). Drives sales, rent and rdDeduction.
-    // 0 = Realistic (uses the annualRevenueIncrease series, editable in Configuración)
-    // 1 = Optimistic (constant rate entered by the user)
+    // not a real inflation figure). Drives sales and rdDeduction.
+    // 0 = Realistic (uses the annualRevenueIncrease/-Prescription series, see below)
+    // 1 = Optimistic (constant rates entered by the user, one per kind of
+    //     sale: ipcOptimistic for venta libre and
+    //     ipcOptimisticPrescription for venta receta/seguro — also drives
+    //     rdDeduction). While sameOptimisticGrowth is on (!= 0), venta
+    //     receta simply reuses ipcOptimistic.
     double growthScenario = 0;
     double ipcOptimistic   = 0.025;
+    double ipcOptimisticPrescription = 0.025;
+    double sameOptimisticGrowth = 1;
 
     // ---- Personal: annual "IPC" (Configuración > Personal), applied every
     // projection year to every employee's salary (regular plantilla and
-    // vacation cover alike) AND to otros gastos, since general expenses
+    // vacation cover alike) AND to rent and otros gastos, since expenses
     // track real inflation rather than the pharmacy's own revenue-growth
     // assumption above. A single constant rate, editable from Configuración,
     // regardless of Realistic/Optimistic.
@@ -59,12 +65,15 @@ struct Inputs {
     double optimisticMarginYear3 = 0.350;
 
     // ---- Financiación: investment
-    double goodwillMultiple = 2;         // D13
+    // Purchase price of the goodwill (fondo de comercio), entered directly.
+    // The multiple over total sales (old D13 input) is now derived from it:
+    // see FinancingResult::goodwillMultiple.
+    double goodwillPrice    = 2000000;   // D14
     double premisesPrice    = 200000;    // D15
     double inventory        = 100000;    // D16
-    double notaryFees       = 4000;      // D20a
-    double registryFees     = 2500;      // D20b
-    double miscExpenses     = 3955.28;   // D20c (remainder)
+    // Gastos varios de la operación: a single amount that now also covers
+    // what used to be separate notary (4000) and registry (2500) fees.
+    double miscExpenses     = 10455.28;  // D20a+D20b+D20c
 
     // ---- Financiación: fixed percentages of the sale/purchase (editable from
     // Configuración): agency/notary fees on FdC+premises, VAT (IVA) on those
@@ -97,7 +106,6 @@ struct Inputs {
     double contributedCash    = 400000; // D43
     double familyContribution = 0;      // D44
     double propertiesFinancing = 0;      // D47
-    double contributionExcess  = 0;      // D48
     double initialOrder        = 0;      // D49 (cooperative; empty in the v2 Excel)
 
     // ---- Hoja Impuestos (IRPF, new in v2)
@@ -252,10 +260,17 @@ struct Inputs {
     double retaFlatMonthlyFee = 88.64;
 
     // "Aumento de facturación" historical series
-    // "Realistic" scenario.
+    // "Realistic" scenario, one per kind of sale: annualRevenueIncrease for
+    // venta libre and annualRevenueIncreasePrescription
+    // for venta receta/seguro (also drives rdDeduction). While
+    // sameRealisticGrowth is on (!= 0), venta receta reuses venta libre's.
     std::array<double,10> annualRevenueIncrease {
         0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025
     };
+    std::array<double,10> annualRevenueIncreasePrescription {
+        0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025
+    };
+    double sameRealisticGrowth = 1;
 
     // Simulated commercial margin evolution, "Realistic" scenario.
     std::array<double,10> realisticMarginSeries {
@@ -329,11 +344,19 @@ struct BaseDataResult {
 
 struct FinancingResult {
     double goodwill=0, fees=0, iva=0, totalInvestment=0;
+    // goodwill / total sales (prescription + OTC); 0 if there are no sales.
+    double goodwillMultiple=0;   // D13
     double itpTax=0;         // D20 (v2): 8% of the premises
     double ajd=0;            // D21 (v2): 1.5% of FdC + inventory
     double taxes=0;          // D23 (v2): ITP + AJD
     double mortgageOpeningCost=0; // % on bank financing (pharmacy+premises+properties mortgage)
     double pharmacyBankFinancing=0, premisesBankFinancing=0, totalFinancing=0;
+    // Exceso/defecto de aportación (D48): totalInvestment - contributedCash
+    // - propertiesFinancing*propertiesFinancingPct + premisesPrice*premisesFinancingPct
+    // - initialOrder - familyContribution - pharmacyBankFinancing. Tells whether, given the mortgaged
+    // properties, more money is being put in than the bank can lend.
+    // Informational only: not part of totalFinancing.
+    double contributionExcess=0;
     double minimumCash=0;    // Recommended minimum contribution = max(0, (totalInvestment-premisesPrice)*(1-pharmacyFinancingPct) - propertiesFinancing*propertiesFinancingPct - initialOrder) + premisesPrice*(1-premisesFinancingPct)
     bool   cashBelowMinimum=false; // contributedCash < minimumCash
 };
@@ -365,7 +388,8 @@ struct ProjectionResult {           // 10 values = years 1..10
         coopPrincipalRepayment{}, familyPrincipalRepayment{}, netAnnualSalary{}, netMonthlySalary{},
         staffCostPct{};
     // Series applied by the growth scenario (informational only).
-    std::array<double,10> ipcApplied{}, commercialMarginPct{};
+    // ipcApplied: venta libre; ipcPrescriptionApplied: venta receta.
+    std::array<double,10> ipcApplied{}, ipcPrescriptionApplied{}, commercialMarginPct{};
 };
 
 struct AnalysisResult {
@@ -390,7 +414,7 @@ struct AnalysisResult {
 // Every array is 10 values = years 1..10.
 struct SaleResult {
     std::array<double,10> totalSales{},   // that year's total sales (Proyeccion)
-        goodwillValue{},                  // totalSales x goodwillMultiple
+        goodwillValue{},                  // totalSales x financing.goodwillMultiple
         premisesValue{},                  // premisesPrice (same as the purchase)
         inventoryValue{},                 // totalSales x inventoryPctYear10
         grossValue{},                     // sum of the three above

@@ -287,7 +287,9 @@ Results compute(const Inputs& in)
     // ================================================= Financiación (v2)
     {
         auto& F = R.financing;
-        F.goodwill = (in.prescriptionSales + in.otcSales) * in.goodwillMultiple; // D14
+        F.goodwill = in.goodwillPrice;                                       // D14
+        const double purchaseSales = in.prescriptionSales + in.otcSales;
+        F.goodwillMultiple = purchaseSales > 0 ? F.goodwill / purchaseSales : 0.0; // D13
         F.fees     = (F.goodwill + in.premisesPrice) * in.feesPct;   // D18
         F.iva      = F.fees * in.ivaPct;                              // D19
         F.itpTax   = in.itpPct * in.premisesPrice;                   // D20
@@ -295,7 +297,7 @@ Results compute(const Inputs& in)
         F.taxes    = F.itpTax + F.ajd;                                // D23
         const double totalInvestmentBeforeOpeningCost = F.goodwill + in.premisesPrice + in.inventory
                          + F.fees + F.iva
-                         + in.notaryFees + in.registryFees + in.miscExpenses + F.taxes; // D24 (before opening fees)
+                         + in.miscExpenses + F.taxes; // D24 (before opening fees)
         F.premisesBankFinancing = in.premisesPrice * in.premisesFinancingPct; // D46 (Excel: D15*0,7 literal)
         const double pharmacyBankFinancingBeforeOpeningCost = totalInvestmentBeforeOpeningCost - in.contributedCash
                               - in.initialOrder - F.premisesBankFinancing
@@ -314,7 +316,12 @@ Results compute(const Inputs& in)
         F.totalFinancing = in.contributedCash + in.familyContribution
                             + F.pharmacyBankFinancing + F.premisesBankFinancing
                             + in.propertiesFinancing * in.propertiesFinancingPct
-                            + in.contributionExcess + in.initialOrder;       // D50
+                            + in.initialOrder;                               // D50
+        F.contributionExcess = F.totalInvestment - in.contributedCash
+                            - in.propertiesFinancing * in.propertiesFinancingPct
+                            + in.premisesPrice * in.premisesFinancingPct
+                            - in.initialOrder - in.familyContribution
+                            - F.pharmacyBankFinancing;                       // D48
         // Properties/cooperative financing offsets the pharmacy cash requirement
         // euro-for-euro (they are loan sources, not partial collateral), clamped
         // at zero so surplus guarantees don't produce a negative minimum.
@@ -352,11 +359,21 @@ Results compute(const Inputs& in)
 
         // Growth scenario ("Aumento de facturación"): Realistic uses the last
         // 10 years' historical series; Optimistic uses the constant rate set
-        // by the user. Drives sales, rent and rdDeduction — not salaries or
+        // by the user. Drives sales and rdDeduction — not salaries, rent or
         // otros gastos, which instead follow the fixed IPC (salaryRaisePct).
-        const std::array<double,10> annualIpc = (in.growthScenario >= 0.5)
+        // In both scenarios venta libre and venta receta can grow at
+        // different rates; venta receta reuses venta libre's while the
+        // scenario's "same growth" flag is on.
+        const bool optimistic = in.growthScenario >= 0.5;
+        const double optimisticPrescriptionRate = (in.sameOptimisticGrowth != 0.0)
+            ? in.ipcOptimistic : in.ipcOptimisticPrescription;
+        const std::array<double,10> annualIpc = optimistic
             ? [&]{ std::array<double,10> a; a.fill(in.ipcOptimistic); return a; }()
             : in.annualRevenueIncrease;
+        const std::array<double,10> annualPrescriptionIpc = optimistic
+            ? [&]{ std::array<double,10> a; a.fill(optimisticPrescriptionRate); return a; }()
+            : (in.sameRealisticGrowth != 0.0 ? in.annualRevenueIncrease
+                                             : in.annualRevenueIncreasePrescription);
         const std::array<double,10> annualCommercialMargin = (in.growthScenario >= 0.5)
             ? optimisticMarginSeries(in)
             : in.realisticMarginSeries;
@@ -395,38 +412,48 @@ Results compute(const Inputs& in)
             // IPC is applied from year 1 onward (including year 1 itself).
             // Negative IPC is treated as 0% (no deflation applied in the projection).
             const double ipc = std::max(0.0, annualIpc[i]);
-            P.ipcApplied[i]         = ipc;
+            const double ipcPrescription = std::max(0.0, annualPrescriptionIpc[i]);
+            P.ipcApplied[i]             = ipc;
+            P.ipcPrescriptionApplied[i] = ipcPrescription;
             P.commercialMarginPct[i] = annualCommercialMargin[i];
 
             // Sales (rows 6-7)
-            P.prescriptionSales[i] = (i == 0 ? in.prescriptionSales : P.prescriptionSales[i-1]) * (1.0 + ipc);
+            P.prescriptionSales[i] = (i == 0 ? in.prescriptionSales : P.prescriptionSales[i-1]) * (1.0 + ipcPrescription);
             P.otcSales[i]  = (i == 0 ? in.otcSales  : P.otcSales[i-1])  * (1.0 + ipc);
             P.totalSales[i]  = P.prescriptionSales[i] + P.otcSales[i];             // row 8
             P.costOfGoods[i] = P.totalSales[i] * (1.0 - annualCommercialMargin[i]); // row 9
             P.grossMargin[i]      = P.totalSales[i] - P.costOfGoods[i];       // row 10
-            P.rdDeduction[i] = (i == 0 ? R.baseData.rdDeduction : P.rdDeduction[i-1]) * (1.0 + ipc); // row 11
+            // RDs are a scale on prescription sales: they follow venta receta's growth.
+            P.rdDeduction[i] = (i == 0 ? R.baseData.rdDeduction : P.rdDeduction[i-1]) * (1.0 + ipcPrescription); // row 11
             P.marginAfterRd[i]  = P.grossMargin[i] - P.rdDeduction[i];        // row 12
-            P.rent[i] = (i == 0
-                ? in.premisesRent
-                : P.rent[i-1]) * (1.0 + ipc);                                 // row 13
+            // Rent is an expense, not revenue: it follows the fixed IPC of
+            // Configuración (salaryRaisePct), not the facturación growth.
+            // premisesRent is entered without IVA; the projection uses the
+            // amount actually paid, IVA included (ivaPct from Configuración).
+            // IPC only applies from year 2 onward: year 1 uses the base amounts.
+            P.rent[i] = (i == 0)
+                ? in.premisesRent * (1.0 + in.ivaPct)
+                : P.rent[i-1] * (1.0 + in.salaryRaisePct);                    // row 13
             // row 14: Plantilla cost only counts employees already hired by
             // this projection year (in.startYear + i); vacation-cover cost
             // isn't staggered. Both grow year over year by the fixed
             // salaryRaisePct ("IPC" in Configuración, decoupled from the
-            // facturación growth scenario), including year 1 itself (see
-            // comment above). Otros gastos (row 15) grows by the same IPC,
-            // since general expenses track real inflation rather than the
-            // pharmacy's own revenue-growth assumption.
-            for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + in.salaryRaisePct);
-            vacationCost *= (1.0 + in.salaryRaisePct);
+            // facturación growth scenario), from year 2 onward, so year 1
+            // matches the Personal page. Otros gastos (row 15) grows by the
+            // same IPC, since general expenses track real inflation rather
+            // than the pharmacy's own revenue-growth assumption.
+            if (i > 0) {
+                for (int r = 1; r <= 3; ++r) roleGrossFte[r] *= (1.0 + in.salaryRaisePct);
+                vacationCost *= (1.0 + in.salaryRaisePct);
+            }
             const int currentYear = in.startYear + i;
             double regularStaffCost = 0;
             for (int r = 1; r <= 3; ++r)
                 regularStaffCost += roleGrossFte[r] * activeFteSum(r, currentYear) * (1.0 + in.socialSecurityPct);
             P.staffCost[i] = regularStaffCost + vacationCost;
-            P.otherExpenses[i] = (i == 0
+            P.otherExpenses[i] = (i == 0)
                 ? R.baseData.totalOtherExpenses                                 // B15 = D29 (rent shown separately in row 13)
-                : P.otherExpenses[i-1]) * (1.0 + in.salaryRaisePct);              // row 15
+                : P.otherExpenses[i-1] * (1.0 + in.salaryRaisePct);               // row 15
             P.interest[i] = annualSum(R.bankAmort, i, true)
                            + annualSum(R.propertiesAmort,  i, true)
                            + annualSum(R.coopAmort,  i, true)
@@ -447,7 +474,8 @@ Results compute(const Inputs& in)
         R.baseData.totalStaffCost = R.baseData.staffCost
             + R.baseData.socialSecurity + P.selfEmployedQuota[0];               // D21
         R.baseData.profitBeforeTax = R.baseData.marginAfterRd
-            - R.baseData.totalStaffCost - in.premisesRent - R.baseData.totalOtherExpenses;  // D30
+            - R.baseData.totalStaffCost - in.premisesRent * (1.0 + in.ivaPct)
+            - R.baseData.totalOtherExpenses;                                    // D30
 
         // ------------------------- Hoja Impuestos (IRPF, v2) — between rows 17 and 18
         {
@@ -587,7 +615,7 @@ Results compute(const Inputs& in)
         double fdcDepreciationAccum = 0;
         for (int i = 0; i < 10; ++i) {
             V.totalSales[i]     = P.totalSales[i];
-            V.goodwillValue[i]  = P.totalSales[i] * in.goodwillMultiple;   // same multiple as the purchase
+            V.goodwillValue[i]  = P.totalSales[i] * R.financing.goodwillMultiple;   // same multiple as the purchase
             V.premisesValue[i]  = in.premisesPrice;                        // same price for the premises
             V.inventoryValue[i] = P.totalSales[i] * in.inventoryPctYear10;
             V.grossValue[i]     = V.goodwillValue[i] + V.premisesValue[i] + V.inventoryValue[i];

@@ -7,6 +7,10 @@ import FarmaciaSim
 ColumnLayout {
     id: serie
     required property string prefix
+    // Si no está vacío, cada cambio de esta serie se copia también a la
+    // serie con este prefijo (p. ej. venta libre -> venta receta con
+    // "Mismo crecimiento" marcado).
+    property string mirrorPrefix: ""
     property int wCell: 84
     Layout.fillWidth: true
     spacing: 0
@@ -44,6 +48,13 @@ ColumnLayout {
                     anchors.centerIn: parent
                     implicitWidth: serie.wCell - 8
                     k: serie.prefix + celda.index
+                    onValueChanged: {
+                        if (serie.mirrorPrefix === "")
+                            return
+                        const mk = serie.mirrorPrefix + celda.index
+                        if (Engine.inputs[mk] !== value)
+                            Engine.set(mk, value)
+                    }
                 }
             }
         }

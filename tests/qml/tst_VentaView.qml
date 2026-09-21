@@ -53,7 +53,9 @@ TestCase {
         const tabla = findChild(view, "tabla")
         verify(tabla !== null)
 
-        Engine.set("goodwillMultiple", 2.5)
+        // El coeficiente se calcula a partir del fondo de comercio: 2,5 x la
+        // venta total de Datos base.
+        Engine.set("goodwillPrice", Engine.baseData.totalSales * 2.5)
 
         const fdc = testCase.fila(tabla, "Fondo de comercio (coef. 2,50)")
         verify(fdc !== undefined)

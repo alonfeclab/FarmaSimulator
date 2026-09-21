@@ -267,6 +267,49 @@ static QJsonObject expandLegacyRaisePct(QJsonObject o)
     return o;
 }
 
+// Notario and Registro used to be separate inputs; they're now part of
+// "Gastos varios" (miscExpenses). Sessions saved before that keep the same
+// total by folding them into it.
+// The goodwill used to be computed as a multiple ("goodwillMultiple") of
+// total sales; now its price is the input. Sessions saved before that keep
+// the same goodwill by converting multiple x saved sales into a price.
+static QJsonObject convertLegacyGoodwillMultiple(QJsonObject o)
+{
+    const QString multipleKey = QStringLiteral("goodwillMultiple");
+    const auto it = o.constFind(multipleKey);
+    if (it == o.constEnd() || !it->isDouble())
+        return o;
+    const double multiple = it->toDouble();
+    o.remove(multipleKey);
+    if (o.contains(QStringLiteral("goodwillPrice")))
+        return o;
+    const sim::Inputs defaults;
+    const auto num = [&o](const char* key, double fallback) {
+        const QJsonValue v = o.value(QLatin1String(key));
+        return v.isDouble() ? v.toDouble() : fallback;
+    };
+    const double sales = num("prescriptionSales", defaults.prescriptionSales)
+                       + num("otcSales", defaults.otcSales);
+    o[QStringLiteral("goodwillPrice")] = sales * multiple;
+    return o;
+}
+
+static QJsonObject foldLegacyNotaryRegistry(QJsonObject o)
+{
+    const QString notary   = QStringLiteral("notaryFees");
+    const QString registry = QStringLiteral("registryFees");
+    const QString misc     = QStringLiteral("miscExpenses");
+    if (!o.contains(notary) && !o.contains(registry))
+        return o;
+    double total = o.value(misc).isDouble() ? o.value(misc).toDouble() : 3955.28; // old default
+    total += o.value(notary).isDouble()   ? o.value(notary).toDouble()   : 4000;  // old default
+    total += o.value(registry).isDouble() ? o.value(registry).toDouble() : 2500;  // old default
+    o.remove(notary);
+    o.remove(registry);
+    o[misc] = total;
+    return o;
+}
+
 void Engine::loadFromDisk()
 {
     QByteArray data;
@@ -298,7 +341,7 @@ void Engine::loadFromDisk()
     const QJsonDocument doc = QJsonDocument::fromJson(data);
     if (!doc.isObject())
         return;
-    const QJsonObject o = expandLegacyRaisePct(expandLegacyStaffFte(translateLegacyObject(doc.object())));
+    const QJsonObject o = convertLegacyGoodwillMultiple(foldLegacyNotaryRegistry(expandLegacyRaisePct(expandLegacyStaffFte(translateLegacyObject(doc.object())))));
     for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
         if (!it.value().isDouble())
             continue;
@@ -310,6 +353,14 @@ void Engine::loadFromDisk()
         }
     }
     m_in.staffCount[0] = 1; // Owner pharmacist: always 1 person, not editable
+
+    // Sessions saved before "Aumento de facturación" was split into venta
+    // libre / venta receta only have the venta libre values: venta receta
+    // starts equal to them (as it was before the split).
+    if (!o.contains(QStringLiteral("ipcOptimisticPrescription")))
+        m_in.ipcOptimisticPrescription = m_in.ipcOptimistic;
+    if (!o.contains(QStringLiteral("annualRevenueIncreasePrescription0")))
+        m_in.annualRevenueIncreasePrescription = m_in.annualRevenueIncrease;
 
     if (const auto it = o.constFind(QStringLiteral("comparisonScenarios"));
         it != o.constEnd() && it->isArray()) {
@@ -351,16 +402,17 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
     // ---- Financiación: growth scenario
     dbl["growthScenario"]       = &i.growthScenario;
     dbl["ipcOptimistic"]        = &i.ipcOptimistic;
+    dbl["ipcOptimisticPrescription"] = &i.ipcOptimisticPrescription;
+    dbl["sameOptimisticGrowth"] = &i.sameOptimisticGrowth;
+    dbl["sameRealisticGrowth"]  = &i.sameRealisticGrowth;
     dbl["salaryRaisePct"]       = &i.salaryRaisePct;
     dbl["optimisticMarginYear1"] = &i.optimisticMarginYear1;
     dbl["optimisticMarginYear2"] = &i.optimisticMarginYear2;
     dbl["optimisticMarginYear3"] = &i.optimisticMarginYear3;
     // ---- Financiación: investment, rates, contributions
-    dbl["goodwillMultiple"]  = &i.goodwillMultiple;
+    dbl["goodwillPrice"]     = &i.goodwillPrice;
     dbl["premisesPrice"]     = &i.premisesPrice;
     dbl["inventory"]         = &i.inventory;
-    dbl["notaryFees"]        = &i.notaryFees;
-    dbl["registryFees"]      = &i.registryFees;
     dbl["miscExpenses"]      = &i.miscExpenses;
     dbl["feesPct"]           = &i.feesPct;
     dbl["ivaPct"]            = &i.ivaPct;
@@ -382,7 +434,6 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
     dbl["contributedCash"]     = &i.contributedCash;
     dbl["familyContribution"]  = &i.familyContribution;
     dbl["propertiesFinancing"] = &i.propertiesFinancing;
-    dbl["contributionExcess"]  = &i.contributionExcess;
     dbl["initialOrder"]        = &i.initialOrder;
     // ---- Personal
     dbl["pharmacistSalary"]  = &i.pharmacistSalary;
@@ -449,6 +500,7 @@ static void bindInputMaps(sim::Inputs& i, QHash<QString, double*>& dbl, QHash<QS
     dbl["retaFlatMonthlyFee"] = &i.retaFlatMonthlyFee;
     for (int k = 0; k < 10; ++k) {
         dbl[QStringLiteral("annualRevenueIncrease%1").arg(k)] = &i.annualRevenueIncrease[k];
+        dbl[QStringLiteral("annualRevenueIncreasePrescription%1").arg(k)] = &i.annualRevenueIncreasePrescription[k];
         dbl[QStringLiteral("realisticMarginSeries%1").arg(k)] = &i.realisticMarginSeries[k];
     }
 }
@@ -807,6 +859,7 @@ void Engine::buildMaps()
     const auto& F = m_r.financing;
     m_financing = QVariantMap{
         { "goodwill",              F.goodwill },
+        { "goodwillMultiple",      F.goodwillMultiple },
         { "fees",                  F.fees },
         { "iva",                   F.iva },
         { "itpTax",                F.itpTax },
@@ -817,6 +870,7 @@ void Engine::buildMaps()
         { "pharmacyBankFinancing", F.pharmacyBankFinancing },
         { "premisesBankFinancing", F.premisesBankFinancing },
         { "totalFinancing",        F.totalFinancing },
+        { "contributionExcess",    F.contributionExcess },
         { "minimumCash",           F.minimumCash },
         { "cashBelowMinimum",      F.cashBelowMinimum },
     };
@@ -892,7 +946,8 @@ void Engine::buildMaps()
         projectionRow("Venta receta",                  Y.prescriptionSales),
         projectionRow("Venta libre",                   Y.otcSales),
         projectionRow("Venta total",                   Y.totalSales, "eur", true),
-        projectionRow("Aumento facturación aplicado",  Y.ipcApplied, "pct1"),
+        projectionRow("Aumento venta receta aplicado", Y.ipcPrescriptionApplied, "pct1"),
+        projectionRow("Aumento venta libre aplicado",  Y.ipcApplied, "pct1"),
         projectionRow("Coste mercancía",               Y.costOfGoods),
         projectionRow("M. comercial %",                Y.commercialMarginPct, "pct1"),
         projectionRow("M. comercial bruto",            Y.grossMargin),
@@ -1012,7 +1067,7 @@ void Engine::buildMaps()
         { "rows", QVariantList{
             separatorRow(QStringLiteral("Valor de venta (mismas condiciones que la compra)")),
             projectionRow("Venta total del año",            V.totalSales),
-            projectionRow("Fondo de comercio (coef. " + numLabel(m_in.goodwillMultiple) + ")", V.goodwillValue),
+            projectionRow("Fondo de comercio (coef. " + numLabel(m_r.financing.goodwillMultiple) + ")", V.goodwillValue),
             projectionRow("Local comercial",                 V.premisesValue),
             projectionRow("Existencias (" + pctLabel(m_in.inventoryPctYear10) + " facturación)", V.inventoryValue),
             projectionRow("Valor de venta bruto",            V.grossValue, "eur", true),
